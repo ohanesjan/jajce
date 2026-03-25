@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-canvas font-sans text-bark antialiased;
+  background-image:
+    radial-gradient(circle at top, rgba(142, 185, 200, 0.18), transparent 32%),
+    linear-gradient(180deg, #fbf7ef 0%, #f5efe3 100%);
+}
+
+::selection {
+  background: rgba(142, 185, 200, 0.35);
+}
+
+.section-shell {
+  @apply mx-auto max-w-6xl px-6 md:px-10;
+}
+
+.eyebrow {
+  @apply text-xs font-medium uppercase tracking-[0.32em] text-soil/70;
+}
+
+.section-title {
+  @apply font-serif text-3xl leading-tight text-bark md:text-5xl;
+}
+
+.section-copy {
+  @apply max-w-2xl text-base leading-8 text-bark/75 md:text-lg;
+}
+
+.card-surface {
+  @apply rounded-[2rem] border border-white/60 bg-parchment/90 shadow-soft backdrop-blur-sm;
+}
