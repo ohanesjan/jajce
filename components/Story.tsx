@@ -4,13 +4,13 @@ export function Story() {
   return (
     <section className="section-shell py-20 md:py-28" id="story">
       <div className="grid items-center gap-10 md:grid-cols-[1.05fr_0.95fr] md:gap-16">
-        <div className="relative overflow-hidden rounded-[2rem] shadow-soft">
+        <div className="relative min-h-[320px] overflow-hidden rounded-[2rem] shadow-soft md:min-h-[520px]">
           <Image
             src="/images/chickens.jpg"
             alt="Free-roaming chickens in a mountain village"
-            width={1200}
-            height={900}
-            className="h-full w-full object-cover"
+            fill
+            sizes="(min-width: 768px) 50vw, 100vw"
+            className="object-cover"
           />
         </div>
         <div>

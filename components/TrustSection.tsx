@@ -14,7 +14,9 @@ export function TrustSection() {
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(24,24,24,0.68)_0%,rgba(24,24,24,0.28)_100%)]" />
         <div className="absolute inset-0 flex items-end md:items-center">
           <div className="max-w-2xl px-8 py-10 md:px-14">
-            <p className="eyebrow text-sky/85">Place and quality</p>
+            <p className="inline-flex rounded-full bg-black/35 px-4 py-2 text-sm font-semibold uppercase tracking-[0.24em] text-white">
+              Place and quality
+            </p>
             <p className="mt-4 font-serif text-3xl leading-tight text-white md:text-5xl">
               From a small mountain village where quality comes before quantity.
             </p>
