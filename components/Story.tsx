@@ -17,9 +17,17 @@ export function Story() {
           <p className="eyebrow">Our story</p>
           <h2 className="section-title mt-4">Raised naturally</h2>
           <p className="section-copy mt-6">
-            Our chickens roam freely in a mountain village, with space, fresh
-            air, and natural rhythm. We do not force production — we collect
-            only what nature provides.
+            In Pletvar, a quiet mountain village, our chickens live as they
+            should — free to roam, breathe fresh air, and follow their natural
+            rhythm.
+          </p>
+          <p className="section-copy mt-4">
+            They are nourished with high-quality, natural feed — free from
+            additives and antibiotics.
+          </p>
+          <p className="section-copy mt-4">
+            We don&apos;t rush or force production — we simply collect what
+            nature provides, when it&apos;s ready.
           </p>
           <div className="mt-8 h-px w-24 bg-soil/25" />
           <p className="mt-8 max-w-xl text-sm uppercase tracking-[0.22em] text-soil/70">

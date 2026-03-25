@@ -642,6 +642,9 @@ video {
 .border-soil\/15 {
   border-color: rgb(123 90 67 / 0.15);
 }
+.border-white\/25 {
+  border-color: rgb(255 255 255 / 0.25);
+}
 .bg-\[\#efe6d6\] {
   --tw-bg-opacity: 1;
   background-color: rgb(239 230 214 / var(--tw-bg-opacity, 1));

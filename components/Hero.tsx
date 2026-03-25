@@ -30,8 +30,8 @@ export function Hero() {
             >
               Get notified
             </a>
-            <p className="text-sm uppercase tracking-[0.18em] text-white/92">
-              Available in small batches only.
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-white">
+              Available in small batches only
             </p>
           </div>
         </div>
