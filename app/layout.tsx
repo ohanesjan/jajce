@@ -3,7 +3,7 @@ import { LanguageProvider } from "@/context/LanguageContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Jajce | Eggs from the mountains",
+  title: "Jajce | Планински јајца",
   description:
     "A premium landing page for naturally raised eggs from a mountain village.",
 };
