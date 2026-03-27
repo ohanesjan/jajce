@@ -1,3 +1,4 @@
+import AvailabilityNote from "@/components/AvailabilityNote";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
 import { HowItWorks } from "@/components/HowItWorks";
@@ -9,6 +10,7 @@ export default function HomePage() {
   return (
     <main>
       <Hero />
+      <AvailabilityNote />
       <Story />
       <HowItWorks />
       <NotifySection />
