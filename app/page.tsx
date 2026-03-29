@@ -1,9 +1,8 @@
-import AvailabilityNote from "@/components/AvailabilityNote";
 import { Footer } from "@/components/Footer";
+import FarmLedgerSection from "@/components/FarmLedgerSection";
 import { Hero } from "@/components/Hero";
 import { HowItWorks } from "@/components/HowItWorks";
 import { NotifySection } from "@/components/NotifySection";
-import PriceTransparency from "@/components/PriceTransparency";
 import { Story } from "@/components/Story";
 import { TrustSection } from "@/components/TrustSection";
 
@@ -11,8 +10,7 @@ export default function HomePage() {
   return (
     <main>
       <Hero />
-      <AvailabilityNote />
-      <PriceTransparency />
+      <FarmLedgerSection />
       <Story />
       <HowItWorks />
       <NotifySection />
