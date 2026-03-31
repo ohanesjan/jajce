@@ -3,4 +3,5 @@ node_modules/
 images/
 .next/
 .vercel/
+.env
 .env.local
