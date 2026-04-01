@@ -5,3 +5,4 @@ images/
 .vercel/
 .env
 .env.local
+tsconfig.tsbuildinfo

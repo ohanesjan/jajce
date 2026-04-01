@@ -8,6 +8,10 @@ const migrationPath = path.join(
   projectRoot,
   "prisma/migrations/20260401120000_init/migration.sql",
 );
+const phaseTwoInventoryMigrationPath = path.join(
+  projectRoot,
+  "prisma/migrations/20260401153000_phase2_collected_unique/migration.sql",
+);
 
 describe("Phase 1 schema and migration safeguards", () => {
   it("does not keep a global uniqueness constraint on inventory_transactions.daily_log_id", () => {
@@ -20,6 +24,17 @@ describe("Phase 1 schema and migration safeguards", () => {
     );
     expect(migration).toContain(
       'CREATE INDEX "inventory_transactions_daily_log_id_idx"',
+    );
+  });
+
+  it("adds a partial unique index so each daily log has at most one collected row", () => {
+    const migration = readFileSync(phaseTwoInventoryMigrationPath, "utf8");
+
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "inventory_transactions_collected_daily_log_id_unique"',
+    );
+    expect(migration).toContain(
+      `WHERE "type" = 'collected' AND "daily_log_id" IS NOT NULL;`,
     );
   });
 
