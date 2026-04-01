@@ -35,6 +35,24 @@ export default async function AdminProtectedLayout({
             >
               Daily logs
             </Link>
+            <Link
+              href="/admin/costs"
+              className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
+            >
+              Costs
+            </Link>
+            <Link
+              href="/admin/cost-templates"
+              className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
+            >
+              Cost templates
+            </Link>
+            <Link
+              href="/admin/margin"
+              className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
+            >
+              Margin
+            </Link>
             <form action={logoutAdminAction}>
               <button
                 type="submit"
