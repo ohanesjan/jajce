@@ -16,6 +16,10 @@ const phaseThreeCostTemplateAcceptanceMigrationPath = path.join(
   projectRoot,
   "prisma/migrations/20260402110000_phase3_cost_template_acceptance_unique/migration.sql",
 );
+const phaseFourOrderInventoryGuardMigrationPath = path.join(
+  projectRoot,
+  "prisma/migrations/20260402150000_phase4_order_inventory_unique/migration.sql",
+);
 
 describe("Phase 1 schema and migration safeguards", () => {
   it("does not keep a global uniqueness constraint on inventory_transactions.daily_log_id", () => {
@@ -56,6 +60,29 @@ describe("Phase 1 schema and migration safeguards", () => {
     );
     expect(migration).toContain(
       `WHERE "cost_template_id" IS NOT NULL AND "source_type" = 'template';`,
+    );
+  });
+
+  it("adds partial unique indexes so each order can have at most one reserved, sold, and released row", () => {
+    const migration = readFileSync(phaseFourOrderInventoryGuardMigrationPath, "utf8");
+
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "inventory_transactions_reserved_order_id_unique"',
+    );
+    expect(migration).toContain(
+      `WHERE "type" = 'reserved' AND "order_id" IS NOT NULL;`,
+    );
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "inventory_transactions_sold_order_id_unique"',
+    );
+    expect(migration).toContain(
+      `WHERE "type" = 'sold' AND "order_id" IS NOT NULL;`,
+    );
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "inventory_transactions_released_order_id_unique"',
+    );
+    expect(migration).toContain(
+      `WHERE "type" = 'released' AND "order_id" IS NOT NULL;`,
     );
   });
 

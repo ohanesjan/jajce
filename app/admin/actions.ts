@@ -36,7 +36,27 @@ import {
   deleteCostEntry,
   updateCostEntry,
 } from "@/lib/services/cost-entries";
+import {
+  ContactInUseError,
+  ContactNotFoundError,
+  createContact,
+  deleteContact,
+  updateContact,
+} from "@/lib/services/contacts";
 import { CostValidationError as SharedCostValidationError } from "@/lib/services/cost-validation";
+import { ContactValidationError } from "@/lib/services/contact-validation";
+import {
+  CompletedOrderCorrectionNotAllowedError,
+  OrderContactNotFoundError,
+  OrderInventoryInsufficientError,
+  OrderInventoryStateError,
+  OrderNotFoundError,
+  OrderTransitionNotAllowedError,
+  correctCompletedOrder,
+  createOrder,
+  updateEditableOrder,
+} from "@/lib/services/orders";
+import { OrderValidationError } from "@/lib/services/order-validation";
 
 export async function loginAdminAction(formData: FormData): Promise<never> {
   const email = normalizeAdminEmail(getStringField(formData, "email"));
@@ -221,6 +241,87 @@ export async function acceptCostSuggestionAction(
   }
 }
 
+export async function saveContactAction(formData: FormData): Promise<never> {
+  await requireAdminSession();
+
+  const contactId = getOptionalStringField(formData, "id");
+
+  try {
+    if (contactId) {
+      await updateContact(contactId, extractContactFormData(formData));
+    } else {
+      await createContact(extractContactFormData(formData));
+    }
+
+    redirect("/admin/contacts?success=saved");
+  } catch (error) {
+    redirect(
+      `/admin/contacts?${new URLSearchParams({
+        error: getContactErrorCode(error),
+        ...(contactId ? { edit: contactId } : {}),
+      }).toString()}`,
+    );
+  }
+}
+
+export async function deleteContactAction(formData: FormData): Promise<never> {
+  await requireAdminSession();
+
+  const contactId = getStringField(formData, "id");
+
+  try {
+    await deleteContact(contactId);
+    redirect("/admin/contacts?success=deleted");
+  } catch (error) {
+    redirect(
+      `/admin/contacts?error=${encodeURIComponent(getContactErrorCode(error))}`,
+    );
+  }
+}
+
+export async function saveOrderAction(formData: FormData): Promise<never> {
+  await requireAdminSession();
+
+  const orderId = getOptionalStringField(formData, "id");
+
+  try {
+    if (orderId) {
+      await updateEditableOrder(orderId, extractOrderFormData(formData));
+    } else {
+      await createOrder(extractOrderFormData(formData));
+    }
+
+    redirect("/admin/orders?success=saved");
+  } catch (error) {
+    redirect(
+      `/admin/orders?${new URLSearchParams({
+        error: getOrderErrorCode(error),
+        ...(orderId ? { edit: orderId } : {}),
+      }).toString()}`,
+    );
+  }
+}
+
+export async function correctCompletedOrderAction(
+  formData: FormData,
+): Promise<never> {
+  await requireAdminSession();
+
+  const orderId = getStringField(formData, "id");
+
+  try {
+    await correctCompletedOrder(orderId, extractCompletedOrderCorrectionFormData(formData));
+    redirect("/admin/orders?success=corrected");
+  } catch (error) {
+    redirect(
+      `/admin/orders?${new URLSearchParams({
+        error: getOrderErrorCode(error),
+        edit: orderId,
+      }).toString()}`,
+    );
+  }
+}
+
 function extractDailyLogFormData(formData: FormData) {
   return {
     date: formData.get("date"),
@@ -263,6 +364,51 @@ function extractCostEntryFormData(formData: FormData) {
     total_amount: formData.get("total_amount"),
     source_type: formData.get("source_type"),
     cost_template_id: formData.get("cost_template_id"),
+    note: formData.get("note"),
+  };
+}
+
+function extractContactFormData(formData: FormData) {
+  return {
+    full_name: formData.get("full_name"),
+    email: formData.get("email"),
+    phone: formData.get("phone"),
+    is_subscriber: formData.get("is_subscriber"),
+    is_waiting_list: formData.get("is_waiting_list"),
+    is_active_customer: formData.get("is_active_customer"),
+    email_opt_in: formData.get("email_opt_in"),
+    phone_opt_in: formData.get("phone_opt_in"),
+    preferred_channel: formData.get("preferred_channel"),
+    preferred_quantity: formData.get("preferred_quantity"),
+    preference_unit: formData.get("preference_unit"),
+    notification_frequency: formData.get("notification_frequency"),
+    customer_stage: formData.get("customer_stage"),
+    source: formData.get("source"),
+    joined_waiting_list_at: formData.get("joined_waiting_list_at"),
+    became_customer_at: formData.get("became_customer_at"),
+    notes: formData.get("notes"),
+  };
+}
+
+function extractOrderFormData(formData: FormData) {
+  return {
+    contact_id: formData.get("contact_id"),
+    date: formData.get("date"),
+    target_fulfillment_date: formData.get("target_fulfillment_date"),
+    quantity: formData.get("quantity"),
+    status: formData.get("status"),
+    price_source: formData.get("price_source"),
+    unit_price: formData.get("unit_price"),
+    fulfilled_at: formData.get("fulfilled_at"),
+    note: formData.get("note"),
+  };
+}
+
+function extractCompletedOrderCorrectionFormData(formData: FormData) {
+  return {
+    quantity: formData.get("quantity"),
+    unit_price: formData.get("unit_price"),
+    fulfilled_at: formData.get("fulfilled_at"),
     note: formData.get("note"),
   };
 }
@@ -333,6 +479,54 @@ function getCostEntryErrorCode(error: unknown): string {
 
   if (error instanceof TemplateCostEntryMutationNotAllowedError) {
     return "template_origin_locked";
+  }
+
+  return "unknown";
+}
+
+function getContactErrorCode(error: unknown): string {
+  if (error instanceof ContactValidationError) {
+    return "validation";
+  }
+
+  if (error instanceof ContactNotFoundError) {
+    return "not_found";
+  }
+
+  if (error instanceof ContactInUseError) {
+    return "in_use";
+  }
+
+  return "unknown";
+}
+
+function getOrderErrorCode(error: unknown): string {
+  if (error instanceof OrderValidationError) {
+    return "validation";
+  }
+
+  if (error instanceof OrderNotFoundError) {
+    return "not_found";
+  }
+
+  if (error instanceof OrderContactNotFoundError) {
+    return "contact_not_found";
+  }
+
+  if (error instanceof OrderInventoryInsufficientError) {
+    return "insufficient_inventory";
+  }
+
+  if (error instanceof OrderTransitionNotAllowedError) {
+    return "transition_not_allowed";
+  }
+
+  if (error instanceof CompletedOrderCorrectionNotAllowedError) {
+    return "completed_correction_required";
+  }
+
+  if (error instanceof OrderInventoryStateError) {
+    return "invalid_inventory_state";
   }
 
   return "unknown";

@@ -48,6 +48,18 @@ export default async function AdminProtectedLayout({
               Cost templates
             </Link>
             <Link
+              href="/admin/contacts"
+              className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
+            >
+              Contacts
+            </Link>
+            <Link
+              href="/admin/orders"
+              className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
+            >
+              Orders
+            </Link>
+            <Link
               href="/admin/margin"
               className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
             >
