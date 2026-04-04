@@ -136,6 +136,28 @@ describe("create and update cost entries", () => {
     });
   });
 
+  it("creates a manual cost entry when source_type is omitted from a normal form payload", async () => {
+    const database = createCostEntryTestDatabase();
+
+    const entry = await createCostEntry(
+      {
+        date: "2026-04-12",
+        category: "utilities",
+        cost_type: "allocated",
+        total_amount: "14.50",
+        source_type: null,
+      },
+      database as never,
+    );
+
+    expect(entry).toMatchObject({
+      category: cost_category.utilities,
+      cost_type: cost_type.allocated,
+      source_type: "manual",
+      total_amount: new Prisma.Decimal("14.50"),
+    });
+  });
+
   it("rejects forged template-origin creates in the normal flow", async () => {
     const database = createCostEntryTestDatabase();
 

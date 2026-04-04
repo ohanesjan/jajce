@@ -360,7 +360,8 @@ function createDailyLogTestDatabase() {
     $queryRaw: async <T>(query: unknown) => {
       const sql = query as { values?: unknown[] };
       const values = sql.values ?? [];
-      const [date, quantity, dailyLogId, note] = values as [
+      const [id, date, quantity, dailyLogId, note] = values as [
+        string,
         Date,
         number,
         string,
@@ -381,8 +382,10 @@ function createDailyLogTestDatabase() {
         return [inventoryTransactions[existingIndex]] as T;
       }
 
+      inventorySequence += 1;
+
       const createdTransaction = {
-        id: `inventory_${++inventorySequence}`,
+        id,
         order_id: null,
         created_at: new Date(`2026-04-01T12:00:0${inventorySequence}.000Z`),
         date,

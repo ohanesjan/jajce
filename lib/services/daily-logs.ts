@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import {
   DailyLog,
   InventoryTransaction,
@@ -181,10 +182,12 @@ export async function reconcileCollectedInventoryTransaction(
   dailyLog: Pick<DailyLog, "id" | "date" | "eggs_collected_for_sale">,
 ): Promise<InventoryTransaction> {
   const inventoryDate = parseDateOnly(formatDateOnly(dailyLog.date));
+  const inventoryTransactionId = randomUUID();
   const reconciledTransactions = await transaction.$queryRaw<
     InventoryTransaction[]
   >(Prisma.sql`
     INSERT INTO "inventory_transactions" (
+      "id",
       "date",
       "type",
       "quantity",
@@ -192,6 +195,7 @@ export async function reconcileCollectedInventoryTransaction(
       "note"
     )
     VALUES (
+      ${inventoryTransactionId},
       ${inventoryDate},
       'collected'::"inventory_transaction_type",
       ${dailyLog.eggs_collected_for_sale},

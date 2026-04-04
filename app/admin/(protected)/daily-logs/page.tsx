@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { deleteDailyLogAction, saveDailyLogAction } from "@/app/admin/actions";
+import { DailyLogEggFields } from "@/app/admin/(protected)/daily-logs/daily-log-egg-fields";
 import { listDailyLogs } from "@/lib/services/daily-logs";
 import { formatDateOnly } from "@/lib/utils/date";
 
@@ -72,64 +73,14 @@ export default async function AdminDailyLogsPage({
             />
           </FormField>
 
-          <FormField label="Eggs collected for sale">
-            <input
-              required
-              min={0}
-              step={1}
-              type="number"
-              name="eggs_collected_for_sale"
-              defaultValue={editingLog?.eggs_collected_for_sale ?? 0}
-              className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
-            />
-          </FormField>
-
-          <FormField label="Eggs used other purpose">
-            <input
-              required
-              min={0}
-              step={1}
-              type="number"
-              name="eggs_used_other_purpose"
-              defaultValue={editingLog?.eggs_used_other_purpose ?? 0}
-              className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
-            />
-          </FormField>
-
-          <FormField label="Eggs broken">
-            <input
-              required
-              min={0}
-              step={1}
-              type="number"
-              name="eggs_broken"
-              defaultValue={editingLog?.eggs_broken ?? 0}
-              className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
-            />
-          </FormField>
-
-          <FormField label="Eggs unusable other">
-            <input
-              required
-              min={0}
-              step={1}
-              type="number"
-              name="eggs_unusable_other"
-              defaultValue={editingLog?.eggs_unusable_other ?? 0}
-              className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
-            />
-          </FormField>
-
-          <FormField label="Auto-calculated total yield">
-            <input
-              type="number"
-              name="eggs_total_yield"
-              defaultValue=""
-              readOnly
-              placeholder="Calculated on save"
-              className="w-full rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/55 outline-none"
-            />
-          </FormField>
+          <DailyLogEggFields
+            initialValues={{
+              eggs_collected_for_sale: editingLog?.eggs_collected_for_sale ?? 0,
+              eggs_used_other_purpose: editingLog?.eggs_used_other_purpose ?? 0,
+              eggs_broken: editingLog?.eggs_broken ?? 0,
+              eggs_unusable_other: editingLog?.eggs_unusable_other ?? 0,
+            }}
+          />
 
           <FormField label="Chicken count">
             <input

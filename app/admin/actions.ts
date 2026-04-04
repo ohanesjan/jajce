@@ -99,8 +99,6 @@ export async function saveDailyLogAction(formData: FormData): Promise<never> {
     } else {
       await createDailyLog(extractDailyLogFormData(formData));
     }
-
-    redirect("/admin/daily-logs?success=saved");
   } catch (error) {
     redirect(
       `/admin/daily-logs?${new URLSearchParams({
@@ -109,6 +107,8 @@ export async function saveDailyLogAction(formData: FormData): Promise<never> {
       }).toString()}`,
     );
   }
+
+  redirect("/admin/daily-logs?success=saved");
 }
 
 export async function deleteDailyLogAction(formData: FormData): Promise<never> {
@@ -118,12 +118,13 @@ export async function deleteDailyLogAction(formData: FormData): Promise<never> {
 
   try {
     await deleteDailyLog(dailyLogId);
-    redirect("/admin/daily-logs?success=deleted");
   } catch (error) {
     redirect(
       `/admin/daily-logs?error=${encodeURIComponent(getDailyLogErrorCode(error))}`,
     );
   }
+
+  redirect("/admin/daily-logs?success=deleted");
 }
 
 export async function saveCostTemplateAction(formData: FormData): Promise<never> {
@@ -137,8 +138,6 @@ export async function saveCostTemplateAction(formData: FormData): Promise<never>
     } else {
       await createCostTemplate(extractCostTemplateFormData(formData));
     }
-
-    redirect("/admin/cost-templates?success=saved");
   } catch (error) {
     redirect(
       `/admin/cost-templates?${new URLSearchParams({
@@ -147,6 +146,8 @@ export async function saveCostTemplateAction(formData: FormData): Promise<never>
       }).toString()}`,
     );
   }
+
+  redirect("/admin/cost-templates?success=saved");
 }
 
 export async function deleteCostTemplateAction(
@@ -158,12 +159,13 @@ export async function deleteCostTemplateAction(
 
   try {
     await deleteCostTemplate(costTemplateId);
-    redirect("/admin/cost-templates?success=deleted");
   } catch (error) {
     redirect(
       `/admin/cost-templates?error=${encodeURIComponent(getCostTemplateErrorCode(error))}`,
     );
   }
+
+  redirect("/admin/cost-templates?success=deleted");
 }
 
 export async function saveCostEntryAction(formData: FormData): Promise<never> {
@@ -178,8 +180,6 @@ export async function saveCostEntryAction(formData: FormData): Promise<never> {
     } else {
       await createCostEntry(extractCostEntryFormData(formData));
     }
-
-    redirect(`/admin/costs?${buildCostsRedirectParams({ success: "saved", suggestionDate })}`);
   } catch (error) {
     redirect(
       `/admin/costs?${buildCostsRedirectParams({
@@ -189,6 +189,8 @@ export async function saveCostEntryAction(formData: FormData): Promise<never> {
       })}`,
     );
   }
+
+  redirect(`/admin/costs?${buildCostsRedirectParams({ success: "saved", suggestionDate })}`);
 }
 
 export async function deleteCostEntryAction(formData: FormData): Promise<never> {
@@ -199,12 +201,6 @@ export async function deleteCostEntryAction(formData: FormData): Promise<never> 
 
   try {
     await deleteCostEntry(costEntryId);
-    redirect(
-      `/admin/costs?${buildCostsRedirectParams({
-        success: "deleted",
-        suggestionDate,
-      })}`,
-    );
   } catch (error) {
     redirect(
       `/admin/costs?${buildCostsRedirectParams({
@@ -213,6 +209,13 @@ export async function deleteCostEntryAction(formData: FormData): Promise<never> 
       })}`,
     );
   }
+
+  redirect(
+    `/admin/costs?${buildCostsRedirectParams({
+      success: "deleted",
+      suggestionDate,
+    })}`,
+  );
 }
 
 export async function acceptCostSuggestionAction(
@@ -225,12 +228,6 @@ export async function acceptCostSuggestionAction(
 
   try {
     await acceptRecurringCostSuggestion(costTemplateId, suggestionDate);
-    redirect(
-      `/admin/costs?${buildCostsRedirectParams({
-        success: "accepted",
-        suggestionDate,
-      })}`,
-    );
   } catch (error) {
     redirect(
       `/admin/costs?${buildCostsRedirectParams({
@@ -239,6 +236,13 @@ export async function acceptCostSuggestionAction(
       })}`,
     );
   }
+
+  redirect(
+    `/admin/costs?${buildCostsRedirectParams({
+      success: "accepted",
+      suggestionDate,
+    })}`,
+  );
 }
 
 export async function saveContactAction(formData: FormData): Promise<never> {
@@ -252,8 +256,6 @@ export async function saveContactAction(formData: FormData): Promise<never> {
     } else {
       await createContact(extractContactFormData(formData));
     }
-
-    redirect("/admin/contacts?success=saved");
   } catch (error) {
     redirect(
       `/admin/contacts?${new URLSearchParams({
@@ -262,6 +264,8 @@ export async function saveContactAction(formData: FormData): Promise<never> {
       }).toString()}`,
     );
   }
+
+  redirect("/admin/contacts?success=saved");
 }
 
 export async function deleteContactAction(formData: FormData): Promise<never> {
@@ -271,12 +275,13 @@ export async function deleteContactAction(formData: FormData): Promise<never> {
 
   try {
     await deleteContact(contactId);
-    redirect("/admin/contacts?success=deleted");
   } catch (error) {
     redirect(
       `/admin/contacts?error=${encodeURIComponent(getContactErrorCode(error))}`,
     );
   }
+
+  redirect("/admin/contacts?success=deleted");
 }
 
 export async function saveOrderAction(formData: FormData): Promise<never> {
@@ -290,8 +295,6 @@ export async function saveOrderAction(formData: FormData): Promise<never> {
     } else {
       await createOrder(extractOrderFormData(formData));
     }
-
-    redirect("/admin/orders?success=saved");
   } catch (error) {
     redirect(
       `/admin/orders?${new URLSearchParams({
@@ -300,6 +303,8 @@ export async function saveOrderAction(formData: FormData): Promise<never> {
       }).toString()}`,
     );
   }
+
+  redirect("/admin/orders?success=saved");
 }
 
 export async function correctCompletedOrderAction(
@@ -311,7 +316,6 @@ export async function correctCompletedOrderAction(
 
   try {
     await correctCompletedOrder(orderId, extractCompletedOrderCorrectionFormData(formData));
-    redirect("/admin/orders?success=corrected");
   } catch (error) {
     redirect(
       `/admin/orders?${new URLSearchParams({
@@ -320,6 +324,8 @@ export async function correctCompletedOrderAction(
       }).toString()}`,
     );
   }
+
+  redirect("/admin/orders?success=corrected");
 }
 
 function extractDailyLogFormData(formData: FormData) {

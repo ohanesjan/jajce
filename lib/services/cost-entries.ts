@@ -72,7 +72,7 @@ function validateCostEntryInputInternal(
   { allowTemplateSource }: { allowTemplateSource: boolean },
 ): CostEntryWriteInput {
   const source_type =
-    input.source_type === undefined
+    input.source_type == null
       ? "manual"
       : parseCostSourceType(input.source_type);
   const cost_template_id = parseOptionalIdentifier(input.cost_template_id);
