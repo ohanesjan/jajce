@@ -60,6 +60,12 @@ export default async function AdminProtectedLayout({
               Orders
             </Link>
             <Link
+              href="/admin/notifications"
+              className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
+            >
+              Notifications
+            </Link>
+            <Link
               href="/admin/margin"
               className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
             >

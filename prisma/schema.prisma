@@ -143,6 +143,7 @@ model Contact {
   updated_at             DateTime               @updatedAt
   orders                 Order[]
   notification_recipients NotificationRecipient[]
+  notification_campaign_selections NotificationCampaignSelection[]
 
   @@index([customer_stage])
   @@index([is_subscriber])
@@ -281,6 +282,7 @@ model NotificationCampaign {
   created_at              DateTime                   @default(now())
   updated_at              DateTime                   @updatedAt
   notification_recipients NotificationRecipient[]
+  selected_contacts       NotificationCampaignSelection[]
 
   @@index([channel])
   @@index([audience_type])
@@ -307,7 +309,22 @@ model NotificationRecipient {
   @@index([contact_id])
   @@index([delivery_status])
   @@index([campaign_id, delivery_status])
+  @@unique([campaign_id, contact_id])
   @@map("notification_recipients")
+}
+
+model NotificationCampaignSelection {
+  id          String               @id @default(cuid())
+  campaign_id String
+  contact_id  String
+  created_at  DateTime             @default(now())
+  campaign    NotificationCampaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  contact     Contact              @relation(fields: [contact_id], references: [id], onDelete: Restrict)
+
+  @@index([campaign_id])
+  @@index([contact_id])
+  @@unique([campaign_id, contact_id])
+  @@map("notification_campaign_selections")
 }
 
 model SiteSetting {

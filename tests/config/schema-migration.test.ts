@@ -20,6 +20,10 @@ const phaseFourOrderInventoryGuardMigrationPath = path.join(
   projectRoot,
   "prisma/migrations/20260402150000_phase4_order_inventory_unique/migration.sql",
 );
+const phaseSevenNotificationGuardsMigrationPath = path.join(
+  projectRoot,
+  "prisma/migrations/20260405120000_phase7_notification_selection_and_recipient_unique/migration.sql",
+);
 
 describe("Phase 1 schema and migration safeguards", () => {
   it("does not keep a global uniqueness constraint on inventory_transactions.daily_log_id", () => {
@@ -83,6 +87,27 @@ describe("Phase 1 schema and migration safeguards", () => {
     );
     expect(migration).toContain(
       `WHERE "type" = 'released' AND "order_id" IS NOT NULL;`,
+    );
+  });
+
+  it("adds notification selection persistence and recipient uniqueness guards for Phase 7", () => {
+    const migration = readFileSync(
+      phaseSevenNotificationGuardsMigrationPath,
+      "utf8",
+    );
+
+    expect(migration).toContain('CREATE TABLE "notification_campaign_selections"');
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "notification_campaign_selections_campaign_id_contact_id_key"',
+    );
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "notification_recipients_campaign_id_contact_id_key"',
+    );
+    expect(migration).toContain(
+      'FOREIGN KEY ("campaign_id") REFERENCES "notification_campaigns"("id")',
+    );
+    expect(migration).toContain(
+      'FOREIGN KEY ("contact_id") REFERENCES "contacts"("id")',
     );
   });
 

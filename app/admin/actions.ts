@@ -60,8 +60,18 @@ import {
 import { OrderValidationError } from "@/lib/services/order-validation";
 import {
   SiteSettingValidationError,
+  getSenderLabelDefault,
   updateHomepagePublicNoteEnabled,
 } from "@/lib/services/site-settings";
+import {
+  NotificationCampaignChannelNotSupportedError,
+  NotificationCampaignNoEligibleRecipientsError,
+  NotificationCampaignNotFoundError,
+  NotificationCampaignReadOnlyError,
+  saveNotificationCampaignDraft,
+  sendNotificationCampaign,
+} from "@/lib/services/notification-campaigns";
+import { NotificationCampaignValidationError } from "@/lib/services/notification-validation";
 
 export async function loginAdminAction(formData: FormData): Promise<never> {
   const email = normalizeAdminEmail(getStringField(formData, "email"));
@@ -363,6 +373,69 @@ export async function saveHomepagePublicNoteSettingAction(
   );
 }
 
+export async function saveNotificationCampaignAction(
+  formData: FormData,
+): Promise<never> {
+  await requireAdminSession();
+
+  const campaignId = getOptionalStringField(formData, "id");
+  let savedCampaignId: string;
+
+  try {
+    const senderLabel =
+      getOptionalStringField(formData, "sender_label") ??
+      (await getSenderLabelDefault());
+    const campaign = await saveNotificationCampaignDraft(
+      extractNotificationCampaignFormData(formData, senderLabel),
+      {
+        campaignId,
+      },
+    );
+    savedCampaignId = campaign.id;
+  } catch (error) {
+    redirect(
+      `/admin/notifications?${new URLSearchParams({
+        error: getNotificationCampaignErrorCode(error),
+        ...(campaignId ? { edit: campaignId } : {}),
+      }).toString()}`,
+    );
+  }
+
+  redirect(
+    `/admin/notifications?${new URLSearchParams({
+      success: "saved",
+      edit: savedCampaignId,
+    }).toString()}`,
+  );
+}
+
+export async function sendNotificationCampaignAction(
+  formData: FormData,
+): Promise<never> {
+  await requireAdminSession();
+
+  const campaignId = getStringField(formData, "id");
+  let sendStatus: string;
+
+  try {
+    const result = await sendNotificationCampaign(campaignId);
+    sendStatus = result.status === "sent" ? "sent" : "failed";
+  } catch (error) {
+    redirect(
+      `/admin/notifications?${new URLSearchParams({
+        error: getNotificationCampaignErrorCode(error),
+        edit: campaignId,
+      }).toString()}`,
+    );
+  }
+
+  redirect(
+    `/admin/notifications?${new URLSearchParams({
+      success: sendStatus,
+    }).toString()}`,
+  );
+}
+
 function extractDailyLogFormData(formData: FormData) {
   return {
     date: formData.get("date"),
@@ -451,6 +524,21 @@ function extractCompletedOrderCorrectionFormData(formData: FormData) {
     unit_price: formData.get("unit_price"),
     fulfilled_at: formData.get("fulfilled_at"),
     note: formData.get("note"),
+  };
+}
+
+function extractNotificationCampaignFormData(
+  formData: FormData,
+  senderLabel?: string,
+) {
+  return {
+    title: formData.get("title"),
+    channel: formData.get("channel"),
+    audience_type: formData.get("audience_type"),
+    sender_label: senderLabel ?? formData.get("sender_label"),
+    subject: formData.get("subject"),
+    body: formData.get("body"),
+    selected_contact_ids: formData.getAll("selected_contact_ids"),
   };
 }
 
@@ -576,6 +664,30 @@ function getOrderErrorCode(error: unknown): string {
 function getSiteSettingErrorCode(error: unknown): string {
   if (error instanceof SiteSettingValidationError) {
     return "validation";
+  }
+
+  return "unknown";
+}
+
+function getNotificationCampaignErrorCode(error: unknown): string {
+  if (error instanceof NotificationCampaignValidationError) {
+    return "validation";
+  }
+
+  if (error instanceof NotificationCampaignNotFoundError) {
+    return "not_found";
+  }
+
+  if (error instanceof NotificationCampaignReadOnlyError) {
+    return "read_only";
+  }
+
+  if (error instanceof NotificationCampaignChannelNotSupportedError) {
+    return "unsupported_channel";
+  }
+
+  if (error instanceof NotificationCampaignNoEligibleRecipientsError) {
+    return "no_eligible_recipients";
   }
 
   return "unknown";

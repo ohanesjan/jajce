@@ -32,6 +32,15 @@ export async function getHomepagePublicNoteEnabled(
   );
 }
 
+export async function getSenderLabelDefault(
+  database: SiteSettingsDb = getDb(),
+): Promise<string> {
+  return parseSiteSettingRequiredText(
+    await getRequiredSiteSettingValue("sender_label_default", database),
+    "sender_label_default",
+  );
+}
+
 export async function updateHomepagePublicNoteEnabled(
   value: unknown,
   database: SiteSettingsDb = getDb(),
@@ -125,4 +134,18 @@ function parseBooleanInput(value: unknown, key: string): boolean {
   }
 
   return parseSiteSettingBoolean(value, key);
+}
+
+function parseSiteSettingRequiredText(value: unknown, key: string): string {
+  if (typeof value !== "string") {
+    throw new SiteSettingValidationError(`${key} must contain a text value.`);
+  }
+
+  const trimmedValue = value.trim();
+
+  if (trimmedValue.length === 0) {
+    throw new SiteSettingValidationError(`${key} must contain a text value.`);
+  }
+
+  return trimmedValue;
 }

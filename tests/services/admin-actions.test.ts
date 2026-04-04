@@ -26,6 +26,9 @@ const createOrderMock = vi.fn();
 const updateEditableOrderMock = vi.fn();
 const correctCompletedOrderMock = vi.fn();
 const updateHomepagePublicNoteEnabledMock = vi.fn();
+const getSenderLabelDefaultMock = vi.fn();
+const saveNotificationCampaignDraftMock = vi.fn();
+const sendNotificationCampaignMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
@@ -125,7 +128,20 @@ vi.mock("@/lib/services/site-settings", async () => {
 
   return {
     ...actual,
+    getSenderLabelDefault: getSenderLabelDefaultMock,
     updateHomepagePublicNoteEnabled: updateHomepagePublicNoteEnabledMock,
+  };
+});
+
+vi.mock("@/lib/services/notification-campaigns", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/lib/services/notification-campaigns")
+  >("@/lib/services/notification-campaigns");
+
+  return {
+    ...actual,
+    saveNotificationCampaignDraft: saveNotificationCampaignDraftMock,
+    sendNotificationCampaign: sendNotificationCampaignMock,
   };
 });
 
@@ -142,6 +158,7 @@ describe("admin actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     requireAdminSessionMock.mockResolvedValue(undefined);
+    getSenderLabelDefaultMock.mockResolvedValue("Jajce");
   });
 
   afterEach(() => {
@@ -370,6 +387,71 @@ describe("admin actions", () => {
       expect(updateHomepagePublicNoteEnabledMock).toHaveBeenCalledWith("on");
       expect(revalidatePathMock).toHaveBeenCalledWith("/");
     });
+
+    it("saveNotificationCampaignAction redirects to the draft editor after saving", async () => {
+      saveNotificationCampaignDraftMock.mockResolvedValueOnce({
+        id: "campaign_1",
+      });
+
+      const { saveNotificationCampaignAction } = await import("@/app/admin/actions");
+
+      await expect(
+        saveNotificationCampaignAction(buildNotificationCampaignFormData()),
+      ).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/notifications?success=saved&edit=campaign_1",
+      );
+      expect(saveNotificationCampaignDraftMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Spring update",
+          channel: "email",
+          audience_type: "selected_contacts",
+          sender_label: "Jajce",
+          selected_contact_ids: ["contact_1", "contact_2"],
+        }),
+        {
+          campaignId: null,
+        },
+      );
+    });
+
+    it("sendNotificationCampaignAction redirects with sent success when all recipients succeed", async () => {
+      sendNotificationCampaignMock.mockResolvedValueOnce({
+        campaign_id: "campaign_1",
+        status: "sent",
+        recipient_count: 2,
+        sent_recipient_count: 2,
+        failed_recipient_count: 0,
+      });
+
+      const { sendNotificationCampaignAction } = await import("@/app/admin/actions");
+      const formData = new FormData();
+
+      formData.set("id", "campaign_1");
+
+      await expect(sendNotificationCampaignAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/notifications?success=sent",
+      );
+      expect(sendNotificationCampaignMock).toHaveBeenCalledWith("campaign_1");
+    });
+
+    it("sendNotificationCampaignAction redirects with failed success when any recipient fails", async () => {
+      sendNotificationCampaignMock.mockResolvedValueOnce({
+        campaign_id: "campaign_1",
+        status: "failed",
+        recipient_count: 2,
+        sent_recipient_count: 1,
+        failed_recipient_count: 1,
+      });
+
+      const { sendNotificationCampaignAction } = await import("@/app/admin/actions");
+      const formData = new FormData();
+
+      formData.set("id", "campaign_1");
+
+      await expect(sendNotificationCampaignAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/notifications?success=failed",
+      );
+    });
   });
 
   describe("cost entry error mapping", () => {
@@ -382,6 +464,27 @@ describe("admin actions", () => {
 
       await expect(saveCostEntryAction(buildCostEntryFormData())).rejects.toThrow(
         "NEXT_REDIRECT:/admin/costs?error=validation&suggestionDate=2026-04-09",
+      );
+    });
+  });
+
+  describe("notification campaign error mapping", () => {
+    it("maps no eligible recipients to a notification error code", async () => {
+      const { NotificationCampaignNoEligibleRecipientsError } = await import(
+        "@/lib/services/notification-campaigns"
+      );
+
+      sendNotificationCampaignMock.mockRejectedValueOnce(
+        new NotificationCampaignNoEligibleRecipientsError("No eligible recipients."),
+      );
+
+      const { sendNotificationCampaignAction } = await import("@/app/admin/actions");
+      const formData = new FormData();
+
+      formData.set("id", "campaign_1");
+
+      await expect(sendNotificationCampaignAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/notifications?error=no_eligible_recipients&edit=campaign_1",
       );
     });
   });
@@ -476,6 +579,20 @@ function buildOrderFormData() {
   formData.set("unit_price", "16.50");
   formData.set("fulfilled_at", "");
   formData.set("note", "Order note");
+
+  return formData;
+}
+
+function buildNotificationCampaignFormData() {
+  const formData = new FormData();
+
+  formData.set("title", "Spring update");
+  formData.set("channel", "email");
+  formData.set("audience_type", "selected_contacts");
+  formData.set("subject", "Fresh eggs this week");
+  formData.set("body", "We have fresh eggs available this week.");
+  formData.append("selected_contact_ids", "contact_1");
+  formData.append("selected_contact_ids", "contact_2");
 
   return formData;
 }
