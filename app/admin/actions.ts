@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
 import {
@@ -57,6 +58,10 @@ import {
   updateEditableOrder,
 } from "@/lib/services/orders";
 import { OrderValidationError } from "@/lib/services/order-validation";
+import {
+  SiteSettingValidationError,
+  updateHomepagePublicNoteEnabled,
+} from "@/lib/services/site-settings";
 
 export async function loginAdminAction(formData: FormData): Promise<never> {
   const email = normalizeAdminEmail(getStringField(formData, "email"));
@@ -328,6 +333,36 @@ export async function correctCompletedOrderAction(
   redirect("/admin/orders?success=corrected");
 }
 
+export async function saveHomepagePublicNoteSettingAction(
+  formData: FormData,
+): Promise<never> {
+  await requireAdminSession();
+
+  const mode = getOptionalStringField(formData, "mode");
+
+  try {
+    await updateHomepagePublicNoteEnabled(
+      formData.get("homepage_public_note_enabled"),
+    );
+  } catch (error) {
+    redirect(
+      `/admin/dashboard?${new URLSearchParams({
+        ...(mode ? { mode } : {}),
+        settingsError: getSiteSettingErrorCode(error),
+      }).toString()}`,
+    );
+  }
+
+  revalidatePath("/");
+
+  redirect(
+    `/admin/dashboard?${new URLSearchParams({
+      ...(mode ? { mode } : {}),
+      settingsSuccess: "saved",
+    }).toString()}`,
+  );
+}
+
 function extractDailyLogFormData(formData: FormData) {
   return {
     date: formData.get("date"),
@@ -533,6 +568,14 @@ function getOrderErrorCode(error: unknown): string {
 
   if (error instanceof OrderInventoryStateError) {
     return "invalid_inventory_state";
+  }
+
+  return "unknown";
+}
+
+function getSiteSettingErrorCode(error: unknown): string {
+  if (error instanceof SiteSettingValidationError) {
+    return "validation";
   }
 
   return "unknown";

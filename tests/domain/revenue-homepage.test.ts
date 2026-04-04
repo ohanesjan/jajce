@@ -52,6 +52,18 @@ describe("deriveHomepageAvailabilityMessage", () => {
     });
   });
 
+  it("keeps the threshold boundary in the limited state", () => {
+    expect(
+      deriveHomepageAvailabilityMessage({
+        available_eggs: 30,
+        low_stock_threshold: 30,
+      }),
+    ).toEqual({
+      state: "limited",
+      message: "Ограничена достапност",
+    });
+  });
+
   it("supports the English locale for the existing bilingual homepage", () => {
     expect(
       deriveHomepageAvailabilityMessage({

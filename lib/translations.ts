@@ -36,9 +36,20 @@ export const translations: Record<Language, Record<string, string>> = {
     notifyTitle: "Be the first to hear when a batch is ready",
     notifyCopy:
       "Leave your email or phone number and we will only reach out when eggs are available.",
+    notifyNameLabel: "Full name",
+    notifyNamePlaceholder: "Full name",
     notifyPlaceholder: "Email or phone number",
     notifyButton: "Notify me",
+    notifyPendingButton: "Sending",
     notifyMeta: "Only messages when eggs are available.",
+    notifySuccess:
+      "Thanks. You’re on the notify list and we’ll reach out when eggs are available.",
+    notifyValidationError:
+      "Please enter your full name and a valid email address or phone number.",
+    notifyConflictError:
+      "We couldn’t safely save this signup right now. Please contact us directly.",
+    notifyUnknownError:
+      "Something went wrong while saving your signup. Please try again.",
     trustLineOne: "Pletvar,",
     trustLineTwo: "at 1000m elevation",
     trustLineThree: "where quality comes before quantity.",
@@ -82,9 +93,20 @@ export const translations: Record<Language, Record<string, string>> = {
     notifyTitle: "Бидете први што ќе дознаат кога има нови јајца",
     notifyCopy:
       "Оставете го вашиот емаил или телефон и ќе ве известиме само кога има достапни јајца.",
+    notifyNameLabel: "Име и презиме",
+    notifyNamePlaceholder: "Име и презиме",
     notifyPlaceholder: "Емаил или телефон",
     notifyButton: "Извести ме",
+    notifyPendingButton: "Се зачувува",
     notifyMeta: "Само кога има достапни јајца.",
+    notifySuccess:
+      "Ви благодариме. Ве додадовме за известување и ќе ви пишеме кога ќе има достапни јајца.",
+    notifyValidationError:
+      "Внесете име и презиме и валиден емаил или телефонски број.",
+    notifyConflictError:
+      "Не можевме безбедно да ја зачуваме пријавата. Контактирајте не директно.",
+    notifyUnknownError:
+      "Настана проблем при зачувувањето. Обидете се повторно.",
     trustLineOne: "Плетвар,",
     trustLineTwo: "на 1000м надморска височина,",
     trustLineThree: "каде квалитетот е поважен од количината.",

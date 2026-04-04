@@ -2,14 +2,24 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getAdminDashboardDataMock = vi.fn();
+const getHomepagePublicNoteEnabledMock = vi.fn();
 
 vi.mock("@/lib/services/admin-dashboard", () => ({
   getAdminDashboardData: getAdminDashboardDataMock,
 }));
 
+vi.mock("@/app/admin/actions", () => ({
+  saveHomepagePublicNoteSettingAction: vi.fn(),
+}));
+
+vi.mock("@/lib/services/site-settings", () => ({
+  getHomepagePublicNoteEnabled: getHomepagePublicNoteEnabledMock,
+}));
+
 describe("AdminDashboardPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getHomepagePublicNoteEnabledMock.mockResolvedValue(true);
     getAdminDashboardDataMock.mockImplementation(
       async ({ mode }: { mode?: unknown } = {}) => {
         const resolvedMode = mode === "expanded" ? "expanded" : "simple";
@@ -31,6 +41,8 @@ describe("AdminDashboardPage", () => {
     );
 
     expect(markup).toContain("Available eggs");
+    expect(markup).toContain("Public note visibility");
+    expect(markup).toContain("Save homepage setting");
     expect(markup).toContain("Today gross margin");
     expect(markup).not.toContain("Cost by category");
   });

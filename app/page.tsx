@@ -5,12 +5,23 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { NotifySection } from "@/components/NotifySection";
 import { Story } from "@/components/Story";
 import { TrustSection } from "@/components/TrustSection";
+import { getHomepageData } from "@/lib/services/homepage";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const homepageData = await getHomepageData();
+
   return (
     <main>
       <Hero />
-      <FarmLedgerSection />
+      <FarmLedgerSection
+        today={homepageData.today_eggs_collected_for_sale}
+        yesterday={homepageData.yesterday_eggs_collected_for_sale}
+        chickens={homepageData.latest_chicken_count}
+        availabilityMessages={homepageData.availability}
+        publicNote={homepageData.public_note}
+      />
       <Story />
       <HowItWorks />
       <NotifySection />

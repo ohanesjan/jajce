@@ -4,6 +4,7 @@ import { CostValidationError } from "@/lib/services/cost-validation";
 const redirectMock = vi.fn((path: string) => {
   throw new Error(`NEXT_REDIRECT:${path}`);
 });
+const revalidatePathMock = vi.fn();
 const authenticateAdminCredentialsMock = vi.fn();
 const beginAdminSessionMock = vi.fn();
 const clearAdminSessionMock = vi.fn();
@@ -24,9 +25,14 @@ const deleteContactMock = vi.fn();
 const createOrderMock = vi.fn();
 const updateEditableOrderMock = vi.fn();
 const correctCompletedOrderMock = vi.fn();
+const updateHomepagePublicNoteEnabledMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
+}));
+
+vi.mock("next/cache", () => ({
+  revalidatePath: revalidatePathMock,
 }));
 
 vi.mock("@/lib/services/admin-auth", async () => {
@@ -109,6 +115,17 @@ vi.mock("@/lib/services/orders", async () => {
     createOrder: createOrderMock,
     updateEditableOrder: updateEditableOrderMock,
     correctCompletedOrder: correctCompletedOrderMock,
+  };
+});
+
+vi.mock("@/lib/services/site-settings", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/services/site-settings")>(
+    "@/lib/services/site-settings",
+  );
+
+  return {
+    ...actual,
+    updateHomepagePublicNoteEnabled: updateHomepagePublicNoteEnabledMock,
   };
 });
 
@@ -332,6 +349,26 @@ describe("admin actions", () => {
         "NEXT_REDIRECT:/admin/orders?success=corrected",
       );
       expect(correctCompletedOrderMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("saveHomepagePublicNoteSettingAction saves the toggle, revalidates the homepage, and redirects back to dashboard", async () => {
+      updateHomepagePublicNoteEnabledMock.mockResolvedValueOnce({
+        key: "homepage_public_note_enabled",
+      });
+
+      const { saveHomepagePublicNoteSettingAction } = await import(
+        "@/app/admin/actions"
+      );
+      const formData = new FormData();
+
+      formData.set("homepage_public_note_enabled", "on");
+      formData.set("mode", "expanded");
+
+      await expect(saveHomepagePublicNoteSettingAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/dashboard?mode=expanded&settingsSuccess=saved",
+      );
+      expect(updateHomepagePublicNoteEnabledMock).toHaveBeenCalledWith("on");
+      expect(revalidatePathMock).toHaveBeenCalledWith("/");
     });
   });
 

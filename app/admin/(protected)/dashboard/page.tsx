@@ -1,4 +1,6 @@
+import { saveHomepagePublicNoteSettingAction } from "@/app/admin/actions";
 import { getAdminDashboardData } from "@/lib/services/admin-dashboard";
+import { getHomepagePublicNoteEnabled } from "@/lib/services/site-settings";
 import { formatDateOnly } from "@/lib/utils/date";
 
 type SearchParamsRecord = Record<string, string | string[] | undefined>;
@@ -13,7 +15,12 @@ export default async function AdminDashboardPage({
   const resolvedSearchParams =
     (await searchParams) ?? ({} as SearchParamsRecord);
   const mode = readSearchParam(resolvedSearchParams.mode);
-  const dashboard = await getAdminDashboardData({ mode });
+  const settingsSuccessCode = readSearchParam(resolvedSearchParams.settingsSuccess);
+  const settingsErrorCode = readSearchParam(resolvedSearchParams.settingsError);
+  const [dashboard, homepagePublicNoteEnabled] = await Promise.all([
+    getAdminDashboardData({ mode }),
+    getHomepagePublicNoteEnabled(),
+  ]);
 
   return (
     <main className="space-y-6">
@@ -111,6 +118,57 @@ export default async function AdminDashboardPage({
           value={formatMetricValue(dashboard.simple.active_customer_count)}
           detail="Contacts flagged as active customers."
         />
+      </section>
+
+      <section className="card-surface p-6">
+        <p className="eyebrow">Homepage</p>
+        <h2 className="mt-2 font-serif text-3xl text-bark">
+          Public note visibility
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
+          Show today&apos;s daily-log public note on the homepage only when this
+          setting is enabled. Exact stock stays admin-only.
+        </p>
+
+        {settingsSuccessCode ? (
+          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            Homepage setting saved.
+          </div>
+        ) : null}
+
+        {settingsErrorCode ? (
+          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {settingsErrorCode === "validation"
+              ? "Please check the homepage setting and try again."
+              : "The homepage setting could not be saved."}
+          </div>
+        ) : null}
+
+        <form action={saveHomepagePublicNoteSettingAction} className="mt-6">
+          <input type="hidden" name="mode" value={dashboard.mode} />
+
+          <label className="flex items-start gap-3 rounded-2xl border border-soil/20 bg-white/50 px-4 py-4 text-sm text-bark">
+            <input
+              type="checkbox"
+              name="homepage_public_note_enabled"
+              defaultChecked={homepagePublicNoteEnabled}
+              className="mt-1 h-4 w-4 rounded border-soil/30 text-bark focus:ring-bark/20"
+            />
+            <span>
+              Enable today&apos;s public note on the homepage when a daily log
+              includes one.
+            </span>
+          </label>
+
+          <div className="mt-4">
+            <button
+              type="submit"
+              className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
+            >
+              Save homepage setting
+            </button>
+          </div>
+        </form>
       </section>
 
       {dashboard.expanded ? (
