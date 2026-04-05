@@ -1,8 +1,14 @@
-import { saveHomepagePublicNoteSettingAction } from "@/app/admin/actions";
+import {
+  saveHomepagePublicNoteSettingAction,
+  saveHomepageStatOverridesAction,
+} from "@/app/admin/actions";
 import { getAdminLanguage } from "@/lib/admin-language.server";
 import { getAdminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { getAdminDashboardData } from "@/lib/services/admin-dashboard";
-import { getHomepagePublicNoteEnabled } from "@/lib/services/site-settings";
+import {
+  getHomepagePublicNoteEnabled,
+  getHomepageStatOverrides,
+} from "@/lib/services/site-settings";
 import { formatDateOnly } from "@/lib/utils/date";
 
 type SearchParamsRecord = Record<string, string | string[] | undefined>;
@@ -21,9 +27,17 @@ export default async function AdminDashboardPage({
   const mode = readSearchParam(resolvedSearchParams.mode);
   const settingsSuccessCode = readSearchParam(resolvedSearchParams.settingsSuccess);
   const settingsErrorCode = readSearchParam(resolvedSearchParams.settingsError);
-  const [dashboard, homepagePublicNoteEnabled] = await Promise.all([
+  const displayOverridesSuccessCode = readSearchParam(
+    resolvedSearchParams.displayOverridesSuccess,
+  );
+  const displayOverridesErrorCode = readSearchParam(
+    resolvedSearchParams.displayOverridesError,
+  );
+  const [dashboard, homepagePublicNoteEnabled, homepageStatOverrides] =
+    await Promise.all([
     getAdminDashboardData({ mode }),
     getHomepagePublicNoteEnabled(),
+    getHomepageStatOverrides(),
   ]);
 
   return (
@@ -253,6 +267,94 @@ export default async function AdminDashboardPage({
           </section>
         </div>
       ) : null}
+
+      <section className="card-surface p-6">
+        <p className="eyebrow">{copy.dashboard.homepageDisplayEyebrow}</p>
+        <h2 className="mt-2 font-serif text-3xl text-bark">
+          {copy.dashboard.homepageDisplayTitle}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
+          {copy.dashboard.homepageDisplayDescription}
+        </p>
+
+        {displayOverridesSuccessCode ? (
+          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {copy.dashboard.homepageDisplaySaved}
+          </div>
+        ) : null}
+
+        {displayOverridesErrorCode ? (
+          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {displayOverridesErrorCode === "validation"
+              ? copy.dashboard.homepageDisplayValidationError
+              : copy.dashboard.homepageDisplayUnknownError}
+          </div>
+        ) : null}
+
+        <form action={saveHomepageStatOverridesAction} className="mt-6">
+          <input type="hidden" name="mode" value={dashboard.mode} />
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <label className="flex flex-col gap-2 text-sm text-bark">
+              <span>{copy.dashboard.homepageDisplayToday}</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputMode="numeric"
+                name="today_eggs_collected_for_sale"
+                defaultValue={formatOptionalNumberInput(
+                  homepageStatOverrides.today_eggs_collected_for_sale,
+                )}
+                className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
+              />
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm text-bark">
+              <span>{copy.dashboard.homepageDisplayYesterday}</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputMode="numeric"
+                name="yesterday_eggs_collected_for_sale"
+                defaultValue={formatOptionalNumberInput(
+                  homepageStatOverrides.yesterday_eggs_collected_for_sale,
+                )}
+                className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
+              />
+            </label>
+
+            <label className="flex flex-col gap-2 text-sm text-bark">
+              <span>{copy.dashboard.homepageDisplayChickens}</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputMode="numeric"
+                name="latest_chicken_count"
+                defaultValue={formatOptionalNumberInput(
+                  homepageStatOverrides.latest_chicken_count,
+                )}
+                className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
+              />
+            </label>
+          </div>
+
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-bark/70">
+            {copy.dashboard.homepageDisplayHelper}
+          </p>
+
+          <div className="mt-4">
+            <button
+              type="submit"
+              className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
+            >
+              {copy.dashboard.saveHomepageDisplay}
+            </button>
+          </div>
+        </form>
+      </section>
     </main>
   );
 }
@@ -313,4 +415,8 @@ function formatMetricValue(value: number | null): string {
   }
 
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
+}
+
+function formatOptionalNumberInput(value: number | null): string {
+  return value === null ? "" : String(value);
 }

@@ -4,6 +4,17 @@ import { getDb } from "@/lib/db";
 export class SiteSettingValidationError extends Error {}
 
 type SiteSettingsDb = Pick<PrismaClient, "siteSetting">;
+const HOMEPAGE_STAT_OVERRIDES_KEY = "homepage_stat_overrides";
+
+export type HomepageStatOverrides = {
+  today_eggs_collected_for_sale: number | null;
+  yesterday_eggs_collected_for_sale: number | null;
+  latest_chicken_count: number | null;
+};
+
+type HomepageStatOverridesInput = Partial<
+  Record<keyof HomepageStatOverrides, unknown>
+>;
 
 export async function getDefaultEggUnitPrice(
   database: SiteSettingsDb = getDb(),
@@ -53,6 +64,66 @@ export async function updateHomepagePublicNoteEnabled(
     create: {
       key: "homepage_public_note_enabled",
       value_json: parseBooleanInput(value, "homepage_public_note_enabled"),
+    },
+  });
+}
+
+export async function getHomepageStatOverrides(
+  database: SiteSettingsDb = getDb(),
+): Promise<HomepageStatOverrides> {
+  const setting = await database.siteSetting.findUnique({
+    where: { key: HOMEPAGE_STAT_OVERRIDES_KEY },
+    select: { value_json: true },
+  });
+
+  if (!setting) {
+    return createEmptyHomepageStatOverrides();
+  }
+
+  return parseHomepageStatOverridesSetting(setting.value_json);
+}
+
+export async function updateHomepageStatOverrides(
+  input: HomepageStatOverridesInput,
+  database: SiteSettingsDb = getDb(),
+) {
+  const currentOverrides = await getHomepageStatOverrides(database);
+
+  const nextOverrides: HomepageStatOverrides = {
+    today_eggs_collected_for_sale: hasOwnInputField(
+      input,
+      "today_eggs_collected_for_sale",
+    )
+      ? parseOptionalNonNegativeInteger(
+          input.today_eggs_collected_for_sale,
+          "today_eggs_collected_for_sale",
+        )
+      : currentOverrides.today_eggs_collected_for_sale,
+    yesterday_eggs_collected_for_sale: hasOwnInputField(
+      input,
+      "yesterday_eggs_collected_for_sale",
+    )
+      ? parseOptionalNonNegativeInteger(
+          input.yesterday_eggs_collected_for_sale,
+          "yesterday_eggs_collected_for_sale",
+        )
+      : currentOverrides.yesterday_eggs_collected_for_sale,
+    latest_chicken_count: hasOwnInputField(input, "latest_chicken_count")
+      ? parseOptionalNonNegativeInteger(
+          input.latest_chicken_count,
+          "latest_chicken_count",
+        )
+      : currentOverrides.latest_chicken_count,
+  };
+
+  return database.siteSetting.upsert({
+    where: { key: HOMEPAGE_STAT_OVERRIDES_KEY },
+    update: {
+      value_json: nextOverrides,
+    },
+    create: {
+      key: HOMEPAGE_STAT_OVERRIDES_KEY,
+      value_json: nextOverrides,
     },
   });
 }
@@ -128,6 +199,75 @@ function parseSiteSettingBoolean(value: unknown, key: string): boolean {
   throw new SiteSettingValidationError(`${key} must contain a boolean value.`);
 }
 
+function parseHomepageStatOverridesSetting(value: unknown): HomepageStatOverrides {
+  if (!isPlainObject(value)) {
+    throw new SiteSettingValidationError(
+      `${HOMEPAGE_STAT_OVERRIDES_KEY} must contain an object value.`,
+    );
+  }
+
+  return {
+    today_eggs_collected_for_sale: parseStoredOptionalNonNegativeInteger(
+      value.today_eggs_collected_for_sale,
+      "today_eggs_collected_for_sale",
+    ),
+    yesterday_eggs_collected_for_sale: parseStoredOptionalNonNegativeInteger(
+      value.yesterday_eggs_collected_for_sale,
+      "yesterday_eggs_collected_for_sale",
+    ),
+    latest_chicken_count: parseStoredOptionalNonNegativeInteger(
+      value.latest_chicken_count,
+      "latest_chicken_count",
+    ),
+  };
+}
+
+function parseOptionalNonNegativeInteger(
+  value: unknown,
+  key: keyof HomepageStatOverrides,
+): number | null {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === "string") {
+    const trimmedValue = value.trim();
+
+    if (trimmedValue.length === 0) {
+      return null;
+    }
+
+    if (/^\d+$/.test(trimmedValue)) {
+      return Number.parseInt(trimmedValue, 10);
+    }
+  }
+
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
+    return value;
+  }
+
+  throw new SiteSettingValidationError(
+    `${key} must contain a non-negative whole number.`,
+  );
+}
+
+function parseStoredOptionalNonNegativeInteger(
+  value: unknown,
+  key: keyof HomepageStatOverrides,
+): number | null {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
+    return value;
+  }
+
+  throw new SiteSettingValidationError(
+    `${key} must contain a non-negative whole number.`,
+  );
+}
+
 function parseBooleanInput(value: unknown, key: string): boolean {
   if (value == null) {
     return false;
@@ -148,4 +288,23 @@ function parseSiteSettingRequiredText(value: unknown, key: string): string {
   }
 
   return trimmedValue;
+}
+
+function createEmptyHomepageStatOverrides(): HomepageStatOverrides {
+  return {
+    today_eggs_collected_for_sale: null,
+    yesterday_eggs_collected_for_sale: null,
+    latest_chicken_count: null,
+  };
+}
+
+function hasOwnInputField(
+  input: HomepageStatOverridesInput,
+  key: keyof HomepageStatOverrides,
+): boolean {
+  return Object.prototype.hasOwnProperty.call(input, key);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

@@ -30,6 +30,7 @@ const createOrderMock = vi.fn();
 const updateEditableOrderMock = vi.fn();
 const correctCompletedOrderMock = vi.fn();
 const updateHomepagePublicNoteEnabledMock = vi.fn();
+const updateHomepageStatOverridesMock = vi.fn();
 const getSenderLabelDefaultMock = vi.fn();
 const saveNotificationCampaignDraftMock = vi.fn();
 const sendNotificationCampaignMock = vi.fn();
@@ -153,6 +154,7 @@ vi.mock("@/lib/services/site-settings", async () => {
   return {
     ...actual,
     getSenderLabelDefault: getSenderLabelDefaultMock,
+    updateHomepageStatOverrides: updateHomepageStatOverridesMock,
     updateHomepagePublicNoteEnabled: updateHomepagePublicNoteEnabledMock,
   };
 });
@@ -506,6 +508,32 @@ describe("admin actions", () => {
       expect(revalidatePathMock).toHaveBeenCalledWith("/");
     });
 
+    it("saveHomepageStatOverridesAction saves the grouped overrides, revalidates the homepage, and preserves mode", async () => {
+      updateHomepageStatOverridesMock.mockResolvedValueOnce({
+        key: "homepage_stat_overrides",
+      });
+
+      const { saveHomepageStatOverridesAction } = await import(
+        "@/app/admin/actions"
+      );
+      const formData = new FormData();
+
+      formData.set("today_eggs_collected_for_sale", "44");
+      formData.set("yesterday_eggs_collected_for_sale", "");
+      formData.set("latest_chicken_count", "0");
+      formData.set("mode", "expanded");
+
+      await expect(saveHomepageStatOverridesAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/dashboard?mode=expanded&displayOverridesSuccess=saved",
+      );
+      expect(updateHomepageStatOverridesMock).toHaveBeenCalledWith({
+        today_eggs_collected_for_sale: "44",
+        yesterday_eggs_collected_for_sale: "",
+        latest_chicken_count: "0",
+      });
+      expect(revalidatePathMock).toHaveBeenCalledWith("/");
+    });
+
     it("saveNotificationCampaignAction redirects to the draft editor after saving", async () => {
       saveNotificationCampaignDraftMock.mockResolvedValueOnce({
         id: "campaign_1",
@@ -628,6 +656,34 @@ describe("admin actions", () => {
 
       await expect(sendNotificationCampaignAction(formData)).rejects.toThrow(
         "NEXT_REDIRECT:/admin/notifications?error=no_eligible_recipients&edit=campaign_1",
+      );
+    });
+  });
+
+  describe("homepage display override error mapping", () => {
+    it("uses dedicated dashboard params when override validation fails", async () => {
+      const { SiteSettingValidationError } = await import(
+        "@/lib/services/site-settings"
+      );
+
+      updateHomepageStatOverridesMock.mockRejectedValueOnce(
+        new SiteSettingValidationError(
+          "today_eggs_collected_for_sale must contain a non-negative whole number.",
+        ),
+      );
+
+      const { saveHomepageStatOverridesAction } = await import(
+        "@/app/admin/actions"
+      );
+      const formData = new FormData();
+
+      formData.set("today_eggs_collected_for_sale", "3.5");
+      formData.set("yesterday_eggs_collected_for_sale", "");
+      formData.set("latest_chicken_count", "");
+      formData.set("mode", "simple");
+
+      await expect(saveHomepageStatOverridesAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/dashboard?mode=simple&displayOverridesError=validation",
       );
     });
   });

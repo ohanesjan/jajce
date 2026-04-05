@@ -12,6 +12,7 @@ import {
   parseRequiredText,
 } from "@/lib/services/contact-validation";
 import {
+  getHomepageStatOverrides,
   getHomepagePublicNoteEnabled,
   getLowStockThreshold,
 } from "@/lib/services/site-settings";
@@ -89,6 +90,7 @@ export async function getHomepageData(
     inventoryTransactions,
     lowStockThreshold,
     homepagePublicNoteEnabled,
+    homepageStatOverrides,
   ] = await Promise.all([
     database.dailyLog.findUnique({
       where: { date: todayDate },
@@ -117,6 +119,7 @@ export async function getHomepageData(
     }),
     getLowStockThreshold(database),
     getHomepagePublicNoteEnabled(database),
+    getHomepageStatOverrides(database),
   ]);
 
   const availableEggs = calculateAvailableInventory(inventoryTransactions);
@@ -132,10 +135,18 @@ export async function getHomepageData(
   });
 
   return {
-    today_eggs_collected_for_sale: todayLog?.eggs_collected_for_sale ?? null,
+    today_eggs_collected_for_sale:
+      homepageStatOverrides.today_eggs_collected_for_sale ??
+      todayLog?.eggs_collected_for_sale ??
+      null,
     yesterday_eggs_collected_for_sale:
-      yesterdayLog?.eggs_collected_for_sale ?? null,
-    latest_chicken_count: latestDailyLog?.chicken_count ?? null,
+      homepageStatOverrides.yesterday_eggs_collected_for_sale ??
+      yesterdayLog?.eggs_collected_for_sale ??
+      null,
+    latest_chicken_count:
+      homepageStatOverrides.latest_chicken_count ??
+      latestDailyLog?.chicken_count ??
+      null,
     availability: {
       state: availabilityMk.state,
       mk: availabilityMk.message,

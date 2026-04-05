@@ -70,6 +70,7 @@ import { OrderValidationError } from "@/lib/services/order-validation";
 import {
   SiteSettingValidationError,
   getSenderLabelDefault,
+  updateHomepageStatOverrides,
   updateHomepagePublicNoteEnabled,
 } from "@/lib/services/site-settings";
 import {
@@ -559,6 +560,49 @@ export async function saveHomepagePublicNoteSettingAction(
     `/admin/dashboard?${new URLSearchParams({
       ...(mode ? { mode } : {}),
       settingsSuccess: "saved",
+    }).toString()}`,
+  );
+}
+
+export async function saveHomepageStatOverridesAction(
+  formData: FormData,
+): Promise<never> {
+  await requireAdminSession();
+
+  const mode = getOptionalStringField(formData, "mode");
+
+  try {
+    await updateHomepageStatOverrides({
+      today_eggs_collected_for_sale: formData.get(
+        "today_eggs_collected_for_sale",
+      ),
+      yesterday_eggs_collected_for_sale: formData.get(
+        "yesterday_eggs_collected_for_sale",
+      ),
+      latest_chicken_count: formData.get("latest_chicken_count"),
+    });
+  } catch (error) {
+    const errorCode = getSiteSettingErrorCode(error);
+
+    logUnexpectedAdminActionError(
+      "saveHomepageStatOverridesAction",
+      error,
+      errorCode,
+    );
+    redirect(
+      `/admin/dashboard?${new URLSearchParams({
+        ...(mode ? { mode } : {}),
+        displayOverridesError: errorCode,
+      }).toString()}`,
+    );
+  }
+
+  revalidatePath("/");
+
+  redirect(
+    `/admin/dashboard?${new URLSearchParams({
+      ...(mode ? { mode } : {}),
+      displayOverridesSuccess: "saved",
     }).toString()}`,
   );
 }

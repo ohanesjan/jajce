@@ -82,6 +82,22 @@ const mkAdminCopy = {
     homepageHelper:
       "Кога е исклучено, почетната страница прикажува само живи производствени податоци и порака за достапност.",
     saveHomepageSetting: "Зачувај поставка за почетната страница",
+    homepageDisplayEyebrow: "Јавен приказ",
+    homepageDisplayTitle: "Прикажани бројки на почетната страница",
+    homepageDisplayDescription:
+      "Овие полиња менуваат само што се прикажува јавно на почетната страница за Денес, Вчера и број на кокошки. Не влијаат на дневни записи, залиха, админ KPI показатели, нарачки, трошоци или маржа.",
+    homepageDisplaySaved:
+      "Поставките за јавниот приказ на почетната страница се зачувани.",
+    homepageDisplayValidationError:
+      "Проверете ги полињата за јавниот приказ и внесете само ненегативни цели броеви.",
+    homepageDisplayUnknownError:
+      "Поставките за јавниот приказ на почетната страница не можеа да се зачуваат.",
+    homepageDisplayToday: "Јавен приказ: јајца денес",
+    homepageDisplayYesterday: "Јавен приказ: јајца вчера",
+    homepageDisplayChickens: "Јавен приказ: број на кокошки",
+    homepageDisplayHelper:
+      "Овие вредности важат само за јавната почетна страница. Оставете поле празно за да се врати живата изведена вредност.",
+    saveHomepageDisplay: "Зачувај јавен приказ",
     totalYieldPerChicken: "Вкупен принос по кокошка",
     totalYieldPerChickenDetail:
       "Нема вредност кога денешниот број на кокошки недостасува или е нула.",
@@ -596,6 +612,21 @@ const enAdminCopy: typeof mkAdminCopy = {
     homepageHelper:
       "When disabled, the homepage shows only live production data and availability.",
     saveHomepageSetting: "Save homepage setting",
+    homepageDisplayEyebrow: "Public display",
+    homepageDisplayTitle: "Homepage displayed stats",
+    homepageDisplayDescription:
+      "These fields change only the public homepage display for Today, Yesterday, and chicken count. They do not affect daily logs, inventory, admin KPIs, orders, costs, or margin.",
+    homepageDisplaySaved: "Homepage public display overrides saved.",
+    homepageDisplayValidationError:
+      "Check the public display fields and enter only non-negative whole numbers.",
+    homepageDisplayUnknownError:
+      "The homepage public display overrides could not be saved.",
+    homepageDisplayToday: "Public display: eggs today",
+    homepageDisplayYesterday: "Public display: eggs yesterday",
+    homepageDisplayChickens: "Public display: chickens",
+    homepageDisplayHelper:
+      "These values apply only to the public homepage. Leave a field blank to restore the live derived value.",
+    saveHomepageDisplay: "Save public display",
     totalYieldPerChicken: "Total yield per chicken",
     totalYieldPerChickenDetail:
       "No value when today's chicken count is missing or zero.",

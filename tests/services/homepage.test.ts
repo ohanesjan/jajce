@@ -9,6 +9,7 @@ import {
   HomepageNotifyValidationError,
   submitHomepageNotifySignup,
 } from "@/lib/services/homepage";
+import type { HomepageStatOverrides } from "@/lib/services/site-settings";
 
 describe("getHomepageData", () => {
   it("maps homepage cards from daily logs and exposes only soft availability messaging", async () => {
@@ -60,7 +61,61 @@ describe("getHomepageData", () => {
     });
   });
 
-  it("hides the public note unless the homepage setting is enabled while keeping derived values intact", async () => {
+  it("uses manual public display overrides when present", async () => {
+    const database = createHomepageTestDatabase({
+      dailyLogs: [
+        buildDailyLog({
+          id: "daily_log_yesterday",
+          date: "2026-04-09",
+          eggs_collected_for_sale: 14,
+          chicken_count: 11,
+          public_note: null,
+        }),
+        buildDailyLog({
+          id: "daily_log_today",
+          date: "2026-04-10",
+          eggs_collected_for_sale: 18,
+          chicken_count: 12,
+          public_note: null,
+        }),
+      ],
+      inventoryTransactions: [
+        buildInventoryTransaction({ type: "collected", quantity: 28 }),
+        buildInventoryTransaction({ type: "sold", quantity: 8 }),
+      ],
+      siteSettings: {
+        low_stock_threshold: 30,
+        homepage_public_note_enabled: false,
+        homepage_stat_overrides: {
+          today_eggs_collected_for_sale: 44,
+          yesterday_eggs_collected_for_sale: 33,
+          latest_chicken_count: 99,
+        },
+      },
+    });
+
+    const homepageData = await getHomepageData(
+      {
+        referenceDate: new Date("2026-04-10T12:00:00.000Z"),
+        timeZone: "Europe/Amsterdam",
+      },
+      database as never,
+    );
+
+    expect(homepageData).toEqual({
+      today_eggs_collected_for_sale: 44,
+      yesterday_eggs_collected_for_sale: 33,
+      latest_chicken_count: 99,
+      availability: {
+        state: "limited",
+        mk: "Ограничена достапност",
+        en: "Limited availability",
+      },
+      public_note: null,
+    });
+  });
+
+  it("falls back to derived values when public display overrides are null", async () => {
     const database = createHomepageTestDatabase({
       dailyLogs: [
         buildDailyLog({
@@ -85,6 +140,11 @@ describe("getHomepageData", () => {
       siteSettings: {
         low_stock_threshold: 30,
         homepage_public_note_enabled: false,
+        homepage_stat_overrides: {
+          today_eggs_collected_for_sale: null,
+          yesterday_eggs_collected_for_sale: null,
+          latest_chicken_count: null,
+        },
       },
     });
 
@@ -107,6 +167,53 @@ describe("getHomepageData", () => {
       },
       public_note: null,
     });
+  });
+
+  it("preserves 0 as a valid public display override", async () => {
+    const database = createHomepageTestDatabase({
+      dailyLogs: [
+        buildDailyLog({
+          id: "daily_log_yesterday",
+          date: "2026-04-09",
+          eggs_collected_for_sale: 14,
+          chicken_count: 11,
+          public_note: null,
+        }),
+        buildDailyLog({
+          id: "daily_log_today",
+          date: "2026-04-10",
+          eggs_collected_for_sale: 18,
+          chicken_count: 12,
+          public_note: null,
+        }),
+      ],
+      inventoryTransactions: [
+        buildInventoryTransaction({ type: "collected", quantity: 28 }),
+        buildInventoryTransaction({ type: "sold", quantity: 8 }),
+      ],
+      siteSettings: {
+        low_stock_threshold: 30,
+        homepage_public_note_enabled: false,
+        homepage_stat_overrides: {
+          today_eggs_collected_for_sale: 0,
+          yesterday_eggs_collected_for_sale: null,
+          latest_chicken_count: 0,
+        },
+      },
+    });
+
+    const homepageData = await getHomepageData(
+      {
+        referenceDate: new Date("2026-04-10T12:00:00.000Z"),
+        timeZone: "Europe/Amsterdam",
+      },
+      database as never,
+    );
+
+    expect(homepageData.today_eggs_collected_for_sale).toBe(0);
+    expect(homepageData.yesterday_eggs_collected_for_sale).toBe(14);
+    expect(homepageData.latest_chicken_count).toBe(0);
+    expect(homepageData.availability.state).toBe("limited");
   });
 });
 
@@ -216,12 +323,16 @@ function createHomepageTestDatabase(options?: {
   contacts?: Array<ReturnType<typeof buildContact>>;
   dailyLogs?: Array<ReturnType<typeof buildDailyLog>>;
   inventoryTransactions?: Array<ReturnType<typeof buildInventoryTransaction>>;
-  siteSettings?: Partial<Record<"low_stock_threshold" | "homepage_public_note_enabled", boolean | number>>;
+  siteSettings?: Partial<{
+    low_stock_threshold: number;
+    homepage_public_note_enabled: boolean;
+    homepage_stat_overrides: HomepageStatOverrides;
+  }>;
 }) {
   const contacts = [...(options?.contacts ?? [])];
   const dailyLogs = [...(options?.dailyLogs ?? [])];
   const inventoryTransactions = [...(options?.inventoryTransactions ?? [])];
-  const siteSettings = new Map<string, boolean | number>([
+  const siteSettings = new Map<string, unknown>([
     ["low_stock_threshold", 30],
     ["homepage_public_note_enabled", false],
   ]);

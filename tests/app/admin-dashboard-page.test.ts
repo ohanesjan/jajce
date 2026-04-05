@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getAdminDashboardDataMock = vi.fn();
 const getHomepagePublicNoteEnabledMock = vi.fn();
+const getHomepageStatOverridesMock = vi.fn();
 const getAdminLanguageMock = vi.fn();
 
 vi.mock("@/lib/services/admin-dashboard", () => ({
@@ -11,10 +12,12 @@ vi.mock("@/lib/services/admin-dashboard", () => ({
 
 vi.mock("@/app/admin/actions", () => ({
   saveHomepagePublicNoteSettingAction: vi.fn(),
+  saveHomepageStatOverridesAction: vi.fn(),
 }));
 
 vi.mock("@/lib/services/site-settings", () => ({
   getHomepagePublicNoteEnabled: getHomepagePublicNoteEnabledMock,
+  getHomepageStatOverrides: getHomepageStatOverridesMock,
 }));
 
 vi.mock("@/lib/admin-language.server", () => ({
@@ -26,6 +29,11 @@ describe("AdminDashboardPage", () => {
     vi.clearAllMocks();
     getAdminLanguageMock.mockResolvedValue("mk");
     getHomepagePublicNoteEnabledMock.mockResolvedValue(true);
+    getHomepageStatOverridesMock.mockResolvedValue({
+      today_eggs_collected_for_sale: 44,
+      yesterday_eggs_collected_for_sale: null,
+      latest_chicken_count: 18,
+    });
     getAdminDashboardDataMock.mockImplementation(
       async ({ mode }: { mode?: unknown } = {}) => {
         const resolvedMode = mode === "expanded" ? "expanded" : "simple";
@@ -56,6 +64,18 @@ describe("AdminDashboardPage", () => {
     );
     expect(markup).toContain("Зачувај поставка за почетната страница");
     expect(markup).toContain("Денешна бруто маржа");
+    expect(markup).toContain("Прикажани бројки на почетната страница");
+    expect(markup).toContain(
+      "Овие полиња менуваат само што се прикажува јавно на почетната страница за Денес, Вчера и број на кокошки.",
+    );
+    expect(markup).toContain(
+      "Оставете поле празно за да се врати живата изведена вредност.",
+    );
+    expect(markup).toContain('name="today_eggs_collected_for_sale"');
+    expect(markup).toContain('value="44"');
+    expect(markup).toContain('name="latest_chicken_count"');
+    expect(markup).toContain('value="18"');
+    expect(markup).toContain("Зачувај јавен приказ");
     expect(markup).not.toContain("Трошоци по категорија");
   });
 
@@ -114,6 +134,14 @@ describe("AdminDashboardPage", () => {
       "When disabled, the homepage shows only live production data and availability.",
     );
     expect(markup).toContain("Save homepage setting");
+    expect(markup).toContain("Homepage displayed stats");
+    expect(markup).toContain(
+      "These fields change only the public homepage display for Today, Yesterday, and chicken count.",
+    );
+    expect(markup).toContain(
+      "Leave a field blank to restore the live derived value.",
+    );
+    expect(markup).toContain("Save public display");
     expect(markup).toContain("Costs by category");
   });
 });
