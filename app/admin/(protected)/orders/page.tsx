@@ -3,6 +3,7 @@ import {
   correctCompletedOrderAction,
   saveOrderAction,
 } from "@/app/admin/actions";
+import { adminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { listContacts } from "@/lib/services/contacts";
 import { listOrders } from "@/lib/services/orders";
 import { PRICE_SOURCE_VALUES } from "@/lib/services/order-validation";
@@ -19,23 +20,11 @@ type OrdersPageProps = {
 };
 
 const ORDER_ERROR_MESSAGES: Record<string, string> = {
-  validation: "Please check the order fields and try again.",
-  not_found: "The selected order was not found.",
-  contact_not_found: "The selected contact was not found.",
-  insufficient_inventory:
-    "This operation would reduce sellable inventory below zero.",
-  transition_not_allowed:
-    "That order change is not allowed in the normal order workflow for this order state.",
-  completed_correction_required:
-    "Completed orders must be changed through the dedicated correction flow.",
-  invalid_inventory_state:
-    "This order has an invalid inventory state and cannot be changed until it is manually investigated.",
-  unknown: "The order could not be saved.",
+  ...adminCopy.orders.errors,
 };
 
 const ORDER_SUCCESS_MESSAGES: Record<string, string> = {
-  saved: "Order saved.",
-  corrected: "Completed order corrected.",
+  ...adminCopy.orders.success,
 };
 const ADMIN_ORDER_TIME_ZONE =
   process.env.ADMIN_DASHBOARD_TIME_ZONE ?? "Europe/Amsterdam";
@@ -62,36 +51,33 @@ export default async function AdminOrdersPage({
   return (
     <main className="grid gap-6 lg:grid-cols-[minmax(0,25rem)_minmax(0,1fr)]">
       <section className="card-surface p-6">
-        <p className="eyebrow">Phase 4</p>
+        <p className="eyebrow">{adminCopy.orders.eyebrow}</p>
         <h2 className="mt-2 font-serif text-3xl text-bark">
           {editingOrder
             ? isCompletedCorrection
-              ? "Correct completed order"
-              : "Edit reserved order"
-            : "Create order"}
+              ? adminCopy.orders.correctCompletedTitle
+              : adminCopy.orders.editReservedTitle
+            : adminCopy.orders.createTitle}
         </h2>
         <p className="mt-3 text-sm leading-6 text-bark/75">
-          Total price is always computed on the backend from quantity and the
-          resolved unit price. Completed-order corrections use a dedicated
-          service path, and normal reserved-order edits stay blocked when the
-          linked inventory state is no longer safe or consistent.
+          {adminCopy.orders.description}
         </p>
 
         {successCode ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {ORDER_SUCCESS_MESSAGES[successCode] ?? "Saved."}
+            {ORDER_SUCCESS_MESSAGES[successCode] ?? adminCopy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {ORDER_ERROR_MESSAGES[errorCode] ?? "Something went wrong."}
+            {ORDER_ERROR_MESSAGES[errorCode] ?? adminCopy.common.unknownError}
           </div>
         ) : null}
 
         {!canCreateOrder && !editingOrder ? (
           <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
-            Create a contact first before adding orders.
+            {adminCopy.orders.createContactFirst}
           </div>
         ) : null}
 
@@ -100,22 +86,20 @@ export default async function AdminOrdersPage({
             <input type="hidden" name="id" value={editingOrder.id} />
 
             <ReadOnlyField
-              label="Contact"
+              label={adminCopy.orders.contact}
               value={editingOrder.contact.full_name}
             />
             <ReadOnlyField
-              label="Status"
-              value="Completed"
+              label={adminCopy.orders.status}
+              value={adminCopy.orders.completed}
             />
 
             <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              This correction keeps the original stock-reducing inventory mode
-              and will be blocked if the linked inventory state is inconsistent
-              or the correction would oversell stock.
+              {adminCopy.orders.completedCorrectionWarning}
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField label="Quantity">
+              <FormField label={adminCopy.orders.quantity}>
                 <input
                   required
                   min={1}
@@ -127,7 +111,7 @@ export default async function AdminOrdersPage({
                 />
               </FormField>
 
-              <FormField label="Unit price">
+              <FormField label={adminCopy.orders.unitPrice}>
                 <input
                   required
                   min={0}
@@ -140,7 +124,7 @@ export default async function AdminOrdersPage({
               </FormField>
             </div>
 
-            <FormField label="Backend-computed total price">
+            <FormField label={adminCopy.orders.backendComputedTotalPrice}>
               <input
                 readOnly
                 type="text"
@@ -149,7 +133,7 @@ export default async function AdminOrdersPage({
               />
             </FormField>
 
-            <FormField label="Fulfilled at">
+            <FormField label={adminCopy.orders.fulfilledAt}>
               <input
                 type="datetime-local"
                 name="fulfilled_at"
@@ -158,7 +142,7 @@ export default async function AdminOrdersPage({
               />
             </FormField>
 
-            <FormField label="Note">
+            <FormField label={adminCopy.orders.note}>
               <textarea
                 rows={4}
                 name="note"
@@ -172,14 +156,14 @@ export default async function AdminOrdersPage({
                 type="submit"
                 className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
               >
-                Apply stock-safe completed correction
+                {adminCopy.orders.applyCompletedCorrection}
               </button>
 
               <a
                 href="/admin/orders"
                 className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
               >
-                Reset form
+                {adminCopy.common.resetForm}
               </a>
             </div>
           </form>
@@ -189,13 +173,11 @@ export default async function AdminOrdersPage({
 
             {editingOrder ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Normal editing is only available while this order is still a
-                clean reservation. If it has already moved into an inconsistent
-                inventory state, the update will be blocked for manual review.
+                {adminCopy.orders.normalEditWarning}
               </div>
             ) : null}
 
-            <FormField label="Contact">
+            <FormField label={adminCopy.orders.contact}>
               <select
                 required
                 disabled={!canCreateOrder}
@@ -203,7 +185,7 @@ export default async function AdminOrdersPage({
                 defaultValue={editingOrder?.contact_id ?? ""}
                 className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50 disabled:cursor-not-allowed disabled:bg-[#f9f4ea]"
               >
-                <option value="">Select contact</option>
+                <option value="">{adminCopy.orders.selectContact}</option>
                 {contacts.map((contact) => (
                   <option key={contact.id} value={contact.id}>
                     {contact.full_name}
@@ -213,7 +195,7 @@ export default async function AdminOrdersPage({
             </FormField>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField label="Order date">
+              <FormField label={adminCopy.orders.orderDate}>
                 <input
                   required
                   type="date"
@@ -225,7 +207,7 @@ export default async function AdminOrdersPage({
                 />
               </FormField>
 
-              <FormField label="Target fulfillment date">
+              <FormField label={adminCopy.orders.targetFulfillmentDate}>
                 <input
                   type="date"
                   name="target_fulfillment_date"
@@ -240,7 +222,7 @@ export default async function AdminOrdersPage({
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField label="Quantity">
+              <FormField label={adminCopy.orders.quantity}>
                 <input
                   required
                   min={1}
@@ -252,22 +234,24 @@ export default async function AdminOrdersPage({
                 />
               </FormField>
 
-              <FormField label="Status">
+              <FormField label={adminCopy.orders.status}>
                 <select
                   required
                   name="status"
                   defaultValue={editingOrder?.status ?? "reserved"}
                   className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
                 >
-                  <option value="reserved">Reserved</option>
-                  <option value="completed">Completed</option>
-                  {editingOrder ? <option value="cancelled">Cancelled</option> : null}
+                  <option value="reserved">{formatAdminValueLabel("reserved")}</option>
+                  <option value="completed">{formatAdminValueLabel("completed")}</option>
+                  {editingOrder ? (
+                    <option value="cancelled">{formatAdminValueLabel("cancelled")}</option>
+                  ) : null}
                 </select>
               </FormField>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField label="Price source">
+              <FormField label={adminCopy.orders.priceSource}>
                 <select
                   required
                   name="price_source"
@@ -276,13 +260,13 @@ export default async function AdminOrdersPage({
                 >
                   {PRICE_SOURCE_VALUES.map((value) => (
                     <option key={value} value={value}>
-                      {formatSelectLabel(value)}
+                      {formatAdminValueLabel(value)}
                     </option>
                   ))}
                 </select>
               </FormField>
 
-              <FormField label="Manual unit price">
+              <FormField label={adminCopy.orders.manualUnitPrice}>
                 <input
                   min={0}
                   step="0.01"
@@ -298,17 +282,17 @@ export default async function AdminOrdersPage({
               </FormField>
             </div>
 
-            <FormField label="Backend-computed total price">
+            <FormField label={adminCopy.orders.backendComputedTotalPrice}>
               <input
                 readOnly
                 type="text"
                 value={editingOrder ? formatDecimalInput(editingOrder.total_price) : ""}
-                placeholder="Calculated on save"
+                placeholder={adminCopy.orders.calculatedOnSave}
                 className="w-full rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/55 outline-none"
               />
             </FormField>
 
-            <FormField label="Fulfilled at">
+            <FormField label={adminCopy.orders.fulfilledAt}>
               <input
                 type="datetime-local"
                 name="fulfilled_at"
@@ -317,7 +301,7 @@ export default async function AdminOrdersPage({
               />
             </FormField>
 
-            <FormField label="Note">
+            <FormField label={adminCopy.orders.note}>
               <textarea
                 rows={4}
                 name="note"
@@ -332,14 +316,14 @@ export default async function AdminOrdersPage({
                 disabled={!canCreateOrder}
                 className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90 disabled:cursor-not-allowed disabled:bg-bark/40"
               >
-                {editingOrder ? "Update order" : "Create order"}
+                {editingOrder ? adminCopy.orders.update : adminCopy.orders.create}
               </button>
 
               <a
                 href="/admin/orders"
                 className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
               >
-                Reset form
+                {adminCopy.common.resetForm}
               </a>
             </div>
           </form>
@@ -348,24 +332,26 @@ export default async function AdminOrdersPage({
 
       <section className="card-surface overflow-hidden">
         <div className="border-b border-soil/10 px-6 py-5">
-          <p className="eyebrow">Records</p>
-          <h2 className="mt-2 font-serif text-3xl text-bark">Saved orders</h2>
+          <p className="eyebrow">{adminCopy.orders.recordsEyebrow}</p>
+          <h2 className="mt-2 font-serif text-3xl text-bark">
+            {adminCopy.orders.recordsTitle}
+          </h2>
         </div>
 
         {orders.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">No orders yet.</div>
+          <div className="px-6 py-8 text-sm text-bark/70">{adminCopy.orders.empty}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/40 text-bark/70">
                 <tr>
-                  <th className="px-6 py-4 font-medium">Date</th>
-                  <th className="px-6 py-4 font-medium">Contact</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium">Quantity</th>
-                  <th className="px-6 py-4 font-medium">Total price</th>
-                  <th className="px-6 py-4 font-medium">Fulfilled</th>
-                  <th className="px-6 py-4 font-medium">Actions</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.orders.date}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.orders.contact}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.orders.status}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.orders.quantity}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.orders.totalPrice}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.orders.fulfilled}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.orders.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -373,7 +359,7 @@ export default async function AdminOrdersPage({
                   <tr key={order.id} className="border-t border-soil/10">
                     <td className="px-6 py-4">{formatDateOnly(order.date)}</td>
                     <td className="px-6 py-4">{order.contact.full_name}</td>
-                    <td className="px-6 py-4">{formatSelectLabel(order.status)}</td>
+                    <td className="px-6 py-4">{formatAdminValueLabel(order.status)}</td>
                     <td className="px-6 py-4">{order.quantity}</td>
                     <td className="px-6 py-4">
                       {formatDecimalInput(order.total_price)}
@@ -389,18 +375,18 @@ export default async function AdminOrdersPage({
                           href={`/admin/orders?edit=${encodeURIComponent(order.id)}`}
                           className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                         >
-                          Edit
+                          {adminCopy.orders.edit}
                         </a>
                       ) : order.status === "completed" ? (
                         <a
                           href={`/admin/orders?edit=${encodeURIComponent(order.id)}`}
                           className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                         >
-                          Correct
+                          {adminCopy.orders.correct}
                         </a>
                       ) : (
                         <span className="text-xs text-bark/50">
-                          Locked after stock release
+                          {adminCopy.orders.lockedAfterStockRelease}
                         </span>
                       )}
                     </td>
@@ -447,13 +433,6 @@ function readSearchParam(value: string | string[] | undefined): string | null {
   }
 
   return null;
-}
-
-function formatSelectLabel(value: string): string {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 function formatDecimalInput(

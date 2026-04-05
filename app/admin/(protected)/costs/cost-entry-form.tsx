@@ -8,6 +8,10 @@ import {
   COST_TYPE_VALUES,
 } from "@/lib/services/cost-validation";
 import {
+  adminCopy,
+  formatAdminValueLabel,
+} from "@/lib/admin-localization";
+import {
   applyCostFieldAutoFill,
   buildInitialCostEntryFormState,
   syncRecurringStartDate,
@@ -44,7 +48,7 @@ export function CostEntryForm({
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2">
-        <FormField label="Date">
+        <FormField label={adminCopy.costs.form.date}>
           <input
             required
             type="date"
@@ -70,7 +74,7 @@ export function CostEntryForm({
           />
         </FormField>
 
-        <FormField label="Total amount">
+        <FormField label={adminCopy.costs.form.totalAmount}>
           <input
             required
             min={0}
@@ -97,7 +101,7 @@ export function CostEntryForm({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <FormField label="Category">
+        <FormField label={adminCopy.costs.form.category}>
           <select
             required
             name="category"
@@ -112,13 +116,13 @@ export function CostEntryForm({
           >
             {COST_CATEGORY_VALUES.map((value) => (
               <option key={value} value={value}>
-                {formatSelectLabel(value)}
+                {formatAdminValueLabel(value)}
               </option>
             ))}
           </select>
         </FormField>
 
-        <FormField label="Cost type">
+        <FormField label={adminCopy.costs.form.costType}>
           <select
             required
             name="cost_type"
@@ -133,7 +137,7 @@ export function CostEntryForm({
           >
             {COST_TYPE_VALUES.map((value) => (
               <option key={value} value={value}>
-                {formatSelectLabel(value)}
+                {formatAdminValueLabel(value)}
               </option>
             ))}
           </select>
@@ -141,7 +145,7 @@ export function CostEntryForm({
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <FormField label="Quantity">
+        <FormField label={adminCopy.costs.form.quantity}>
           <input
             min={0}
             step="0.01"
@@ -165,7 +169,7 @@ export function CostEntryForm({
           />
         </FormField>
 
-        <FormField label="Unit">
+        <FormField label={adminCopy.costs.form.unit}>
           <input
             type="text"
             name="unit"
@@ -180,7 +184,7 @@ export function CostEntryForm({
           />
         </FormField>
 
-        <FormField label="Unit price">
+        <FormField label={adminCopy.costs.form.unitPrice}>
           <input
             min={0}
             step="0.01"
@@ -222,17 +226,16 @@ export function CostEntryForm({
                 }))
               }
             />
-            <span>Save as recurring template</span>
+            <span>{adminCopy.costs.form.saveAsRecurring}</span>
           </label>
 
           {formValues.save_as_recurring ? (
             <div className="space-y-4 rounded-2xl border border-soil/20 bg-white/50 px-4 py-4">
               <p className="text-sm text-bark/70">
-                This creates the booked cost entry now and stores a separate
-                recurring template for future suggestions.
+                {adminCopy.costs.form.recurringHelp}
               </p>
 
-              <FormField label="Template name">
+              <FormField label={adminCopy.costs.form.templateName}>
                 <input
                   required={formValues.save_as_recurring}
                   type="text"
@@ -249,7 +252,7 @@ export function CostEntryForm({
               </FormField>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <FormField label="Frequency">
+                <FormField label={adminCopy.costs.form.frequency}>
                   <select
                     required={formValues.save_as_recurring}
                     name="recurring_frequency"
@@ -264,7 +267,7 @@ export function CostEntryForm({
                   >
                     {COST_FREQUENCY_VALUES.map((value) => (
                       <option key={value} value={value}>
-                        {formatSelectLabel(value)}
+                        {formatAdminValueLabel(value)}
                       </option>
                     ))}
                   </select>
@@ -282,12 +285,12 @@ export function CostEntryForm({
                       }))
                     }
                   />
-                  <span>Template is active</span>
+                  <span>{adminCopy.costs.form.templateIsActive}</span>
                 </label>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <FormField label="Start date">
+                <FormField label={adminCopy.costs.form.startDate}>
                   <input
                     required={formValues.save_as_recurring}
                     type="date"
@@ -304,7 +307,7 @@ export function CostEntryForm({
                   />
                 </FormField>
 
-                <FormField label="End date">
+                <FormField label={adminCopy.costs.form.endDate}>
                   <input
                     type="date"
                     name="recurring_end_date"
@@ -324,7 +327,7 @@ export function CostEntryForm({
         </>
       ) : null}
 
-      <FormField label="Note">
+      <FormField label={adminCopy.costs.form.note}>
         <textarea
           rows={4}
           name="note"
@@ -355,8 +358,4 @@ function FormField({
       {children}
     </label>
   );
-}
-
-function formatSelectLabel(value: string): string {
-  return value.replaceAll("_", " ");
 }

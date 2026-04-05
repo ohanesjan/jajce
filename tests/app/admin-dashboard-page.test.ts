@@ -40,11 +40,11 @@ describe("AdminDashboardPage", () => {
       }),
     );
 
-    expect(markup).toContain("Available eggs");
-    expect(markup).toContain("Public note visibility");
-    expect(markup).toContain("Save homepage setting");
-    expect(markup).toContain("Today gross margin");
-    expect(markup).not.toContain("Cost by category");
+    expect(markup).toContain("Достапни јајца");
+    expect(markup).toContain("Видливост на јавна белешка");
+    expect(markup).toContain("Зачувај поставка за почетната страница");
+    expect(markup).toContain("Денешна бруто маржа");
+    expect(markup).not.toContain("Трошоци по категорија");
   });
 
   it("renders expanded mode sections when requested", async () => {
@@ -58,9 +58,9 @@ describe("AdminDashboardPage", () => {
       }),
     );
 
-    expect(markup).toContain("Today direct cost");
-    expect(markup).toContain("Cost by category");
-    expect(markup).toContain("Feed");
+    expect(markup).toContain("Денешен директен трошок");
+    expect(markup).toContain("Трошоци по категорија");
+    expect(markup).toContain("Храна");
   });
 
   it("falls back to simple mode on an invalid mode param", async () => {
@@ -76,8 +76,8 @@ describe("AdminDashboardPage", () => {
 
     expect(getAdminDashboardDataMock).toHaveBeenCalledWith({ mode: "invalid-mode" });
     expect(markup).toContain('aria-current="page"');
-    expect(markup).toContain(">Simple</a>");
-    expect(markup).not.toContain("Cost by category");
+    expect(markup).toContain(">Основен</a>");
+    expect(markup).not.toContain("Трошоци по категорија");
   });
 });
 

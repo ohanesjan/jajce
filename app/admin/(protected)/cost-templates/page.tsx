@@ -5,7 +5,12 @@ import {
   saveCostTemplateAction,
 } from "@/app/admin/actions";
 import {
-  describeTemplateSchedule,
+  adminCopy,
+  formatAdminActiveState,
+  formatAdminRecurringSchedule,
+  formatAdminValueLabel,
+} from "@/lib/admin-localization";
+import {
   listCostTemplates,
 } from "@/lib/services/cost-templates";
 import {
@@ -22,15 +27,11 @@ type CostTemplatesPageProps = {
 };
 
 const COST_TEMPLATE_ERROR_MESSAGES: Record<string, string> = {
-  validation: "Please check the cost template fields and try again.",
-  not_found: "The selected cost template was not found.",
-  in_use: "This cost template cannot be deleted because booked cost entries already reference it.",
-  unknown: "The cost template could not be saved.",
+  ...adminCopy.costTemplates.errors,
 };
 
 const COST_TEMPLATE_SUCCESS_MESSAGES: Record<string, string> = {
-  saved: "Cost template saved.",
-  deleted: "Cost template deleted.",
+  ...adminCopy.costTemplates.success,
 };
 
 export default async function AdminCostTemplatesPage({
@@ -52,41 +53,40 @@ export default async function AdminCostTemplatesPage({
       <section className="card-surface p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="eyebrow">Maintenance</p>
+            <p className="eyebrow">{adminCopy.costTemplates.eyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
-              {editId ? "Edit recurring template" : "Create recurring template"}
+              {editId
+                ? adminCopy.costTemplates.editTitle
+                : adminCopy.costTemplates.createTitle}
             </h2>
           </div>
           <Link
             href="/admin/costs"
             className="rounded-2xl border border-soil/20 px-4 py-2 text-sm text-bark transition hover:border-soil/40"
           >
-            Back to costs
+            {adminCopy.costTemplates.backToCosts}
           </Link>
         </div>
         <p className="mt-3 text-sm leading-6 text-bark/75">
-          This is a secondary maintenance route. The primary recurring-cost
-          workflow now lives on the costs page, where booked costs and recurring
-          templates can be handled together. Use this screen for occasional
-          detailed edits or manual cleanup only.
+          {adminCopy.costTemplates.description}
         </p>
 
         {successCode ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {COST_TEMPLATE_SUCCESS_MESSAGES[successCode] ?? "Saved."}
+            {COST_TEMPLATE_SUCCESS_MESSAGES[successCode] ?? adminCopy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {COST_TEMPLATE_ERROR_MESSAGES[errorCode] ?? "Something went wrong."}
+            {COST_TEMPLATE_ERROR_MESSAGES[errorCode] ?? adminCopy.common.unknownError}
           </div>
         ) : null}
 
         <form action={saveCostTemplateAction} className="mt-6 space-y-4">
           <input type="hidden" name="id" value={editId ?? ""} />
 
-          <FormField label="Name">
+          <FormField label={adminCopy.costTemplates.name}>
             <input
               required
               type="text"
@@ -96,7 +96,7 @@ export default async function AdminCostTemplatesPage({
             />
           </FormField>
 
-          <FormField label="Category">
+          <FormField label={adminCopy.costTemplates.category}>
             <select
               required
               name="category"
@@ -105,14 +105,14 @@ export default async function AdminCostTemplatesPage({
             >
               {COST_CATEGORY_VALUES.map((value) => (
                 <option key={value} value={value}>
-                  {formatSelectLabel(value)}
+                  {formatAdminValueLabel(value)}
                 </option>
               ))}
             </select>
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Cost type">
+            <FormField label={adminCopy.costTemplates.costType}>
               <select
                 required
                 name="cost_type"
@@ -121,13 +121,13 @@ export default async function AdminCostTemplatesPage({
               >
                 {COST_TYPE_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatSelectLabel(value)}
+                    {formatAdminValueLabel(value)}
                   </option>
                 ))}
               </select>
             </FormField>
 
-            <FormField label="Frequency">
+            <FormField label={adminCopy.costTemplates.frequency}>
               <select
                 required
                 name="frequency"
@@ -136,7 +136,7 @@ export default async function AdminCostTemplatesPage({
               >
                 {COST_FREQUENCY_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatSelectLabel(value)}
+                    {formatAdminValueLabel(value)}
                   </option>
                 ))}
               </select>
@@ -144,7 +144,7 @@ export default async function AdminCostTemplatesPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Default quantity">
+            <FormField label={adminCopy.costTemplates.defaultQuantity}>
               <input
                 min={0}
                 step="0.01"
@@ -155,7 +155,7 @@ export default async function AdminCostTemplatesPage({
               />
             </FormField>
 
-            <FormField label="Default unit">
+            <FormField label={adminCopy.costTemplates.defaultUnit}>
               <input
                 type="text"
                 name="default_unit"
@@ -166,7 +166,7 @@ export default async function AdminCostTemplatesPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Default unit price">
+            <FormField label={adminCopy.costTemplates.defaultUnitPrice}>
               <input
                 min={0}
                 step="0.01"
@@ -177,7 +177,7 @@ export default async function AdminCostTemplatesPage({
               />
             </FormField>
 
-            <FormField label="Default total amount">
+            <FormField label={adminCopy.costTemplates.defaultTotalAmount}>
               <input
                 required
                 min={0}
@@ -193,7 +193,7 @@ export default async function AdminCostTemplatesPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Start date">
+            <FormField label={adminCopy.costTemplates.startDate}>
               <input
                 required
                 type="date"
@@ -205,7 +205,7 @@ export default async function AdminCostTemplatesPage({
               />
             </FormField>
 
-            <FormField label="End date">
+            <FormField label={adminCopy.costTemplates.endDate}>
               <input
                 type="date"
                 name="end_date"
@@ -225,10 +225,10 @@ export default async function AdminCostTemplatesPage({
               name="is_active"
               defaultChecked={editingTemplate?.is_active ?? true}
             />
-            <span>Template is active</span>
+            <span>{adminCopy.costTemplates.templateIsActive}</span>
           </label>
 
-          <FormField label="Note">
+          <FormField label={adminCopy.costTemplates.note}>
             <textarea
               rows={4}
               name="note"
@@ -242,14 +242,14 @@ export default async function AdminCostTemplatesPage({
               type="submit"
               className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
             >
-              {editId ? "Update template" : "Create template"}
+              {editId ? adminCopy.costTemplates.update : adminCopy.costTemplates.create}
             </button>
 
             <a
               href="/admin/cost-templates"
               className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
             >
-              Reset form
+              {adminCopy.common.resetForm}
             </a>
           </div>
         </form>
@@ -257,28 +257,34 @@ export default async function AdminCostTemplatesPage({
 
       <section className="card-surface overflow-hidden">
         <div className="border-b border-soil/10 px-6 py-5">
-          <p className="eyebrow">Templates</p>
+          <p className="eyebrow">{adminCopy.costTemplates.templatesEyebrow}</p>
           <h2 className="mt-2 font-serif text-3xl text-bark">
-            Saved cost templates
+            {adminCopy.costTemplates.templatesTitle}
           </h2>
         </div>
 
         {costTemplates.length === 0 ? (
           <div className="px-6 py-8 text-sm text-bark/70">
-            No cost templates yet.
+            {adminCopy.costTemplates.empty}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/40 text-bark/70">
                 <tr>
-                  <th className="px-6 py-4 font-medium">Name</th>
-                  <th className="px-6 py-4 font-medium">Type</th>
-                  <th className="px-6 py-4 font-medium">Default total</th>
-                  <th className="px-6 py-4 font-medium">Schedule</th>
-                  <th className="px-6 py-4 font-medium">Booked costs</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium">Actions</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.costTemplates.name}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.costTemplates.type}</th>
+                  <th className="px-6 py-4 font-medium">
+                    {adminCopy.costTemplates.defaultTotal}
+                  </th>
+                  <th className="px-6 py-4 font-medium">
+                    {adminCopy.costTemplates.schedule}
+                  </th>
+                  <th className="px-6 py-4 font-medium">
+                    {adminCopy.costTemplates.bookedCosts}
+                  </th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.costTemplates.status}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.costTemplates.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,19 +293,19 @@ export default async function AdminCostTemplatesPage({
                     <td className="px-6 py-4">
                       <div className="font-medium text-bark">{template.name}</div>
                       <div className="mt-1 text-xs text-bark/60">
-                        {formatSelectLabel(template.category)}
+                        {formatAdminValueLabel(template.category)}
                       </div>
                     </td>
-                    <td className="px-6 py-4">{formatSelectLabel(template.cost_type)}</td>
+                    <td className="px-6 py-4">{formatAdminValueLabel(template.cost_type)}</td>
                     <td className="px-6 py-4">
                       {template.default_total_amount.toString()}
                     </td>
                     <td className="px-6 py-4 text-bark/70">
-                      {describeTemplateSchedule(template)}
+                      {formatAdminRecurringSchedule(template)}
                     </td>
                     <td className="px-6 py-4">{template._count.cost_entries}</td>
                     <td className="px-6 py-4">
-                      {template.is_active ? "Active" : "Inactive"}
+                      {formatAdminActiveState(template.is_active)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
@@ -307,7 +313,7 @@ export default async function AdminCostTemplatesPage({
                           href={`/admin/cost-templates?edit=${encodeURIComponent(template.id)}`}
                           className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                         >
-                          Edit
+                          {adminCopy.costTemplates.edit}
                         </a>
                         <form action={deleteCostTemplateAction}>
                           <input type="hidden" name="id" value={template.id} />
@@ -317,8 +323,8 @@ export default async function AdminCostTemplatesPage({
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
                             {template._count.cost_entries > 0
-                              ? "Delete disabled after booking"
-                              : "Delete unused template"}
+                              ? adminCopy.costTemplates.deleteDisabledAfterBooking
+                              : adminCopy.costTemplates.deleteUnusedTemplate}
                           </button>
                         </form>
                       </div>
@@ -361,8 +367,4 @@ function formatDecimalInput(
   value: { toString(): string } | null | undefined,
 ): string {
   return value ? value.toString() : "";
-}
-
-function formatSelectLabel(value: string): string {
-  return value.replaceAll("_", " ");
 }

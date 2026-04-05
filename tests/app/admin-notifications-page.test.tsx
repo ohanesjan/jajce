@@ -87,10 +87,10 @@ describe("AdminNotificationsPage", () => {
       }),
     );
 
-    expect(markup).toContain("Edit notification draft");
-    expect(markup).toContain("Send this draft");
+    expect(markup).toContain("Измени нацрт-известување");
+    expect(markup).toContain("Испрати го овој нацрт");
     expect(markup).toContain("Weekly availability");
-    expect(markup).toContain(">Send</button>");
+    expect(markup).toContain(">Испрати</button>");
   });
 
   it("shows a read-only note when a sent or failed campaign is requested for editing", async () => {
@@ -104,9 +104,9 @@ describe("AdminNotificationsPage", () => {
       }),
     );
 
-    expect(markup).toContain("Create notification draft");
+    expect(markup).toContain("Креирај нацрт-известување");
     expect(markup).toContain(
-      "Sent and failed campaigns are read-only. The empty form below is for creating a new draft, not editing this campaign.",
+      "Испратените и неуспешните кампањи се само за читање. Празната форма подолу служи за креирање нов нацрт, а не за уредување на оваа кампања.",
     );
     expect(markup).toContain("Previous send");
   });
@@ -145,9 +145,9 @@ describe("AdminNotificationsPage", () => {
     );
 
     expect(markup).toContain(
-      "This draft already has persisted recipient rows, so it is send-only",
+      "Овој нацрт веќе има зачувани редови за приматели, па е достапен само за испраќање",
     );
-    expect(markup).toContain(">Resume sending saved snapshot</button>");
-    expect(markup).not.toContain("Edit notification draft");
+    expect(markup).toContain(">Продолжи со испраќање на зачуваната снимка</button>");
+    expect(markup).not.toContain("Измени нацрт-известување");
   });
 });

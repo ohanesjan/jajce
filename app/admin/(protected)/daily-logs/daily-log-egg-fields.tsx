@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { adminCopy } from "@/lib/admin-localization";
 
 type DailyLogEggFieldValues = {
   eggs_collected_for_sale: string;
@@ -36,7 +37,7 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
   return (
     <>
       <NumberField
-        label="Eggs collected for sale"
+        label={adminCopy.dailyLogs.eggFields.collectedForSale}
         name="eggs_collected_for_sale"
         value={fieldValues.eggs_collected_for_sale}
         onChange={(value) =>
@@ -48,7 +49,7 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
       />
 
       <NumberField
-        label="Eggs used other purpose"
+        label={adminCopy.dailyLogs.eggFields.usedOtherPurpose}
         name="eggs_used_other_purpose"
         value={fieldValues.eggs_used_other_purpose}
         onChange={(value) =>
@@ -60,7 +61,7 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
       />
 
       <NumberField
-        label="Eggs broken"
+        label={adminCopy.dailyLogs.eggFields.broken}
         name="eggs_broken"
         value={fieldValues.eggs_broken}
         onChange={(value) =>
@@ -72,7 +73,7 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
       />
 
       <NumberField
-        label="Eggs unusable other"
+        label={adminCopy.dailyLogs.eggFields.unusableOther}
         name="eggs_unusable_other"
         value={fieldValues.eggs_unusable_other}
         onChange={(value) =>
@@ -84,7 +85,9 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
       />
 
       <label className="block text-sm text-bark">
-        <span className="mb-1 block font-medium">Auto-calculated total yield</span>
+        <span className="mb-1 block font-medium">
+          {adminCopy.dailyLogs.eggFields.autoCalculatedTotalYield}
+        </span>
         <input
           type="number"
           name="eggs_total_yield"

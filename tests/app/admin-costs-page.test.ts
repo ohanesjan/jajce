@@ -118,14 +118,14 @@ describe("AdminCostsPage", () => {
       }),
     );
 
-    expect(markup).toContain("Save as recurring template");
-    expect(markup).toContain("Edit &amp; accept");
-    expect(markup).toContain(">Skip<");
-    expect(markup).toContain("Next 7 days");
-    expect(markup).toContain("Next 30 days");
-    expect(markup).toContain("Open maintenance view");
-    expect(markup).toContain("Mark inactive");
-    expect(markup).toContain("Delete unused");
+    expect(markup).toContain("Зачувај како шаблон за повторлив трошок");
+    expect(markup).toContain("Измени и прифати");
+    expect(markup).toContain(">Прескокни<");
+    expect(markup).toContain("Следни 7 дена");
+    expect(markup).toContain("Следни 30 дена");
+    expect(markup).toContain("Отвори одржување");
+    expect(markup).toContain("Означи како неактивен");
+    expect(markup).toContain("Избриши некористен");
   });
 
   it("switches the main form into edit-and-accept mode from the selected suggestion", async () => {
@@ -142,8 +142,8 @@ describe("AdminCostsPage", () => {
       }),
     );
 
-    expect(markup).toContain("Edit &amp; accept recurring cost");
-    expect(markup).toContain("Save edited acceptance");
+    expect(markup).toContain("Измени и прифати повторлив трошок");
+    expect(markup).toContain("Зачувај изменето прифаќање");
     expect(markup).toContain('name="accept_cost_template_id"');
   });
 });

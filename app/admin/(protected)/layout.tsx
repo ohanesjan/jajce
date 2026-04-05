@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { logoutAdminAction } from "@/app/admin/actions";
+import { adminCopy } from "@/lib/admin-localization";
 import { requireAdminSession } from "@/lib/services/admin-session";
 
 export default async function AdminProtectedLayout({
@@ -15,9 +16,9 @@ export default async function AdminProtectedLayout({
       <div className="mx-auto max-w-6xl">
         <header className="card-surface flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="eyebrow">Jajce Admin</p>
+            <p className="eyebrow">{adminCopy.common.appName}</p>
             <h1 className="mt-2 font-serif text-2xl text-bark">
-              Admin dashboard
+              {adminCopy.layout.title}
             </h1>
             <p className="mt-1 text-sm text-bark/70">{session.admin.email}</p>
           </div>
@@ -27,50 +28,50 @@ export default async function AdminProtectedLayout({
               href="/admin/dashboard"
               className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
             >
-              Dashboard
+              {adminCopy.layout.dashboard}
             </Link>
             <Link
               href="/admin/daily-logs"
               className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
             >
-              Daily logs
+              {adminCopy.layout.dailyLogs}
             </Link>
             <Link
               href="/admin/costs"
               className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
             >
-              Costs
+              {adminCopy.layout.costs}
             </Link>
             <Link
               href="/admin/contacts"
               className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
             >
-              Contacts
+              {adminCopy.layout.contacts}
             </Link>
             <Link
               href="/admin/orders"
               className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
             >
-              Orders
+              {adminCopy.layout.orders}
             </Link>
             <Link
               href="/admin/notifications"
               className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
             >
-              Notifications
+              {adminCopy.layout.notifications}
             </Link>
             <Link
               href="/admin/margin"
               className="rounded-full border border-soil/20 px-4 py-2 text-bark transition hover:border-soil/40"
             >
-              Margin
+              {adminCopy.layout.margin}
             </Link>
             <form action={logoutAdminAction}>
               <button
                 type="submit"
                 className="rounded-full bg-bark px-4 py-2 text-parchment transition hover:bg-bark/90"
               >
-                Log out
+                {adminCopy.layout.logout}
               </button>
             </form>
           </div>

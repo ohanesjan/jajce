@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { deleteContactAction, saveContactAction } from "@/app/admin/actions";
+import { adminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { listContacts } from "@/lib/services/contacts";
 import {
   CUSTOMER_STAGE_VALUES,
@@ -16,16 +17,11 @@ type ContactsPageProps = {
 };
 
 const CONTACT_ERROR_MESSAGES: Record<string, string> = {
-  validation: "Please check the contact fields and try again.",
-  not_found: "The selected contact was not found.",
-  in_use:
-    "This contact cannot be deleted because it is still referenced by orders or notification history.",
-  unknown: "The contact could not be saved.",
+  ...adminCopy.contacts.errors,
 };
 
 const CONTACT_SUCCESS_MESSAGES: Record<string, string> = {
-  saved: "Contact saved.",
-  deleted: "Contact deleted.",
+  ...adminCopy.contacts.success,
 };
 
 export default async function AdminContactsPage({
@@ -45,32 +41,30 @@ export default async function AdminContactsPage({
   return (
     <main className="grid gap-6 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
       <section className="card-surface p-6">
-        <p className="eyebrow">Phase 4</p>
+        <p className="eyebrow">{adminCopy.contacts.eyebrow}</p>
         <h2 className="mt-2 font-serif text-3xl text-bark">
-          {editId ? "Edit contact" : "Create contact"}
+          {editId ? adminCopy.contacts.editTitle : adminCopy.contacts.createTitle}
         </h2>
         <p className="mt-3 text-sm leading-6 text-bark/75">
-          Contacts can carry multiple role flags at once, while customer stage
-          stays a separate lifecycle field. Delete is blocked once a contact is
-          referenced by orders or saved notification history.
+          {adminCopy.contacts.description}
         </p>
 
         {successCode ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {CONTACT_SUCCESS_MESSAGES[successCode] ?? "Saved."}
+            {CONTACT_SUCCESS_MESSAGES[successCode] ?? adminCopy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {CONTACT_ERROR_MESSAGES[errorCode] ?? "Something went wrong."}
+            {CONTACT_ERROR_MESSAGES[errorCode] ?? adminCopy.common.unknownError}
           </div>
         ) : null}
 
         <form action={saveContactAction} className="mt-6 space-y-4">
           <input type="hidden" name="id" value={editId ?? ""} />
 
-          <FormField label="Full name">
+          <FormField label={adminCopy.contacts.fullName}>
             <input
               required
               type="text"
@@ -81,7 +75,7 @@ export default async function AdminContactsPage({
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Email">
+            <FormField label={adminCopy.contacts.email}>
               <input
                 type="email"
                 name="email"
@@ -90,7 +84,7 @@ export default async function AdminContactsPage({
               />
             </FormField>
 
-            <FormField label="Phone">
+            <FormField label={adminCopy.contacts.phone}>
               <input
                 type="text"
                 name="phone"
@@ -103,17 +97,17 @@ export default async function AdminContactsPage({
           <div className="grid gap-4 md:grid-cols-3">
             <CheckboxField
               name="is_subscriber"
-              label="Subscriber"
+              label={adminCopy.contacts.subscriber}
               defaultChecked={editingContact?.is_subscriber ?? false}
             />
             <CheckboxField
               name="is_waiting_list"
-              label="Waiting list"
+              label={adminCopy.contacts.waitingList}
               defaultChecked={editingContact?.is_waiting_list ?? false}
             />
             <CheckboxField
               name="is_active_customer"
-              label="Active customer"
+              label={adminCopy.contacts.activeCustomer}
               defaultChecked={editingContact?.is_active_customer ?? false}
             />
           </div>
@@ -121,33 +115,33 @@ export default async function AdminContactsPage({
           <div className="grid gap-4 md:grid-cols-2">
             <CheckboxField
               name="email_opt_in"
-              label="Email opt-in"
+              label={adminCopy.contacts.emailOptIn}
               defaultChecked={editingContact?.email_opt_in ?? false}
             />
             <CheckboxField
               name="phone_opt_in"
-              label="Phone opt-in"
+              label={adminCopy.contacts.phoneOptIn}
               defaultChecked={editingContact?.phone_opt_in ?? false}
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Preferred channel">
+            <FormField label={adminCopy.contacts.preferredChannel}>
               <select
                 name="preferred_channel"
                 defaultValue={editingContact?.preferred_channel ?? ""}
                 className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
               >
-                <option value="">None</option>
+                <option value="">{adminCopy.contacts.none}</option>
                 {PREFERRED_CHANNEL_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatSelectLabel(value)}
+                    {formatAdminValueLabel(value)}
                   </option>
                 ))}
               </select>
             </FormField>
 
-            <FormField label="Customer stage">
+            <FormField label={adminCopy.contacts.customerStage}>
               <select
                 required
                 name="customer_stage"
@@ -156,7 +150,7 @@ export default async function AdminContactsPage({
               >
                 {CUSTOMER_STAGE_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatSelectLabel(value)}
+                    {formatAdminValueLabel(value)}
                   </option>
                 ))}
               </select>
@@ -164,7 +158,7 @@ export default async function AdminContactsPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <FormField label="Preferred quantity">
+            <FormField label={adminCopy.contacts.preferredQuantity}>
               <input
                 min={1}
                 step={1}
@@ -175,31 +169,31 @@ export default async function AdminContactsPage({
               />
             </FormField>
 
-            <FormField label="Preference unit">
+            <FormField label={adminCopy.contacts.preferenceUnit}>
               <select
                 name="preference_unit"
                 defaultValue={editingContact?.preference_unit ?? ""}
                 className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
               >
-                <option value="">None</option>
+                <option value="">{adminCopy.contacts.none}</option>
                 {PREFERENCE_UNIT_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatSelectLabel(value)}
+                    {formatAdminValueLabel(value)}
                   </option>
                 ))}
               </select>
             </FormField>
 
-            <FormField label="Notification frequency">
+            <FormField label={adminCopy.contacts.notificationFrequency}>
               <select
                 name="notification_frequency"
                 defaultValue={editingContact?.notification_frequency ?? ""}
                 className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
               >
-                <option value="">None</option>
+                <option value="">{adminCopy.contacts.none}</option>
                 {NOTIFICATION_FREQUENCY_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatSelectLabel(value)}
+                    {formatAdminValueLabel(value)}
                   </option>
                 ))}
               </select>
@@ -207,7 +201,7 @@ export default async function AdminContactsPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Joined waiting list at">
+            <FormField label={adminCopy.contacts.joinedWaitingListAt}>
               <input
                 type="date"
                 name="joined_waiting_list_at"
@@ -220,7 +214,7 @@ export default async function AdminContactsPage({
               />
             </FormField>
 
-            <FormField label="Became customer at">
+            <FormField label={adminCopy.contacts.becameCustomerAt}>
               <input
                 type="date"
                 name="became_customer_at"
@@ -234,7 +228,7 @@ export default async function AdminContactsPage({
             </FormField>
           </div>
 
-          <FormField label="Source">
+          <FormField label={adminCopy.contacts.source}>
             <input
               type="text"
               name="source"
@@ -243,7 +237,7 @@ export default async function AdminContactsPage({
             />
           </FormField>
 
-          <FormField label="Notes">
+          <FormField label={adminCopy.contacts.notes}>
             <textarea
               rows={4}
               name="notes"
@@ -257,14 +251,14 @@ export default async function AdminContactsPage({
               type="submit"
               className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
             >
-              {editId ? "Update contact" : "Create contact"}
+              {editId ? adminCopy.contacts.update : adminCopy.contacts.create}
             </button>
 
             <a
               href="/admin/contacts"
               className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
             >
-              Reset form
+              {adminCopy.common.resetForm}
             </a>
           </div>
         </form>
@@ -272,35 +266,35 @@ export default async function AdminContactsPage({
 
       <section className="card-surface overflow-hidden">
         <div className="border-b border-soil/10 px-6 py-5">
-          <p className="eyebrow">Records</p>
+          <p className="eyebrow">{adminCopy.contacts.recordsEyebrow}</p>
           <h2 className="mt-2 font-serif text-3xl text-bark">
-            Saved contacts
+            {adminCopy.contacts.recordsTitle}
           </h2>
         </div>
 
         {contacts.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">No contacts yet.</div>
+          <div className="px-6 py-8 text-sm text-bark/70">{adminCopy.contacts.empty}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/40 text-bark/70">
                 <tr>
-                  <th className="px-6 py-4 font-medium">Name</th>
-                  <th className="px-6 py-4 font-medium">Email</th>
-                  <th className="px-6 py-4 font-medium">Phone</th>
-                  <th className="px-6 py-4 font-medium">Stage</th>
-                  <th className="px-6 py-4 font-medium">Flags</th>
-                  <th className="px-6 py-4 font-medium">Actions</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.name}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.email}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.phone}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.stage}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.flags}</th>
+                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.actions}</th>
                 </tr>
               </thead>
               <tbody>
                 {contacts.map((contact) => (
                   <tr key={contact.id} className="border-t border-soil/10">
                     <td className="px-6 py-4">{contact.full_name}</td>
-                    <td className="px-6 py-4">{contact.email ?? "—"}</td>
-                    <td className="px-6 py-4">{contact.phone ?? "—"}</td>
+                    <td className="px-6 py-4">{contact.email ?? adminCopy.common.noValue}</td>
+                    <td className="px-6 py-4">{contact.phone ?? adminCopy.common.noValue}</td>
                     <td className="px-6 py-4">
-                      {formatSelectLabel(contact.customer_stage)}
+                      {formatAdminValueLabel(contact.customer_stage)}
                     </td>
                     <td className="px-6 py-4 text-xs text-bark/75">
                       {[
@@ -309,8 +303,8 @@ export default async function AdminContactsPage({
                         contact.is_active_customer ? "active_customer" : null,
                       ]
                         .filter(Boolean)
-                        .map((value) => formatSelectLabel(value as string))
-                        .join(", ") || "—"}
+                        .map((value) => formatAdminValueLabel(value as string))
+                        .join(", ") || adminCopy.common.noValue}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
@@ -318,7 +312,7 @@ export default async function AdminContactsPage({
                           href={`/admin/contacts?edit=${encodeURIComponent(contact.id)}`}
                           className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                         >
-                          Edit
+                          {adminCopy.contacts.edit}
                         </a>
                         <form action={deleteContactAction}>
                           <input type="hidden" name="id" value={contact.id} />
@@ -326,7 +320,7 @@ export default async function AdminContactsPage({
                             type="submit"
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
-                            Delete contact
+                            {adminCopy.contacts.delete}
                           </button>
                         </form>
                       </div>
@@ -385,11 +379,4 @@ function readSearchParam(value: string | string[] | undefined): string | null {
   }
 
   return null;
-}
-
-function formatSelectLabel(value: string): string {
-  return value
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }

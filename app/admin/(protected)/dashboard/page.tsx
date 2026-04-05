@@ -1,4 +1,5 @@
 import { saveHomepagePublicNoteSettingAction } from "@/app/admin/actions";
+import { adminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { getAdminDashboardData } from "@/lib/services/admin-dashboard";
 import { getHomepagePublicNoteEnabled } from "@/lib/services/site-settings";
 import { formatDateOnly } from "@/lib/utils/date";
@@ -27,26 +28,27 @@ export default async function AdminDashboardPage({
       <section className="card-surface p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="eyebrow">Phase 5</p>
-            <h2 className="mt-2 font-serif text-3xl text-bark">Dashboard</h2>
+            <p className="eyebrow">{adminCopy.dashboard.eyebrow}</p>
+            <h2 className="mt-2 font-serif text-3xl text-bark">
+              {adminCopy.dashboard.title}
+            </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
-              Read-only admin KPIs computed server-side from inventory, daily
-              logs, orders, booked costs, and contact role flags.
+              {adminCopy.dashboard.description}
             </p>
             <p className="mt-2 text-sm text-bark/60">
-              Local admin date: {formatDateOnly(dashboard.date)}
+              {adminCopy.dashboard.localDate}: {formatDateOnly(dashboard.date)}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
             <ModeLink
               href="/admin/dashboard?mode=simple"
-              label="Simple"
+              label={adminCopy.dashboard.simple}
               active={dashboard.mode === "simple"}
             />
             <ModeLink
               href="/admin/dashboard?mode=expanded"
-              label="Expanded"
+              label={adminCopy.dashboard.expanded}
               active={dashboard.mode === "expanded"}
             />
           </div>
@@ -55,92 +57,91 @@ export default async function AdminDashboardPage({
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <DashboardCard
-          label="Available eggs"
+          label={adminCopy.dashboard.availableEggs}
           value={formatMetricValue(dashboard.simple.available_eggs)}
-          detail="Sellable stock from the inventory ledger."
+          detail={adminCopy.dashboard.availableEggsDetail}
         />
         <DashboardCard
-          label="Today total yield"
+          label={adminCopy.dashboard.todayTotalYield}
           value={formatMetricValue(dashboard.simple.today_total_yield)}
-          detail="Today's daily log total yield."
+          detail={adminCopy.dashboard.todayTotalYieldDetail}
         />
         <DashboardCard
-          label="Today collected for sale"
+          label={adminCopy.dashboard.todayCollectedForSale}
           value={formatMetricValue(dashboard.simple.today_collected_for_sale)}
-          detail="Today's sellable collection from the daily log."
+          detail={adminCopy.dashboard.todayCollectedForSaleDetail}
         />
         <DashboardCard
-          label="Yesterday collected for sale"
+          label={adminCopy.dashboard.yesterdayCollectedForSale}
           value={formatMetricValue(dashboard.simple.yesterday_collected_for_sale)}
-          detail="Yesterday's sellable collection from the daily log."
+          detail={adminCopy.dashboard.yesterdayCollectedForSaleDetail}
         />
         <DashboardCard
-          label="Latest chicken count"
+          label={adminCopy.dashboard.latestChickenCount}
           value={formatMetricValue(dashboard.simple.latest_chicken_count)}
           detail={
             dashboard.simple.latest_chicken_count_date
-              ? `Latest log: ${formatDateOnly(dashboard.simple.latest_chicken_count_date)}`
-              : "No daily logs yet."
+              ? `${adminCopy.dashboard.latestLog}: ${formatDateOnly(dashboard.simple.latest_chicken_count_date)}`
+              : adminCopy.dashboard.noDailyLogsYet
           }
         />
         <DashboardCard
-          label="Today sold eggs"
+          label={adminCopy.dashboard.todaySoldEggs}
           value={formatMetricValue(dashboard.simple.today_sold_eggs)}
-          detail="Completed-order quantity recognized today."
+          detail={adminCopy.dashboard.todaySoldEggsDetail}
         />
         <DashboardCard
-          label="Today revenue"
+          label={adminCopy.dashboard.todayRevenue}
           value={formatMetricValue(dashboard.simple.today_revenue)}
-          detail="Completed-order revenue recognized today."
+          detail={adminCopy.dashboard.todayRevenueDetail}
         />
         <DashboardCard
-          label="Today total cost"
+          label={adminCopy.dashboard.todayTotalCost}
           value={formatMetricValue(dashboard.simple.today_total_cost)}
-          detail="Today's direct plus allocated booked costs."
+          detail={adminCopy.dashboard.todayTotalCostDetail}
         />
         <DashboardCard
-          label="Today gross margin"
+          label={adminCopy.dashboard.todayGrossMargin}
           value={formatMetricValue(dashboard.simple.today_gross_margin)}
-          detail="Today's revenue minus total cost."
+          detail={adminCopy.dashboard.todayGrossMarginDetail}
         />
         <DashboardCard
-          label="Subscriber count"
+          label={adminCopy.dashboard.subscriberCount}
           value={formatMetricValue(dashboard.simple.subscriber_count)}
-          detail="Contacts flagged as subscribers."
+          detail={adminCopy.dashboard.subscriberCountDetail}
         />
         <DashboardCard
-          label="Waiting list count"
+          label={adminCopy.dashboard.waitingListCount}
           value={formatMetricValue(dashboard.simple.waiting_list_count)}
-          detail="Contacts flagged on the waiting list."
+          detail={adminCopy.dashboard.waitingListCountDetail}
         />
         <DashboardCard
-          label="Active customer count"
+          label={adminCopy.dashboard.activeCustomerCount}
           value={formatMetricValue(dashboard.simple.active_customer_count)}
-          detail="Contacts flagged as active customers."
+          detail={adminCopy.dashboard.activeCustomerCountDetail}
         />
       </section>
 
       <section className="card-surface p-6">
-        <p className="eyebrow">Homepage</p>
+        <p className="eyebrow">{adminCopy.dashboard.homepageEyebrow}</p>
         <h2 className="mt-2 font-serif text-3xl text-bark">
-          Public note visibility
+          {adminCopy.dashboard.homepageTitle}
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
-          Show today&apos;s daily-log public note on the homepage only when this
-          setting is enabled. Exact stock stays admin-only.
+          {adminCopy.dashboard.homepageDescription}
         </p>
 
         {settingsSuccessCode ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            Homepage setting saved.
+            {adminCopy.dashboard.homepageSettingSaved}
           </div>
         ) : null}
 
         {settingsErrorCode ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {settingsErrorCode === "validation"
-              ? "Please check the homepage setting and try again."
-              : "The homepage setting could not be saved."}
+              ? adminCopy.dashboard.homepageSettingValidationError
+              : adminCopy.dashboard.homepageSettingUnknownError}
           </div>
         ) : null}
 
@@ -155,8 +156,7 @@ export default async function AdminDashboardPage({
               className="mt-1 h-4 w-4 rounded border-soil/30 text-bark focus:ring-bark/20"
             />
             <span>
-              Enable today&apos;s public note on the homepage when a daily log
-              includes one.
+              {adminCopy.dashboard.homepageCheckbox}
             </span>
           </label>
 
@@ -165,7 +165,7 @@ export default async function AdminDashboardPage({
               type="submit"
               className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
             >
-              Save homepage setting
+              {adminCopy.dashboard.saveHomepageSetting}
             </button>
           </div>
         </form>
@@ -175,64 +175,64 @@ export default async function AdminDashboardPage({
         <div className="space-y-6">
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <DashboardCard
-              label="Total yield per chicken"
+              label={adminCopy.dashboard.totalYieldPerChicken}
               value={formatMetricValue(dashboard.expanded.total_yield_per_chicken)}
-              detail="Null when today's chicken count is missing or zero."
+              detail={adminCopy.dashboard.totalYieldPerChickenDetail}
             />
             <DashboardCard
-              label="Sale yield per chicken"
+              label={adminCopy.dashboard.saleYieldPerChicken}
               value={formatMetricValue(dashboard.expanded.sale_yield_per_chicken)}
-              detail="Today's collected-for-sale eggs divided by chicken count."
+              detail={adminCopy.dashboard.saleYieldPerChickenDetail}
             />
             <DashboardCard
-              label="Today direct cost"
+              label={adminCopy.dashboard.todayDirectCost}
               value={formatMetricValue(dashboard.expanded.today_direct_cost)}
-              detail="Today's booked costs marked as direct."
+              detail={adminCopy.dashboard.todayDirectCostDetail}
             />
             <DashboardCard
-              label="Today allocated cost"
+              label={adminCopy.dashboard.todayAllocatedCost}
               value={formatMetricValue(dashboard.expanded.today_allocated_cost)}
-              detail="Today's booked costs marked as allocated."
+              detail={adminCopy.dashboard.todayAllocatedCostDetail}
             />
             <DashboardCard
-              label="7-day gross margin"
+              label={adminCopy.dashboard.grossMargin7d}
               value={formatMetricValue(dashboard.expanded.gross_margin_7d)}
-              detail="Rolling gross margin across the last 7 local dates."
+              detail={adminCopy.dashboard.grossMargin7dDetail}
             />
             <DashboardCard
-              label="30-day gross margin"
+              label={adminCopy.dashboard.grossMargin30d}
               value={formatMetricValue(dashboard.expanded.gross_margin_30d)}
-              detail="Rolling gross margin across the last 30 local dates."
+              detail={adminCopy.dashboard.grossMargin30dDetail}
             />
           </section>
 
           <section className="card-surface p-6">
-            <p className="eyebrow">Today</p>
+            <p className="eyebrow">{adminCopy.dashboard.todayEyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
-              Cost by category
+              {adminCopy.dashboard.costByCategoryTitle}
             </h2>
             <p className="mt-3 text-sm leading-6 text-bark/75">
-              Booked costs for today grouped by category.
+              {adminCopy.dashboard.costByCategoryDescription}
             </p>
 
             {dashboard.expanded.cost_by_category.length === 0 ? (
               <div className="mt-6 rounded-2xl border border-dashed border-soil/20 px-4 py-5 text-sm text-bark/70">
-                No booked costs for today.
+                {adminCopy.dashboard.noBookedCostsToday}
               </div>
             ) : (
               <div className="mt-6 overflow-x-auto">
                 <table className="min-w-full border-separate border-spacing-y-3">
                   <thead>
                     <tr className="text-left text-xs uppercase tracking-[0.2em] text-bark/55">
-                      <th className="px-4">Category</th>
-                      <th className="px-4">Total amount</th>
+                      <th className="px-4">{adminCopy.dashboard.category}</th>
+                      <th className="px-4">{adminCopy.dashboard.totalAmount}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {dashboard.expanded.cost_by_category.map((row) => (
                       <tr key={row.category} className="rounded-2xl bg-white/50">
                         <td className="rounded-l-2xl px-4 py-3 text-sm text-bark">
-                          {formatCategoryLabel(row.category)}
+                          {formatAdminValueLabel(row.category)}
                         </td>
                         <td className="rounded-r-2xl px-4 py-3 text-sm font-medium text-bark">
                           {formatMetricValue(row.total_amount)}
@@ -306,11 +306,4 @@ function formatMetricValue(value: number | null): string {
   }
 
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
-}
-
-function formatCategoryLabel(value: string): string {
-  return value
-    .split("_")
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(" ");
 }

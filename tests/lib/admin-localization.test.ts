@@ -1,0 +1,37 @@
+import { describe, expect, it } from "vitest";
+import {
+  ADMIN_LANGUAGE,
+  adminCopy,
+  formatAdminActiveState,
+  formatAdminRecurringSchedule,
+  formatAdminValueLabel,
+} from "@/lib/admin-localization";
+
+describe("admin localization helpers", () => {
+  it("defaults admin language to Macedonian", () => {
+    expect(ADMIN_LANGUAGE).toBe("mk");
+    expect(adminCopy.login.email).toBe("Е-пошта");
+  });
+
+  it("maps admin-visible enum values to Macedonian labels", () => {
+    expect(formatAdminValueLabel("manual_override")).toBe("Рачно зададена");
+    expect(formatAdminValueLabel("active_customers")).toBe("Активни купувачи");
+    expect(formatAdminValueLabel("email")).toBe("Е-пошта");
+    expect(formatAdminValueLabel("whatsapp")).toBe("WhatsApp");
+  });
+
+  it("formats recurring schedules in Macedonian without changing dates", () => {
+    expect(
+      formatAdminRecurringSchedule({
+        frequency: "weekly",
+        start_date: new Date("2026-04-02T00:00:00.000Z"),
+        end_date: new Date("2026-05-02T00:00:00.000Z"),
+      }),
+    ).toBe("Неделно од 2026-04-02 до 2026-05-02");
+  });
+
+  it("formats active state labels in Macedonian", () => {
+    expect(formatAdminActiveState(true)).toBe("Активен");
+    expect(formatAdminActiveState(false)).toBe("Неактивен");
+  });
+});
