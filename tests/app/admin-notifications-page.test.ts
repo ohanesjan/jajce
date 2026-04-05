@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const listContactsMock = vi.fn();
 const listNotificationCampaignsMock = vi.fn();
 const getSenderLabelDefaultMock = vi.fn();
+const getAdminLanguageMock = vi.fn();
 
 vi.mock("@/lib/services/contacts", () => ({
   listContacts: listContactsMock,
@@ -22,9 +23,14 @@ vi.mock("@/app/admin/actions", () => ({
   sendNotificationCampaignAction: vi.fn(),
 }));
 
+vi.mock("@/lib/admin-language", () => ({
+  getAdminLanguage: getAdminLanguageMock,
+}));
+
 describe("AdminNotificationsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getAdminLanguageMock.mockResolvedValue("mk");
     listContactsMock.mockResolvedValue([
       {
         id: "contact_1",

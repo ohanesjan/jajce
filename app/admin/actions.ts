@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
 import {
+  parseAdminLanguage,
+  setAdminLanguageCookie,
+} from "@/lib/admin-language";
+import {
   authenticateAdminCredentials,
   normalizeAdminEmail,
 } from "@/lib/services/admin-auth";
@@ -106,6 +110,17 @@ export async function logoutAdminAction(): Promise<never> {
   await clearAdminSession();
 
   redirect("/admin/login");
+}
+
+export async function setAdminLanguageAction(formData: FormData): Promise<never> {
+  await requireAdminSession();
+
+  const language = parseAdminLanguage(formData.get("language"));
+  const nextPath = getSafeNextPath(formData.get("next")) ?? "/admin/dashboard";
+
+  await setAdminLanguageCookie(language);
+
+  redirect(nextPath);
 }
 
 export async function saveDailyLogAction(formData: FormData): Promise<never> {

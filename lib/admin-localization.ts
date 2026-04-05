@@ -1,10 +1,11 @@
+import type { AdminLanguage } from "@/lib/admin-language";
+import { ADMIN_LANGUAGE } from "@/lib/admin-language";
 import { formatDateOnly } from "@/lib/utils/date";
 
-export const ADMIN_LANGUAGE = "mk" as const;
-
-export const adminCopy = {
+const mkAdminCopy = {
   common: {
     appName: "Jajce Администратор",
+    language: "Јазик",
     saveFallback: "Зачувано.",
     unknownError: "Се појави проблем.",
     resetForm: "Ресетирај форма",
@@ -510,71 +511,665 @@ export const adminCopy = {
     totalCost: "Вкупен трошок",
     grossMargin: "Бруто маржа",
   },
-} as const;
-
-const ADMIN_VALUE_LABELS: Record<string, string> = {
-  email: "Е-пошта",
-  viber: "Viber",
-  whatsapp: "WhatsApp",
-  all: "Сите",
-  week: "Недела",
-  month: "Месец",
-  instant: "Веднаш",
-  weekly: "Неделно",
-  manual_only: "Само рачно",
-  lead: "Потенцијален",
-  subscriber: "Претплатник",
-  waiting_list: "Листа на чекање",
-  active: "Активен",
-  inactive: "Неактивен",
-  subscribers: "Претплатници",
-  active_customers: "Активни купувачи",
-  selected_contacts: "Избрани контакти",
-  feed: "Храна",
-  supplements: "Суплементи",
-  bedding_hygiene: "Постелка и хигиена",
-  packaging: "Пакување",
-  transport: "Транспорт",
-  labor_time: "Работа и време",
-  utilities: "Режиски трошоци",
-  maintenance: "Одржување",
-  veterinary_medicine: "Ветеринарна грижа",
-  equipment_tools: "Опрема и алати",
-  land_facility: "Земјиште и објект",
-  miscellaneous: "Разно",
-  direct: "Директен",
-  allocated: "Распределен",
-  daily: "Дневно",
-  monthly: "Месечно",
-  manual: "Рачно",
-  template: "Шаблон",
-  reserved: "Резервирана",
-  completed: "Завршена",
-  cancelled: "Откажана",
-  default: "Стандардна",
-  manual_override: "Рачно зададена",
-  draft: "Нацрт",
-  sent: "Испратена",
-  failed: "Неуспешна",
 };
 
-export function formatAdminValueLabel(value: string): string {
-  return ADMIN_VALUE_LABELS[value] ?? value.replaceAll("_", " ");
+const enAdminCopy: typeof mkAdminCopy = {
+  common: {
+    appName: "Jajce Admin",
+    language: "Language",
+    saveFallback: "Saved.",
+    unknownError: "Something went wrong.",
+    resetForm: "Reset form",
+    noValue: "—",
+  },
+  login: {
+    eyebrow: "Admin",
+    title: "Admin sign in",
+    description: "This area is only for the jajce.mk admin dashboard.",
+    email: "Email",
+    password: "Password",
+    signIn: "Sign in",
+    errors: {
+      missing_credentials: "Enter your email and password.",
+      invalid_credentials: "The email or password is incorrect.",
+      unknown: "Sign-in failed.",
+    },
+  },
+  layout: {
+    title: "Dashboard",
+    dashboard: "Dashboard",
+    dailyLogs: "Daily logs",
+    costs: "Costs",
+    contacts: "Contacts",
+    orders: "Orders",
+    notifications: "Notifications",
+    margin: "Margin",
+    logout: "Log out",
+  },
+  dashboard: {
+    eyebrow: "Phase 5",
+    title: "Dashboard",
+    description:
+      "Admin KPI metrics calculated on the server from inventory, daily logs, orders, booked costs, and contact tags.",
+    localDate: "Local admin date",
+    simple: "Simple",
+    expanded: "Expanded",
+    availableEggs: "Available eggs",
+    availableEggsDetail: "Sellable stock from the inventory ledger.",
+    todayTotalYield: "Today's total yield",
+    todayTotalYieldDetail: "Total yield from today's daily log.",
+    todayCollectedForSale: "Collected for sale today",
+    todayCollectedForSaleDetail: "Today's sellable quantity from the daily log.",
+    yesterdayCollectedForSale: "Collected for sale yesterday",
+    yesterdayCollectedForSaleDetail:
+      "Yesterday's sellable quantity from the daily log.",
+    latestChickenCount: "Latest chicken count",
+    latestLog: "Latest log",
+    noDailyLogsYet: "There are no daily logs yet.",
+    todaySoldEggs: "Eggs sold today",
+    todaySoldEggsDetail: "Quantity from completed orders recognized today.",
+    todayRevenue: "Today's revenue",
+    todayRevenueDetail: "Revenue from completed orders recognized today.",
+    todayTotalCost: "Today's total cost",
+    todayTotalCostDetail: "Today's direct and allocated booked costs.",
+    todayGrossMargin: "Today's gross margin",
+    todayGrossMarginDetail: "Today's revenue minus total cost.",
+    subscriberCount: "Subscriber count",
+    subscriberCountDetail: "Contacts tagged as subscribers.",
+    waitingListCount: "Waiting list count",
+    waitingListCountDetail: "Contacts tagged as waiting list.",
+    activeCustomerCount: "Active customer count",
+    activeCustomerCountDetail: "Contacts tagged as active customers.",
+    homepageEyebrow: "Homepage",
+    homepageTitle: "Public note visibility",
+    homepageDescription:
+      "The public note from today's daily log appears on the homepage only when this setting is enabled. Exact stock remains visible only to admin.",
+    homepageSettingSaved: "Homepage setting saved.",
+    homepageSettingValidationError:
+      "Check the homepage setting and try again.",
+    homepageSettingUnknownError:
+      "The homepage setting could not be saved.",
+    homepageCheckbox:
+      "Show today's public note on the homepage when it exists in the daily log.",
+    saveHomepageSetting: "Save homepage setting",
+    totalYieldPerChicken: "Total yield per chicken",
+    totalYieldPerChickenDetail:
+      "No value when today's chicken count is missing or zero.",
+    saleYieldPerChicken: "Yield for sale per chicken",
+    saleYieldPerChickenDetail:
+      "Today's eggs collected for sale divided by the chicken count.",
+    todayDirectCost: "Today's direct cost",
+    todayDirectCostDetail: "Today's booked costs tagged as direct.",
+    todayAllocatedCost: "Today's allocated cost",
+    todayAllocatedCostDetail: "Today's booked costs tagged as allocated.",
+    grossMargin7d: "Gross margin over 7 days",
+    grossMargin7dDetail: "Rolling gross margin for the last 7 local dates.",
+    grossMargin30d: "Gross margin over 30 days",
+    grossMargin30dDetail: "Rolling gross margin for the last 30 local dates.",
+    todayEyebrow: "Today",
+    costByCategoryTitle: "Costs by category",
+    costByCategoryDescription: "Today's booked costs grouped by category.",
+    noBookedCostsToday: "There are no booked costs for today.",
+    category: "Category",
+    totalAmount: "Total amount",
+  },
+  dailyLogs: {
+    eyebrow: "Daily logs",
+    createTitle: "Create daily log",
+    editTitle: "Edit daily log",
+    description:
+      "Total yield is always calculated on the server from the four daily outcome fields. Edits and deletes are blocked when reducing the collected amount would make sellable inventory inconsistent after reservations or completed sales.",
+    errors: {
+      validation: "Check the daily log fields and try again.",
+      duplicate_date: "A daily log already exists for that date.",
+      not_found: "The selected daily log was not found.",
+      inventory_conflict:
+        "This change would remove collected stock that is already reserved or sold. Adjust the related orders first.",
+      unknown: "The daily log could not be saved.",
+    },
+    success: {
+      saved: "Daily log saved.",
+      deleted: "Daily log deleted.",
+    },
+    date: "Date",
+    chickenCount: "Chicken count",
+    publicNote: "Public note",
+    internalNotes: "Internal notes",
+    update: "Update daily log",
+    create: "Create daily log",
+    recordsEyebrow: "Records",
+    recordsTitle: "Saved daily logs",
+    recordsDescription:
+      "Deleting a daily log also removes its collected-stock ledger row, so unsafe deletes are blocked once that stock has been reserved or sold.",
+    empty: "There are no daily logs yet.",
+    totalYield: "Total yield",
+    collected: "Collected",
+    actions: "Actions",
+    edit: "Edit",
+    delete: "Delete log",
+    eggFields: {
+      collectedForSale: "Eggs collected for sale",
+      usedOtherPurpose: "Eggs used for another purpose",
+      broken: "Broken eggs",
+      unusableOther: "Unusable eggs - other",
+      autoCalculatedTotalYield: "Auto-calculated total yield",
+    },
+  },
+  costs: {
+    eyebrow: "Costs",
+    bookTitle: "Book cost",
+    editTitle: "Edit cost",
+    acceptTitle: "Edit and accept recurring cost",
+    description:
+      "Manual costs are booked here, and recurring cost templates are created from the same flow when needed. `total_amount` remains the accounting source of truth on save, and recurring suggestions still become separate booked template-origin costs when accepted.",
+    errors: {
+      validation: "Check the cost fields and try again.",
+      not_found: "The selected cost was not found.",
+      suggestion_unavailable:
+        "That recurring cost suggestion is not available for the selected date.",
+      duplicate_template_date:
+        "That template has already been accepted into a booked cost for the selected date.",
+      template_origin_locked:
+        "Template-origin booked costs can only be created through suggestion acceptance and cannot be edited here.",
+      template_validation:
+        "Check the recurring cost template fields and try again.",
+      template_not_found: "The selected recurring cost template was not found.",
+      template_in_use:
+        "This recurring cost template cannot be deleted because it is already linked to booked costs.",
+      unknown: "The cost could not be saved.",
+    },
+    success: {
+      saved: "Cost saved.",
+      saved_with_recurring:
+        "Cost saved and recurring cost template created.",
+      deleted: "Cost deleted.",
+      accepted: "Recurring cost suggestion accepted into booked costs.",
+      skipped: "Recurring cost suggestion skipped only for that occurrence.",
+      template_updated: "Recurring cost template updated.",
+      template_deleted: "Recurring cost template deleted.",
+    },
+    suggestionNoLongerPending:
+      "That recurring cost suggestion is no longer pending for the selected date.",
+    unknownTemplate: "Unknown template",
+    templateOriginLockedPrefix: "This booked cost comes from the template",
+    templateOriginLockedSuffix:
+      "Edit this kind of cost by changing the template and accepting a new suggestion instead of editing it here.",
+    acceptingSuggestionNote:
+      "You are editing only this occurrence before acceptance. Saving here creates a template-origin booked cost only for the selected date and does not change the template defaults.",
+    update: "Update cost",
+    saveEditedAcceptance: "Save edited acceptance",
+    create: "Create cost",
+    suggestionsEyebrow: "Suggestions",
+    suggestionsTitle: "Recurring suggestions",
+    suggestionsDescription:
+      "Active recurring cost templates are shown here for the selected date. You can accept them as-is, edit one occurrence before accepting, or skip only that occurrence without disabling the template.",
+    suggestionDate: "Suggestion date",
+    loadSuggestions: "Load suggestions",
+    noSuggestionsMatchPrefix: "No recurring suggestions for",
+    recurringPreviewEyebrow: "Recurring preview",
+    recurringPreviewTitle: "Preview of upcoming recurring costs",
+    recurringPreviewDescription:
+      "Read-only preview of pending recurring occurrences based on the current active templates. It intentionally stays compact and does not grow into a scheduling UI.",
+    referenceDate: "Reference date",
+    next7Days: "Next 7 days",
+    next30Days: "Next 30 days",
+    recurringTemplatesEyebrow: "Recurring templates",
+    recurringTemplatesTitle: "Template lifecycle",
+    recurringTemplatesDescription:
+      "Day-to-day recurring cost management now lives here. Use active / inactive as the primary lifecycle control, and keep the maintenance route for occasional detailed edits only.",
+    openMaintenanceView: "Open maintenance",
+    noRecurringTemplatesYet: "There are no recurring cost templates yet.",
+    template: "Template",
+    defaultTotal: "Default total amount",
+    schedule: "Schedule",
+    bookedCosts: "Booked costs",
+    status: "Status",
+    active: "Active",
+    inactive: "Inactive",
+    markInactive: "Mark inactive",
+    markActive: "Mark active",
+    maintenanceEdit: "Edit in maintenance",
+    deleteUnused: "Delete unused",
+    deleteDisabledAfterBooking: "Delete disabled after booking",
+    bookedCostsEyebrow: "Booked costs",
+    bookedCostsTitle: "Saved costs",
+    noBookedCostsYet: "There are no booked costs yet.",
+    date: "Date",
+    category: "Category",
+    type: "Type",
+    total: "Total",
+    source: "Source",
+    actions: "Actions",
+    edit: "Edit",
+    deleteBookedCost: "Delete booked cost",
+    accepted: "Accepted",
+    skipped: "Skipped",
+    accept: "Accept",
+    editAndAccept: "Edit and accept",
+    skip: "Skip",
+    pendingOccurrenceCountSingular: "pending occurrence",
+    pendingOccurrenceCountPlural: "pending occurrences",
+    scheduledTotal: "Scheduled total amount",
+    noPendingRecurringCosts: "There are no pending recurring costs in this range.",
+    form: {
+      date: "Date",
+      totalAmount: "Total amount",
+      category: "Category",
+      costType: "Cost type",
+      quantity: "Quantity",
+      unit: "Unit",
+      unitPrice: "Unit price",
+      saveAsRecurring: "Save as recurring cost template",
+      recurringHelp:
+        "This creates the booked cost now and saves a separate recurring template for future suggestions.",
+      templateName: "Template name",
+      frequency: "Frequency",
+      templateIsActive: "Template is active",
+      startDate: "Start date",
+      endDate: "End date",
+      note: "Note",
+    },
+  },
+  costTemplates: {
+    eyebrow: "Maintenance",
+    createTitle: "Create recurring template",
+    editTitle: "Edit recurring template",
+    backToCosts: "Back to costs",
+    description:
+      "This is a secondary maintenance route. The main recurring-cost workflow now lives on the costs page, where booked costs and recurring templates are managed together. Use this screen only for occasional detailed edits or manual cleanup.",
+    errors: {
+      validation:
+        "Check the cost template fields and try again.",
+      not_found: "The selected cost template was not found.",
+      in_use:
+        "This cost template cannot be deleted because it is already linked to booked costs.",
+      unknown: "The cost template could not be saved.",
+    },
+    success: {
+      saved: "Cost template saved.",
+      deleted: "Cost template deleted.",
+    },
+    name: "Name",
+    category: "Category",
+    costType: "Cost type",
+    frequency: "Frequency",
+    defaultQuantity: "Default quantity",
+    defaultUnit: "Default unit",
+    defaultUnitPrice: "Default unit price",
+    defaultTotalAmount: "Default total amount",
+    startDate: "Start date",
+    endDate: "End date",
+    templateIsActive: "Template is active",
+    note: "Note",
+    update: "Update template",
+    create: "Create template",
+    templatesEyebrow: "Templates",
+    templatesTitle: "Saved cost templates",
+    empty: "There are no cost templates yet.",
+    type: "Type",
+    defaultTotal: "Default total amount",
+    schedule: "Schedule",
+    bookedCosts: "Booked costs",
+    status: "Status",
+    actions: "Actions",
+    edit: "Edit",
+    deleteDisabledAfterBooking: "Delete disabled after booking",
+    deleteUnusedTemplate: "Delete unused template",
+  },
+  contacts: {
+    eyebrow: "Phase 4",
+    createTitle: "Create contact",
+    editTitle: "Edit contact",
+    description:
+      "Contacts can carry multiple role tags at the same time, while customer stage remains a separate lifecycle field. Deletion is blocked once a contact is linked to orders or saved notification history.",
+    errors: {
+      validation: "Check the contact fields and try again.",
+      not_found: "The selected contact was not found.",
+      in_use:
+        "This contact cannot be deleted because it is still linked to orders or notification history.",
+      unknown: "The contact could not be saved.",
+    },
+    success: {
+      saved: "Contact saved.",
+      deleted: "Contact deleted.",
+    },
+    fullName: "Full name",
+    email: "Email",
+    phone: "Phone",
+    subscriber: "Subscriber",
+    waitingList: "Waiting list",
+    activeCustomer: "Active customer",
+    emailOptIn: "Email opt-in",
+    phoneOptIn: "Phone opt-in",
+    preferredChannel: "Preferred channel",
+    customerStage: "Customer stage",
+    preferredQuantity: "Preferred quantity",
+    preferenceUnit: "Preference unit",
+    notificationFrequency: "Notification frequency",
+    joinedWaitingListAt: "Joined waiting list on",
+    becameCustomerAt: "Became customer on",
+    source: "Source",
+    notes: "Notes",
+    update: "Update contact",
+    create: "Create contact",
+    recordsEyebrow: "Records",
+    recordsTitle: "Saved contacts",
+    empty: "There are no contacts yet.",
+    name: "Name",
+    stage: "Stage",
+    flags: "Flags",
+    actions: "Actions",
+    edit: "Edit",
+    delete: "Delete contact",
+    none: "None",
+  },
+  orders: {
+    eyebrow: "Phase 4",
+    createTitle: "Create order",
+    editReservedTitle: "Edit reserved order",
+    correctCompletedTitle: "Correct completed order",
+    description:
+      "Total price is always calculated in the backend from quantity and the selected unit price. Completed-order corrections use a separate service path, and normal reserved-order edits remain blocked whenever the linked inventory state is no longer safe or consistent.",
+    errors: {
+      validation: "Check the order fields and try again.",
+      not_found: "The selected order was not found.",
+      contact_not_found: "The selected contact was not found.",
+      insufficient_inventory:
+        "This operation would reduce sellable inventory below zero.",
+      transition_not_allowed:
+        "That order change is not allowed in the normal flow for this order state.",
+      completed_correction_required:
+        "Completed orders must be changed through the separate correction flow.",
+      invalid_inventory_state:
+        "This order has an invalid inventory state and cannot be changed until it is checked manually.",
+      unknown: "The order could not be saved.",
+    },
+    success: {
+      saved: "Order saved.",
+      corrected: "Completed order corrected.",
+    },
+    createContactFirst: "Create a contact first, then add orders.",
+    contact: "Contact",
+    status: "Status",
+    completed: "Completed",
+    completedCorrectionWarning:
+      "This correction keeps the original stock-reducing inventory mode and will be blocked if the linked inventory state is inconsistent or if the correction would oversell stock.",
+    quantity: "Quantity",
+    unitPrice: "Unit price",
+    backendComputedTotalPrice: "Backend-computed total price",
+    fulfilledAt: "Fulfilled at",
+    note: "Note",
+    applyCompletedCorrection: "Apply safe completed-order correction",
+    normalEditWarning:
+      "Normal editing is available only while this order is a clean reservation. If it has already moved into an inconsistent inventory state, updating it will be blocked for manual review.",
+    orderDate: "Order date",
+    targetFulfillmentDate: "Target fulfillment date",
+    selectContact: "Select contact",
+    priceSource: "Price source",
+    manualUnitPrice: "Manual unit price",
+    calculatedOnSave: "Calculated on save",
+    update: "Update order",
+    create: "Create order",
+    recordsEyebrow: "Records",
+    recordsTitle: "Saved orders",
+    empty: "There are no orders yet.",
+    date: "Date",
+    totalPrice: "Total price",
+    fulfilled: "Fulfilled",
+    actions: "Actions",
+    edit: "Edit",
+    correct: "Correct",
+    lockedAfterStockRelease: "Locked after stock release",
+  },
+  notifications: {
+    eyebrow: "Phase 7",
+    createTitle: "Create notification draft",
+    editTitle: "Edit notification draft",
+    description:
+      "Email sending is active in the MVP. Viber and WhatsApp remain schema-ready only in this phase. Drafts become read-only once recipient rows are saved so the send snapshot stays consistent.",
+    success: {
+      saved: "Draft saved.",
+      sent: "Campaign sent successfully. The recipient snapshot is now locked in history.",
+      failed:
+        "Sending finished with one or more failed deliveries. Check the saved recipient counts below.",
+    },
+    errors: {
+      validation:
+        "Check the notification fields and try again.",
+      not_found: "The selected campaign was not found.",
+      read_only: "Only draft campaigns can be edited or sent in Phase 7.",
+      unsupported_channel: "Only email sending is supported in Phase 7.",
+      no_eligible_recipients:
+        "There are no remaining eligible email recipients for this audience.",
+      unknown: "The notification could not be saved or sent.",
+    },
+    recoverableDraftWarning:
+      "This draft already has saved recipient rows, so it is available only for sending until finalization finishes. Editing is blocked for safety because the recipient snapshot is already locked.",
+    readOnlyRequestedWarning:
+      "Sent and failed campaigns are read-only. The empty form below is for creating a new draft, not editing this campaign.",
+    title: "Title",
+    channel: "Channel",
+    audience: "Audience",
+    senderLabel: "Sender label",
+    subject: "Message subject",
+    body: "Content",
+    selectedContactsTitle: "Selected contacts",
+    selectedContactsDescription:
+      "These saved selections are used only when the audience is set to selected contacts.",
+    savedContactsSuffix: "saved contacts",
+    noContactsYet:
+      "There are no contacts yet. Add contacts first to use selected-contact campaigns.",
+    noEmail: "No email",
+    noPhone: "No phone",
+    saveDraft: "Save draft",
+    createDraft: "Create draft",
+    sendDraftTitle: "Send this draft",
+    recoverableDraftDescription:
+      "This draft already has a saved recipient snapshot. Continuing will send only to those saved recipients.",
+    sendDraftDescription:
+      "The audience is recalculated on send from the current contact data. Only contacts with a valid email and explicit email opt-in are eligible.",
+    resumeSending: "Resume sending the saved snapshot",
+    sendDraft: "Send draft",
+    emailOnlyDraftWarning:
+      "This draft can be saved, but only email sending is supported in Phase 7.",
+    historyEyebrow: "History",
+    historyTitle: "Campaigns",
+    empty: "There are no notification campaigns yet.",
+    recipients: "Recipients",
+    updated: "Updated",
+    total: "Total",
+    sent: "Sent",
+    failed: "Failed",
+    sentOn: "Sent on",
+    edit: "Edit",
+    resume: "Resume",
+    send: "Send",
+  },
+  margin: {
+    eyebrow: "Phase 3",
+    title: "Margin insights",
+    description:
+      "Margin calculations run in backend services from booked costs, revenue from completed orders, and daily production data.",
+    date: "Date",
+    loadDate: "Load date",
+    dailyRevenue: "Daily revenue",
+    dailyRevenueDetail: "Completed-order revenue recognized on the selected date.",
+    dailyDirectCost: "Daily direct cost",
+    dailyDirectCostDetail: "Booked costs tagged as direct.",
+    dailyAllocatedCost: "Daily allocated cost",
+    dailyAllocatedCostDetail: "Booked costs tagged as allocated.",
+    dailyTotalCost: "Daily total cost",
+    dailyTotalCostDetail: "Direct plus allocated booked costs.",
+    dailyGrossMargin: "Daily gross margin",
+    dailyGrossMarginDetail: "Revenue minus total cost.",
+    dailyDirectMargin: "Daily direct margin",
+    dailyDirectMarginDetail: "Revenue minus direct cost.",
+    costPerCollectedEgg: "Cost per collected egg",
+    costPerCollectedEggDetail: "No value when there are no eggs collected for sale.",
+    marginPerSoldEgg: "Margin per sold egg",
+    marginPerSoldEggDetail: "No value when there are no eggs sold.",
+    summary7d: "7-day summary",
+    summary30d: "30-day summary",
+    rollingWindow: "Rolling window",
+    eggsTotalYield: "Total egg yield",
+    eggsCollectedForSale: "Eggs collected for sale",
+    eggsSold: "Eggs sold",
+    revenue: "Revenue",
+    directCost: "Direct cost",
+    allocatedCost: "Allocated cost",
+    totalCost: "Total cost",
+    grossMargin: "Gross margin",
+  },
+};
+
+const ADMIN_VALUE_LABELS: Record<AdminLanguage, Record<string, string>> = {
+  mk: {
+    email: "Е-пошта",
+    viber: "Viber",
+    whatsapp: "WhatsApp",
+    all: "Сите",
+    week: "Недела",
+    month: "Месец",
+    instant: "Веднаш",
+    weekly: "Неделно",
+    manual_only: "Само рачно",
+    lead: "Потенцијален",
+    subscriber: "Претплатник",
+    waiting_list: "Листа на чекање",
+    active: "Активен",
+    inactive: "Неактивен",
+    subscribers: "Претплатници",
+    active_customers: "Активни купувачи",
+    selected_contacts: "Избрани контакти",
+    feed: "Храна",
+    supplements: "Суплементи",
+    bedding_hygiene: "Постелка и хигиена",
+    packaging: "Пакување",
+    transport: "Транспорт",
+    labor_time: "Работа и време",
+    utilities: "Режиски трошоци",
+    maintenance: "Одржување",
+    veterinary_medicine: "Ветеринарна грижа",
+    equipment_tools: "Опрема и алати",
+    land_facility: "Земјиште и објект",
+    miscellaneous: "Разно",
+    direct: "Директен",
+    allocated: "Распределен",
+    daily: "Дневно",
+    monthly: "Месечно",
+    manual: "Рачно",
+    template: "Шаблон",
+    reserved: "Резервирана",
+    completed: "Завршена",
+    cancelled: "Откажана",
+    default: "Стандардна",
+    manual_override: "Рачно зададена",
+    draft: "Нацрт",
+    sent: "Испратена",
+    failed: "Неуспешна",
+  },
+  en: {
+    email: "Email",
+    viber: "Viber",
+    whatsapp: "WhatsApp",
+    all: "All",
+    week: "Week",
+    month: "Month",
+    instant: "Instant",
+    weekly: "Weekly",
+    manual_only: "Manual only",
+    lead: "Lead",
+    subscriber: "Subscriber",
+    waiting_list: "Waiting list",
+    active: "Active",
+    inactive: "Inactive",
+    subscribers: "Subscribers",
+    active_customers: "Active customers",
+    selected_contacts: "Selected contacts",
+    feed: "Feed",
+    supplements: "Supplements",
+    bedding_hygiene: "Bedding and hygiene",
+    packaging: "Packaging",
+    transport: "Transport",
+    labor_time: "Labor and time",
+    utilities: "Utilities",
+    maintenance: "Maintenance",
+    veterinary_medicine: "Veterinary care",
+    equipment_tools: "Equipment and tools",
+    land_facility: "Land and facility",
+    miscellaneous: "Miscellaneous",
+    direct: "Direct",
+    allocated: "Allocated",
+    daily: "Daily",
+    monthly: "Monthly",
+    manual: "Manual",
+    template: "Template",
+    reserved: "Reserved",
+    completed: "Completed",
+    cancelled: "Cancelled",
+    default: "Default",
+    manual_override: "Manual override",
+    draft: "Draft",
+    sent: "Sent",
+    failed: "Failed",
+  },
+};
+
+const ADMIN_COPY: Record<AdminLanguage, typeof mkAdminCopy> = {
+  mk: mkAdminCopy,
+  en: enAdminCopy,
+};
+
+export type AdminCopy = typeof mkAdminCopy;
+
+export const adminCopy = mkAdminCopy;
+export { ADMIN_LANGUAGE };
+
+export function getAdminCopy(language: AdminLanguage = ADMIN_LANGUAGE): AdminCopy {
+  return ADMIN_COPY[language];
 }
 
-export function formatAdminRecurringSchedule(template: {
-  frequency: string;
-  start_date: Date;
-  end_date: Date | null;
-}): string {
-  const frequencyLabel = formatAdminValueLabel(template.frequency);
+export function formatAdminValueLabel(
+  value: string,
+  language: AdminLanguage = ADMIN_LANGUAGE,
+): string {
+  return (
+    ADMIN_VALUE_LABELS[language][value] ??
+    value.replaceAll("_", " ")
+  );
+}
+
+export function formatAdminRecurringSchedule(
+  template: {
+    frequency: string;
+    start_date: Date;
+    end_date: Date | null;
+  },
+  language: AdminLanguage = ADMIN_LANGUAGE,
+): string {
+  const frequencyLabel = formatAdminValueLabel(template.frequency, language);
+  const startDateLabel = formatDateOnly(template.start_date);
+
+  if (language === "en") {
+    const endDateLabel = template.end_date
+      ? ` until ${formatDateOnly(template.end_date)}`
+      : "";
+
+    return `${frequencyLabel} from ${startDateLabel}${endDateLabel}`;
+  }
+
   const endDateLabel = template.end_date
     ? ` до ${formatDateOnly(template.end_date)}`
     : "";
 
-  return `${frequencyLabel} од ${formatDateOnly(template.start_date)}${endDateLabel}`;
+  return `${frequencyLabel} од ${startDateLabel}${endDateLabel}`;
 }
 
-export function formatAdminActiveState(isActive: boolean): string {
-  return isActive ? adminCopy.costs.active : adminCopy.costs.inactive;
+export function formatAdminActiveState(
+  isActive: boolean,
+  language: AdminLanguage = ADMIN_LANGUAGE,
+): string {
+  const copy = getAdminCopy(language);
+
+  return isActive ? copy.costs.active : copy.costs.inactive;
 }

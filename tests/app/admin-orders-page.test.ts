@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const listContactsMock = vi.fn();
 const listOrdersMock = vi.fn();
 const getDefaultEggUnitPriceMock = vi.fn();
+const getAdminLanguageMock = vi.fn();
 
 vi.mock("@/lib/services/contacts", () => ({
   listContacts: listContactsMock,
@@ -18,9 +19,14 @@ vi.mock("@/lib/services/site-settings", () => ({
   getDefaultEggUnitPrice: getDefaultEggUnitPriceMock,
 }));
 
+vi.mock("@/lib/admin-language", () => ({
+  getAdminLanguage: getAdminLanguageMock,
+}));
+
 describe("AdminOrdersPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getAdminLanguageMock.mockResolvedValue("mk");
     listContactsMock.mockResolvedValue([
       {
         id: "contact_1",
@@ -43,7 +49,7 @@ describe("AdminOrdersPage", () => {
     );
 
     expect(markup).toContain('name="unit_price"');
-    expect(markup).toContain('value="16.00"');
+    expect(markup).toContain('value="16"');
   });
 
   it("keeps the stored unit price when editing an existing order", async () => {
@@ -82,6 +88,6 @@ describe("AdminOrdersPage", () => {
     );
 
     expect(markup).toContain('name="unit_price"');
-    expect(markup).toContain('value="18.50"');
+    expect(markup).toContain('value="18.5"');
   });
 });

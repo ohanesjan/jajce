@@ -5,11 +5,13 @@ import {
   calculateLiveEggsTotalYield,
   DailyLogEggFields,
 } from "@/app/admin/(protected)/daily-logs/daily-log-egg-fields";
+import { getAdminCopy } from "@/lib/admin-localization";
 
 describe("DailyLogEggFields", () => {
   it("renders the live total-yield field from the current egg values", () => {
     const markup = renderToStaticMarkup(
       createElement(DailyLogEggFields, {
+        copy: getAdminCopy("mk").dailyLogs.eggFields,
         initialValues: {
           eggs_collected_for_sale: 28,
           eggs_used_other_purpose: 2,

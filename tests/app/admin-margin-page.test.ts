@@ -2,14 +2,20 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getMarginInsightsMock = vi.fn();
+const getAdminLanguageMock = vi.fn();
 
 vi.mock("@/lib/services/margin-insights", () => ({
   getMarginInsights: getMarginInsightsMock,
 }));
 
+vi.mock("@/lib/admin-language", () => ({
+  getAdminLanguage: getAdminLanguageMock,
+}));
+
 describe("AdminMarginPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getAdminLanguageMock.mockResolvedValue("mk");
     getMarginInsightsMock.mockResolvedValue({
       daily: {
         revenue: 120,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { adminCopy } from "@/lib/admin-localization";
+import type { AdminCopy } from "@/lib/admin-localization";
 
 type DailyLogEggFieldValues = {
   eggs_collected_for_sale: string;
@@ -11,6 +11,7 @@ type DailyLogEggFieldValues = {
 };
 
 type DailyLogEggFieldsProps = {
+  copy: AdminCopy["dailyLogs"]["eggFields"];
   initialValues: {
     eggs_collected_for_sale: number;
     eggs_used_other_purpose: number;
@@ -24,7 +25,10 @@ const EDITABLE_INPUT_CLASS_NAME =
 const READONLY_INPUT_CLASS_NAME =
   "w-full rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/55 outline-none";
 
-export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
+export function DailyLogEggFields({
+  copy,
+  initialValues,
+}: DailyLogEggFieldsProps) {
   const [fieldValues, setFieldValues] = useState<DailyLogEggFieldValues>({
     eggs_collected_for_sale: String(initialValues.eggs_collected_for_sale),
     eggs_used_other_purpose: String(initialValues.eggs_used_other_purpose),
@@ -37,7 +41,7 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
   return (
     <>
       <NumberField
-        label={adminCopy.dailyLogs.eggFields.collectedForSale}
+        label={copy.collectedForSale}
         name="eggs_collected_for_sale"
         value={fieldValues.eggs_collected_for_sale}
         onChange={(value) =>
@@ -49,7 +53,7 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
       />
 
       <NumberField
-        label={adminCopy.dailyLogs.eggFields.usedOtherPurpose}
+        label={copy.usedOtherPurpose}
         name="eggs_used_other_purpose"
         value={fieldValues.eggs_used_other_purpose}
         onChange={(value) =>
@@ -61,7 +65,7 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
       />
 
       <NumberField
-        label={adminCopy.dailyLogs.eggFields.broken}
+        label={copy.broken}
         name="eggs_broken"
         value={fieldValues.eggs_broken}
         onChange={(value) =>
@@ -73,7 +77,7 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
       />
 
       <NumberField
-        label={adminCopy.dailyLogs.eggFields.unusableOther}
+        label={copy.unusableOther}
         name="eggs_unusable_other"
         value={fieldValues.eggs_unusable_other}
         onChange={(value) =>
@@ -86,7 +90,7 @@ export function DailyLogEggFields({ initialValues }: DailyLogEggFieldsProps) {
 
       <label className="block text-sm text-bark">
         <span className="mb-1 block font-medium">
-          {adminCopy.dailyLogs.eggFields.autoCalculatedTotalYield}
+          {copy.autoCalculatedTotalYield}
         </span>
         <input
           type="number"

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getAdminDashboardDataMock = vi.fn();
 const getHomepagePublicNoteEnabledMock = vi.fn();
+const getAdminLanguageMock = vi.fn();
 
 vi.mock("@/lib/services/admin-dashboard", () => ({
   getAdminDashboardData: getAdminDashboardDataMock,
@@ -16,9 +17,14 @@ vi.mock("@/lib/services/site-settings", () => ({
   getHomepagePublicNoteEnabled: getHomepagePublicNoteEnabledMock,
 }));
 
+vi.mock("@/lib/admin-language", () => ({
+  getAdminLanguage: getAdminLanguageMock,
+}));
+
 describe("AdminDashboardPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getAdminLanguageMock.mockResolvedValue("mk");
     getHomepagePublicNoteEnabledMock.mockResolvedValue(true);
     getAdminDashboardDataMock.mockImplementation(
       async ({ mode }: { mode?: unknown } = {}) => {
@@ -78,6 +84,25 @@ describe("AdminDashboardPage", () => {
     expect(markup).toContain('aria-current="page"');
     expect(markup).toContain(">Основен</a>");
     expect(markup).not.toContain("Трошоци по категорија");
+  });
+
+  it("renders English copy when the admin language cookie is set to en", async () => {
+    getAdminLanguageMock.mockResolvedValueOnce("en");
+
+    const { default: AdminDashboardPage } = await import(
+      "@/app/admin/(protected)/dashboard/page"
+    );
+
+    const markup = renderToStaticMarkup(
+      await AdminDashboardPage({
+        searchParams: Promise.resolve({ mode: "expanded" }),
+      }),
+    );
+
+    expect(markup).toContain("Available eggs");
+    expect(markup).toContain("Public note visibility");
+    expect(markup).toContain("Save homepage setting");
+    expect(markup).toContain("Costs by category");
   });
 });
 

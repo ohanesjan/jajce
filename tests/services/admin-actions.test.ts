@@ -33,6 +33,7 @@ const updateHomepagePublicNoteEnabledMock = vi.fn();
 const getSenderLabelDefaultMock = vi.fn();
 const saveNotificationCampaignDraftMock = vi.fn();
 const sendNotificationCampaignMock = vi.fn();
+const setAdminLanguageCookieMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
@@ -58,6 +59,17 @@ vi.mock("@/lib/services/admin-session", () => ({
   clearAdminSession: clearAdminSessionMock,
   requireAdminSession: requireAdminSessionMock,
 }));
+
+vi.mock("@/lib/admin-language", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/admin-language")>(
+    "@/lib/admin-language",
+  );
+
+  return {
+    ...actual,
+    setAdminLanguageCookie: setAdminLanguageCookieMock,
+  };
+});
 
 vi.mock("@/lib/services/daily-logs", async () => {
   const actual = await vi.importActual<typeof import("@/lib/services/daily-logs")>(
@@ -225,6 +237,22 @@ describe("admin actions", () => {
         email: "admin@jajce.mk",
         last_login_at: new Date("2026-04-01T08:30:00.000Z"),
       });
+    });
+  });
+
+  describe("setAdminLanguageAction", () => {
+    it("stores the selected admin language and redirects back to the same admin url", async () => {
+      const { setAdminLanguageAction } = await import("@/app/admin/actions");
+      const formData = new FormData();
+
+      formData.set("language", "en");
+      formData.set("next", "/admin/orders?edit=order_1&success=saved");
+
+      await expect(setAdminLanguageAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/orders?edit=order_1&success=saved",
+      );
+      expect(requireAdminSessionMock).toHaveBeenCalledTimes(1);
+      expect(setAdminLanguageCookieMock).toHaveBeenCalledWith("en");
     });
   });
 

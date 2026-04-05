@@ -9,8 +9,9 @@ import {
   toggleCostTemplateActiveAction,
 } from "@/app/admin/actions";
 import { CostEntryForm } from "@/app/admin/(protected)/costs/cost-entry-form";
+import { getAdminLanguage } from "@/lib/admin-language";
 import {
-  adminCopy,
+  getAdminCopy,
   formatAdminActiveState,
   formatAdminRecurringSchedule,
   formatAdminValueLabel,
@@ -37,17 +38,17 @@ type CostsPageProps = {
 const ADMIN_COSTS_TIME_ZONE =
   process.env.ADMIN_DASHBOARD_TIME_ZONE ?? "Europe/Amsterdam";
 
-const COST_ENTRY_ERROR_MESSAGES: Record<string, string> = {
-  ...adminCopy.costs.errors,
-};
-
-const COST_ENTRY_SUCCESS_MESSAGES: Record<string, string> = {
-  ...adminCopy.costs.success,
-};
-
 export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
   const resolvedSearchParams =
     (await searchParams) ?? ({} as SearchParamsRecord);
+  const language = await getAdminLanguage();
+  const copy = getAdminCopy(language);
+  const costEntryErrorMessages: Record<string, string> = {
+    ...copy.costs.errors,
+  };
+  const costEntrySuccessMessages: Record<string, string> = {
+    ...copy.costs.success,
+  };
   const todayDateLabel = getDateOnlyInTimeZone(new Date(), ADMIN_COSTS_TIME_ZONE);
   const todayDate = parseDateOnly(todayDateLabel);
   const suggestionDateParam =
@@ -102,33 +103,33 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
     <main className="space-y-6">
       <section className="grid gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
         <section className="card-surface p-6">
-          <p className="eyebrow">{adminCopy.costs.eyebrow}</p>
+          <p className="eyebrow">{copy.costs.eyebrow}</p>
           <h2 className="mt-2 font-serif text-3xl text-bark">
             {editingEntry
-              ? adminCopy.costs.editTitle
+              ? copy.costs.editTitle
               : acceptingSuggestion
-                ? adminCopy.costs.acceptTitle
-                : adminCopy.costs.bookTitle}
+                ? copy.costs.acceptTitle
+                : copy.costs.bookTitle}
           </h2>
           <p className="mt-3 text-sm leading-6 text-bark/75">
-            {adminCopy.costs.description}
+            {copy.costs.description}
           </p>
 
           {successCode ? (
             <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              {COST_ENTRY_SUCCESS_MESSAGES[successCode] ?? adminCopy.common.saveFallback}
+              {costEntrySuccessMessages[successCode] ?? copy.common.saveFallback}
             </div>
           ) : null}
 
           {errorCode ? (
             <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {COST_ENTRY_ERROR_MESSAGES[errorCode] ?? adminCopy.common.unknownError}
+              {costEntryErrorMessages[errorCode] ?? copy.common.unknownError}
             </div>
           ) : null}
 
           {!editingEntry && acceptTemplateId && !acceptingSuggestion ? (
             <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              {adminCopy.costs.suggestionNoLongerPending}
+              {copy.costs.suggestionNoLongerPending}
             </div>
           ) : null}
 
@@ -143,24 +144,23 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
 
             {isTemplateOriginEditing ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                {adminCopy.costs.templateOriginLockedPrefix}{" "}
+                {copy.costs.templateOriginLockedPrefix}{" "}
                 <strong>
-                  {editingEntry.cost_template?.name ?? adminCopy.costs.unknownTemplate}
+                  {editingEntry.cost_template?.name ?? copy.costs.unknownTemplate}
                 </strong>
-                .
-                {" "}
-                {adminCopy.costs.templateOriginLockedSuffix}
+                . {copy.costs.templateOriginLockedSuffix}
               </div>
             ) : null}
 
             {acceptingSuggestion ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                {adminCopy.costs.acceptingSuggestionNote}
+                {copy.costs.acceptingSuggestionNote}
               </div>
             ) : null}
 
             <CostEntryForm
               key={formKey}
+              language={language}
               mode={formMode}
               todayDate={todayDateLabel}
               initialValues={buildFormInitialValues({
@@ -177,10 +177,10 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                   className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
                 >
                   {editingEntry
-                    ? adminCopy.costs.update
+                    ? copy.costs.update
                     : acceptingSuggestion
-                      ? adminCopy.costs.saveEditedAcceptance
-                      : adminCopy.costs.create}
+                      ? copy.costs.saveEditedAcceptance
+                      : copy.costs.create}
                 </button>
               )}
 
@@ -188,7 +188,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                 href={`/admin/costs?suggestionDate=${encodeURIComponent(suggestionDate)}`}
                 className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
               >
-                {adminCopy.common.resetForm}
+                {copy.common.resetForm}
               </a>
             </div>
           </form>
@@ -197,17 +197,17 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
         <section className="card-surface p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="eyebrow">{adminCopy.costs.suggestionsEyebrow}</p>
+              <p className="eyebrow">{copy.costs.suggestionsEyebrow}</p>
               <h2 className="mt-2 font-serif text-3xl text-bark">
-                {adminCopy.costs.suggestionsTitle}
+                {copy.costs.suggestionsTitle}
               </h2>
               <p className="mt-3 text-sm leading-6 text-bark/75">
-                {adminCopy.costs.suggestionsDescription}
+                {copy.costs.suggestionsDescription}
               </p>
             </div>
 
             <form className="flex flex-wrap items-end gap-3">
-              <FormField label={adminCopy.costs.suggestionDate}>
+              <FormField label={copy.costs.suggestionDate}>
                 <input
                   required
                   type="date"
@@ -220,14 +220,14 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                 type="submit"
                 className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
               >
-                {adminCopy.costs.loadSuggestions}
+                {copy.costs.loadSuggestions}
               </button>
             </form>
           </div>
 
           {suggestions.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-dashed border-soil/20 px-4 py-5 text-sm text-bark/70">
-              {adminCopy.costs.noSuggestionsMatchPrefix} {suggestionDate}.
+              {copy.costs.noSuggestionsMatchPrefix} {suggestionDate}.
             </div>
           ) : (
             <div className="mt-6 space-y-3">
@@ -242,17 +242,17 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                         {suggestion.template.name}
                       </h3>
                       <p className="mt-1 text-sm text-bark/70">
-                        {formatAdminValueLabel(suggestion.template.category)} ·{" "}
-                        {formatAdminValueLabel(suggestion.template.cost_type)} ·{" "}
+                        {formatAdminValueLabel(suggestion.template.category, language)} ·{" "}
+                        {formatAdminValueLabel(suggestion.template.cost_type, language)} ·{" "}
                         {suggestion.template.default_total_amount.toString()}
                       </p>
                       <p className="mt-1 text-xs text-bark/55">
-                        {formatAdminRecurringSchedule(suggestion.template)}
+                        {formatAdminRecurringSchedule(suggestion.template, language)}
                       </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      {renderSuggestionActions(suggestion, suggestionDate)}
+                      {renderSuggestionActions(suggestion, suggestionDate, language)}
                     </div>
                   </div>
                 </article>
@@ -265,27 +265,29 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
       <section className="card-surface p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="eyebrow">{adminCopy.costs.recurringPreviewEyebrow}</p>
+            <p className="eyebrow">{copy.costs.recurringPreviewEyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
-              {adminCopy.costs.recurringPreviewTitle}
+              {copy.costs.recurringPreviewTitle}
             </h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-bark/75">
-              {adminCopy.costs.recurringPreviewDescription}
+              {copy.costs.recurringPreviewDescription}
             </p>
           </div>
           <p className="text-sm text-bark/60">
-            {adminCopy.costs.referenceDate}: {todayDateLabel}
+            {copy.costs.referenceDate}: {todayDateLabel}
           </p>
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <RecurringOverviewCard
-            title={adminCopy.costs.next7Days}
+            title={copy.costs.next7Days}
             occurrences={nextSevenDayOccurrences}
+            language={language}
           />
           <RecurringOverviewCard
-            title={adminCopy.costs.next30Days}
+            title={copy.costs.next30Days}
             occurrences={pendingOverviewOccurrences}
+            language={language}
           />
         </div>
       </section>
@@ -294,12 +296,12 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
         <div className="border-b border-soil/10 px-6 py-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="eyebrow">{adminCopy.costs.recurringTemplatesEyebrow}</p>
+              <p className="eyebrow">{copy.costs.recurringTemplatesEyebrow}</p>
               <h2 className="mt-2 font-serif text-3xl text-bark">
-                {adminCopy.costs.recurringTemplatesTitle}
+                {copy.costs.recurringTemplatesTitle}
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-bark/70">
-                {adminCopy.costs.recurringTemplatesDescription}
+                {copy.costs.recurringTemplatesDescription}
               </p>
             </div>
 
@@ -307,30 +309,30 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
               href="/admin/cost-templates"
               className="rounded-2xl border border-soil/20 px-4 py-2 text-sm text-bark transition hover:border-soil/40"
             >
-              {adminCopy.costs.openMaintenanceView}
+              {copy.costs.openMaintenanceView}
             </Link>
           </div>
         </div>
 
         {costTemplates.length === 0 ? (
           <div className="px-6 py-8 text-sm text-bark/70">
-            {adminCopy.costs.noRecurringTemplatesYet}
+            {copy.costs.noRecurringTemplatesYet}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/40 text-bark/70">
                 <tr>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.template}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.template}</th>
                   <th className="px-6 py-4 font-medium">
-                    {adminCopy.costs.defaultTotal}
+                    {copy.costs.defaultTotal}
                   </th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.schedule}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.schedule}</th>
                   <th className="px-6 py-4 font-medium">
-                    {adminCopy.costs.bookedCosts}
+                    {copy.costs.bookedCosts}
                   </th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.status}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.actions}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.status}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -339,19 +341,19 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                     <td className="px-6 py-4">
                       <div className="font-medium text-bark">{template.name}</div>
                       <div className="mt-1 text-xs text-bark/60">
-                        {formatAdminValueLabel(template.category)} ·{" "}
-                        {formatAdminValueLabel(template.cost_type)}
+                        {formatAdminValueLabel(template.category, language)} ·{" "}
+                        {formatAdminValueLabel(template.cost_type, language)}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       {template.default_total_amount.toString()}
                     </td>
                     <td className="px-6 py-4 text-bark/70">
-                      {formatAdminRecurringSchedule(template)}
+                      {formatAdminRecurringSchedule(template, language)}
                     </td>
                     <td className="px-6 py-4">{template._count.cost_entries}</td>
                     <td className="px-6 py-4">
-                      {formatAdminActiveState(template.is_active)}
+                      {formatAdminActiveState(template.is_active, language)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
@@ -371,8 +373,8 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                             className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                           >
                             {template.is_active
-                              ? adminCopy.costs.markInactive
-                              : adminCopy.costs.markActive}
+                              ? copy.costs.markInactive
+                              : copy.costs.markActive}
                           </button>
                         </form>
 
@@ -380,7 +382,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                           href={`/admin/cost-templates?edit=${encodeURIComponent(template.id)}`}
                           className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                         >
-                          {adminCopy.costs.maintenanceEdit}
+                          {copy.costs.maintenanceEdit}
                         </Link>
 
                         {template._count.cost_entries === 0 ? (
@@ -400,12 +402,12 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                               type="submit"
                               className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                             >
-                              {adminCopy.costs.deleteUnused}
+                              {copy.costs.deleteUnused}
                             </button>
                           </form>
                         ) : (
                           <span className="rounded-full border border-soil/15 bg-white/50 px-3 py-1.5 text-xs text-bark/55">
-                            {adminCopy.costs.deleteDisabledAfterBooking}
+                            {copy.costs.deleteDisabledAfterBooking}
                           </span>
                         )}
                       </div>
@@ -420,38 +422,38 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
 
       <section className="card-surface overflow-hidden">
         <div className="border-b border-soil/10 px-6 py-5">
-          <p className="eyebrow">{adminCopy.costs.bookedCostsEyebrow}</p>
+          <p className="eyebrow">{copy.costs.bookedCostsEyebrow}</p>
           <h2 className="mt-2 font-serif text-3xl text-bark">
-            {adminCopy.costs.bookedCostsTitle}
+            {copy.costs.bookedCostsTitle}
           </h2>
         </div>
 
         {costEntries.length === 0 ? (
           <div className="px-6 py-8 text-sm text-bark/70">
-            {adminCopy.costs.noBookedCostsYet}
+            {copy.costs.noBookedCostsYet}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/40 text-bark/70">
                 <tr>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.date}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.category}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.type}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.total}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.source}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.actions}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.date}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.category}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.type}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.total}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.source}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.actions}</th>
                 </tr>
               </thead>
               <tbody>
                 {costEntries.map((entry) => (
                   <tr key={entry.id} className="border-t border-soil/10">
                     <td className="px-6 py-4">{formatDateOnly(entry.date)}</td>
-                    <td className="px-6 py-4">{formatAdminValueLabel(entry.category)}</td>
-                    <td className="px-6 py-4">{formatAdminValueLabel(entry.cost_type)}</td>
+                    <td className="px-6 py-4">{formatAdminValueLabel(entry.category, language)}</td>
+                    <td className="px-6 py-4">{formatAdminValueLabel(entry.cost_type, language)}</td>
                     <td className="px-6 py-4">{entry.total_amount.toString()}</td>
                     <td className="px-6 py-4">
-                      {formatAdminValueLabel(entry.source_type)}
+                      {formatAdminValueLabel(entry.source_type, language)}
                       {entry.cost_template ? ` · ${entry.cost_template.name}` : ""}
                     </td>
                     <td className="px-6 py-4">
@@ -461,7 +463,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                             href={`/admin/costs?edit=${encodeURIComponent(entry.id)}&suggestionDate=${encodeURIComponent(suggestionDate)}`}
                             className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                           >
-                            {adminCopy.costs.edit}
+                            {copy.costs.edit}
                           </a>
                         ) : null}
                         <form action={deleteCostEntryAction}>
@@ -475,7 +477,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                             type="submit"
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
-                            {adminCopy.costs.deleteBookedCost}
+                            {copy.costs.deleteBookedCost}
                           </button>
                         </form>
                       </div>
@@ -509,10 +511,13 @@ function FormField({
 function RecurringOverviewCard({
   title,
   occurrences,
+  language,
 }: {
   title: string;
   occurrences: RecurringCostOccurrence[];
+  language: Awaited<ReturnType<typeof getAdminLanguage>>;
 }) {
+  const copy = getAdminCopy(language);
   const totalAmount = occurrences.reduce(
     (sum, occurrence) =>
       sum + decimalLikeToNumber(occurrence.template.default_total_amount),
@@ -526,16 +531,16 @@ function RecurringOverviewCard({
       <p className="mt-2 text-sm text-bark/70">
         {occurrences.length}{" "}
         {occurrences.length === 1
-          ? adminCopy.costs.pendingOccurrenceCountSingular
-          : adminCopy.costs.pendingOccurrenceCountPlural}
+          ? copy.costs.pendingOccurrenceCountSingular
+          : copy.costs.pendingOccurrenceCountPlural}
       </p>
       <p className="mt-1 text-sm text-bark/70">
-        {adminCopy.costs.scheduledTotal}: {totalAmount.toFixed(2)}
+        {copy.costs.scheduledTotal}: {totalAmount.toFixed(2)}
       </p>
 
       {previewOccurrences.length === 0 ? (
         <p className="mt-4 text-sm text-bark/55">
-          {adminCopy.costs.noPendingRecurringCosts}
+          {copy.costs.noPendingRecurringCosts}
         </p>
       ) : (
         <ul className="mt-4 space-y-2 text-sm text-bark/70">
@@ -559,11 +564,14 @@ function RecurringOverviewCard({
 function renderSuggestionActions(
   suggestion: RecurringCostOccurrence,
   suggestionDate: string,
+  language: Awaited<ReturnType<typeof getAdminLanguage>>,
 ) {
+  const copy = getAdminCopy(language);
+
   if (suggestion.status === "accepted") {
     return (
       <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
-        {adminCopy.costs.accepted}
+        {copy.costs.accepted}
       </span>
     );
   }
@@ -571,7 +579,7 @@ function renderSuggestionActions(
   if (suggestion.status === "skipped") {
     return (
       <span className="rounded-full border border-soil/20 bg-white/60 px-3 py-1.5 text-xs font-medium text-bark/70">
-        {adminCopy.costs.skipped}
+        {copy.costs.skipped}
       </span>
     );
   }
@@ -589,7 +597,7 @@ function renderSuggestionActions(
           type="submit"
           className="rounded-full bg-bark px-4 py-2 text-xs font-medium text-parchment transition hover:bg-bark/90"
         >
-          {adminCopy.costs.accept}
+          {copy.costs.accept}
         </button>
       </form>
 
@@ -597,7 +605,7 @@ function renderSuggestionActions(
         href={`/admin/costs?acceptTemplate=${encodeURIComponent(suggestion.template.id)}&suggestionDate=${encodeURIComponent(suggestionDate)}`}
         className="rounded-full border border-soil/20 px-3 py-2 text-xs text-bark transition hover:border-soil/40"
       >
-        {adminCopy.costs.editAndAccept}
+        {copy.costs.editAndAccept}
       </Link>
 
       <form action={skipCostSuggestionAction}>
@@ -611,7 +619,7 @@ function renderSuggestionActions(
           type="submit"
           className="rounded-full border border-soil/20 px-3 py-2 text-xs text-bark transition hover:border-soil/40"
         >
-          {adminCopy.costs.skip}
+          {copy.costs.skip}
         </button>
       </form>
     </>

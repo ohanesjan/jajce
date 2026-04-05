@@ -2,13 +2,14 @@
 
 import type { ReactNode } from "react";
 import { useState } from "react";
+import type { AdminLanguage } from "@/lib/admin-language";
 import {
   COST_CATEGORY_VALUES,
   COST_FREQUENCY_VALUES,
   COST_TYPE_VALUES,
 } from "@/lib/services/cost-validation";
 import {
-  adminCopy,
+  getAdminCopy,
   formatAdminValueLabel,
 } from "@/lib/admin-localization";
 import {
@@ -20,6 +21,7 @@ import {
 } from "@/app/admin/(protected)/costs/cost-entry-form-helpers";
 
 type CostEntryFormProps = {
+  language: AdminLanguage;
   mode: CostEntryFormMode;
   todayDate: string;
   initialValues?: Partial<Omit<CostEntryFormState, "recurring_start_date_touched">>;
@@ -31,10 +33,12 @@ const READONLY_INPUT_CLASS_NAME =
   "w-full rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/55 outline-none";
 
 export function CostEntryForm({
+  language,
   mode,
   todayDate,
   initialValues,
 }: CostEntryFormProps) {
+  const copy = getAdminCopy(language);
   const [formValues, setFormValues] = useState(() =>
     buildInitialCostEntryFormState({
       todayDate,
@@ -48,7 +52,7 @@ export function CostEntryForm({
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2">
-        <FormField label={adminCopy.costs.form.date}>
+        <FormField label={copy.costs.form.date}>
           <input
             required
             type="date"
@@ -74,7 +78,7 @@ export function CostEntryForm({
           />
         </FormField>
 
-        <FormField label={adminCopy.costs.form.totalAmount}>
+        <FormField label={copy.costs.form.totalAmount}>
           <input
             required
             min={0}
@@ -101,7 +105,7 @@ export function CostEntryForm({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <FormField label={adminCopy.costs.form.category}>
+        <FormField label={copy.costs.form.category}>
           <select
             required
             name="category"
@@ -116,13 +120,13 @@ export function CostEntryForm({
           >
             {COST_CATEGORY_VALUES.map((value) => (
               <option key={value} value={value}>
-                {formatAdminValueLabel(value)}
+                {formatAdminValueLabel(value, language)}
               </option>
             ))}
           </select>
         </FormField>
 
-        <FormField label={adminCopy.costs.form.costType}>
+        <FormField label={copy.costs.form.costType}>
           <select
             required
             name="cost_type"
@@ -137,7 +141,7 @@ export function CostEntryForm({
           >
             {COST_TYPE_VALUES.map((value) => (
               <option key={value} value={value}>
-                {formatAdminValueLabel(value)}
+                {formatAdminValueLabel(value, language)}
               </option>
             ))}
           </select>
@@ -145,7 +149,7 @@ export function CostEntryForm({
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <FormField label={adminCopy.costs.form.quantity}>
+        <FormField label={copy.costs.form.quantity}>
           <input
             min={0}
             step="0.01"
@@ -169,7 +173,7 @@ export function CostEntryForm({
           />
         </FormField>
 
-        <FormField label={adminCopy.costs.form.unit}>
+        <FormField label={copy.costs.form.unit}>
           <input
             type="text"
             name="unit"
@@ -184,7 +188,7 @@ export function CostEntryForm({
           />
         </FormField>
 
-        <FormField label={adminCopy.costs.form.unitPrice}>
+        <FormField label={copy.costs.form.unitPrice}>
           <input
             min={0}
             step="0.01"
@@ -226,16 +230,16 @@ export function CostEntryForm({
                 }))
               }
             />
-            <span>{adminCopy.costs.form.saveAsRecurring}</span>
+            <span>{copy.costs.form.saveAsRecurring}</span>
           </label>
 
           {formValues.save_as_recurring ? (
             <div className="space-y-4 rounded-2xl border border-soil/20 bg-white/50 px-4 py-4">
               <p className="text-sm text-bark/70">
-                {adminCopy.costs.form.recurringHelp}
+                {copy.costs.form.recurringHelp}
               </p>
 
-              <FormField label={adminCopy.costs.form.templateName}>
+              <FormField label={copy.costs.form.templateName}>
                 <input
                   required={formValues.save_as_recurring}
                   type="text"
@@ -252,7 +256,7 @@ export function CostEntryForm({
               </FormField>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <FormField label={adminCopy.costs.form.frequency}>
+                <FormField label={copy.costs.form.frequency}>
                   <select
                     required={formValues.save_as_recurring}
                     name="recurring_frequency"
@@ -267,7 +271,7 @@ export function CostEntryForm({
                   >
                     {COST_FREQUENCY_VALUES.map((value) => (
                       <option key={value} value={value}>
-                        {formatAdminValueLabel(value)}
+                        {formatAdminValueLabel(value, language)}
                       </option>
                     ))}
                   </select>
@@ -285,12 +289,12 @@ export function CostEntryForm({
                       }))
                     }
                   />
-                  <span>{adminCopy.costs.form.templateIsActive}</span>
+                  <span>{copy.costs.form.templateIsActive}</span>
                 </label>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <FormField label={adminCopy.costs.form.startDate}>
+                <FormField label={copy.costs.form.startDate}>
                   <input
                     required={formValues.save_as_recurring}
                     type="date"
@@ -307,7 +311,7 @@ export function CostEntryForm({
                   />
                 </FormField>
 
-                <FormField label={adminCopy.costs.form.endDate}>
+                <FormField label={copy.costs.form.endDate}>
                   <input
                     type="date"
                     name="recurring_end_date"
@@ -327,7 +331,7 @@ export function CostEntryForm({
         </>
       ) : null}
 
-      <FormField label={adminCopy.costs.form.note}>
+      <FormField label={copy.costs.form.note}>
         <textarea
           rows={4}
           name="note"

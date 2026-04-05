@@ -3,7 +3,8 @@ import {
   correctCompletedOrderAction,
   saveOrderAction,
 } from "@/app/admin/actions";
-import { adminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
+import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { listContacts } from "@/lib/services/contacts";
 import { listOrders } from "@/lib/services/orders";
 import { PRICE_SOURCE_VALUES } from "@/lib/services/order-validation";
@@ -19,26 +20,27 @@ type OrdersPageProps = {
   searchParams?: Promise<SearchParamsRecord>;
 };
 
-const ORDER_ERROR_MESSAGES: Record<string, string> = {
-  ...adminCopy.orders.errors,
-};
-
-const ORDER_SUCCESS_MESSAGES: Record<string, string> = {
-  ...adminCopy.orders.success,
-};
 const ADMIN_ORDER_TIME_ZONE =
   process.env.ADMIN_DASHBOARD_TIME_ZONE ?? "Europe/Amsterdam";
 
 export default async function AdminOrdersPage({
   searchParams,
 }: OrdersPageProps) {
-  const [contacts, orders, defaultEggUnitPrice, resolvedSearchParams] =
+  const [contacts, orders, defaultEggUnitPrice, resolvedSearchParams, language] =
     await Promise.all([
-    listContacts(),
-    listOrders(),
-    getDefaultEggUnitPrice(),
-    searchParams ?? Promise.resolve({} as SearchParamsRecord),
-  ]);
+      listContacts(),
+      listOrders(),
+      getDefaultEggUnitPrice(),
+      searchParams ?? Promise.resolve({} as SearchParamsRecord),
+      getAdminLanguage(),
+    ]);
+  const copy = getAdminCopy(language);
+  const orderErrorMessages: Record<string, string> = {
+    ...copy.orders.errors,
+  };
+  const orderSuccessMessages: Record<string, string> = {
+    ...copy.orders.success,
+  };
   const editId = readSearchParam(resolvedSearchParams.edit);
   const editingOrder = editId
     ? orders.find((order) => order.id === editId) ?? null
@@ -51,33 +53,33 @@ export default async function AdminOrdersPage({
   return (
     <main className="grid gap-6 lg:grid-cols-[minmax(0,25rem)_minmax(0,1fr)]">
       <section className="card-surface p-6">
-        <p className="eyebrow">{adminCopy.orders.eyebrow}</p>
+        <p className="eyebrow">{copy.orders.eyebrow}</p>
         <h2 className="mt-2 font-serif text-3xl text-bark">
           {editingOrder
             ? isCompletedCorrection
-              ? adminCopy.orders.correctCompletedTitle
-              : adminCopy.orders.editReservedTitle
-            : adminCopy.orders.createTitle}
+              ? copy.orders.correctCompletedTitle
+              : copy.orders.editReservedTitle
+            : copy.orders.createTitle}
         </h2>
         <p className="mt-3 text-sm leading-6 text-bark/75">
-          {adminCopy.orders.description}
+          {copy.orders.description}
         </p>
 
         {successCode ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {ORDER_SUCCESS_MESSAGES[successCode] ?? adminCopy.common.saveFallback}
+            {orderSuccessMessages[successCode] ?? copy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {ORDER_ERROR_MESSAGES[errorCode] ?? adminCopy.common.unknownError}
+            {orderErrorMessages[errorCode] ?? copy.common.unknownError}
           </div>
         ) : null}
 
         {!canCreateOrder && !editingOrder ? (
           <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
-            {adminCopy.orders.createContactFirst}
+            {copy.orders.createContactFirst}
           </div>
         ) : null}
 
@@ -86,20 +88,20 @@ export default async function AdminOrdersPage({
             <input type="hidden" name="id" value={editingOrder.id} />
 
             <ReadOnlyField
-              label={adminCopy.orders.contact}
+              label={copy.orders.contact}
               value={editingOrder.contact.full_name}
             />
             <ReadOnlyField
-              label={adminCopy.orders.status}
-              value={adminCopy.orders.completed}
+              label={copy.orders.status}
+              value={copy.orders.completed}
             />
 
             <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              {adminCopy.orders.completedCorrectionWarning}
+              {copy.orders.completedCorrectionWarning}
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField label={adminCopy.orders.quantity}>
+              <FormField label={copy.orders.quantity}>
                 <input
                   required
                   min={1}
@@ -111,7 +113,7 @@ export default async function AdminOrdersPage({
                 />
               </FormField>
 
-              <FormField label={adminCopy.orders.unitPrice}>
+              <FormField label={copy.orders.unitPrice}>
                 <input
                   required
                   min={0}
@@ -124,7 +126,7 @@ export default async function AdminOrdersPage({
               </FormField>
             </div>
 
-            <FormField label={adminCopy.orders.backendComputedTotalPrice}>
+            <FormField label={copy.orders.backendComputedTotalPrice}>
               <input
                 readOnly
                 type="text"
@@ -133,7 +135,7 @@ export default async function AdminOrdersPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.orders.fulfilledAt}>
+            <FormField label={copy.orders.fulfilledAt}>
               <input
                 type="datetime-local"
                 name="fulfilled_at"
@@ -142,7 +144,7 @@ export default async function AdminOrdersPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.orders.note}>
+            <FormField label={copy.orders.note}>
               <textarea
                 rows={4}
                 name="note"
@@ -156,14 +158,14 @@ export default async function AdminOrdersPage({
                 type="submit"
                 className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
               >
-                {adminCopy.orders.applyCompletedCorrection}
+                {copy.orders.applyCompletedCorrection}
               </button>
 
               <a
                 href="/admin/orders"
                 className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
               >
-                {adminCopy.common.resetForm}
+                {copy.common.resetForm}
               </a>
             </div>
           </form>
@@ -173,11 +175,11 @@ export default async function AdminOrdersPage({
 
             {editingOrder ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                {adminCopy.orders.normalEditWarning}
+                {copy.orders.normalEditWarning}
               </div>
             ) : null}
 
-            <FormField label={adminCopy.orders.contact}>
+            <FormField label={copy.orders.contact}>
               <select
                 required
                 disabled={!canCreateOrder}
@@ -185,7 +187,7 @@ export default async function AdminOrdersPage({
                 defaultValue={editingOrder?.contact_id ?? ""}
                 className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50 disabled:cursor-not-allowed disabled:bg-[#f9f4ea]"
               >
-                <option value="">{adminCopy.orders.selectContact}</option>
+                <option value="">{copy.orders.selectContact}</option>
                 {contacts.map((contact) => (
                   <option key={contact.id} value={contact.id}>
                     {contact.full_name}
@@ -195,7 +197,7 @@ export default async function AdminOrdersPage({
             </FormField>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField label={adminCopy.orders.orderDate}>
+              <FormField label={copy.orders.orderDate}>
                 <input
                   required
                   type="date"
@@ -207,7 +209,7 @@ export default async function AdminOrdersPage({
                 />
               </FormField>
 
-              <FormField label={adminCopy.orders.targetFulfillmentDate}>
+              <FormField label={copy.orders.targetFulfillmentDate}>
                 <input
                   type="date"
                   name="target_fulfillment_date"
@@ -222,7 +224,7 @@ export default async function AdminOrdersPage({
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField label={adminCopy.orders.quantity}>
+              <FormField label={copy.orders.quantity}>
                 <input
                   required
                   min={1}
@@ -234,24 +236,24 @@ export default async function AdminOrdersPage({
                 />
               </FormField>
 
-              <FormField label={adminCopy.orders.status}>
+              <FormField label={copy.orders.status}>
                 <select
                   required
                   name="status"
                   defaultValue={editingOrder?.status ?? "reserved"}
                   className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
                 >
-                  <option value="reserved">{formatAdminValueLabel("reserved")}</option>
-                  <option value="completed">{formatAdminValueLabel("completed")}</option>
+                  <option value="reserved">{formatAdminValueLabel("reserved", language)}</option>
+                  <option value="completed">{formatAdminValueLabel("completed", language)}</option>
                   {editingOrder ? (
-                    <option value="cancelled">{formatAdminValueLabel("cancelled")}</option>
+                    <option value="cancelled">{formatAdminValueLabel("cancelled", language)}</option>
                   ) : null}
                 </select>
               </FormField>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <FormField label={adminCopy.orders.priceSource}>
+              <FormField label={copy.orders.priceSource}>
                 <select
                   required
                   name="price_source"
@@ -260,13 +262,13 @@ export default async function AdminOrdersPage({
                 >
                   {PRICE_SOURCE_VALUES.map((value) => (
                     <option key={value} value={value}>
-                      {formatAdminValueLabel(value)}
+                      {formatAdminValueLabel(value, language)}
                     </option>
                   ))}
                 </select>
               </FormField>
 
-              <FormField label={adminCopy.orders.manualUnitPrice}>
+              <FormField label={copy.orders.manualUnitPrice}>
                 <input
                   min={0}
                   step="0.01"
@@ -282,17 +284,17 @@ export default async function AdminOrdersPage({
               </FormField>
             </div>
 
-            <FormField label={adminCopy.orders.backendComputedTotalPrice}>
+            <FormField label={copy.orders.backendComputedTotalPrice}>
               <input
                 readOnly
                 type="text"
                 value={editingOrder ? formatDecimalInput(editingOrder.total_price) : ""}
-                placeholder={adminCopy.orders.calculatedOnSave}
+                placeholder={copy.orders.calculatedOnSave}
                 className="w-full rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/55 outline-none"
               />
             </FormField>
 
-            <FormField label={adminCopy.orders.fulfilledAt}>
+            <FormField label={copy.orders.fulfilledAt}>
               <input
                 type="datetime-local"
                 name="fulfilled_at"
@@ -301,7 +303,7 @@ export default async function AdminOrdersPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.orders.note}>
+            <FormField label={copy.orders.note}>
               <textarea
                 rows={4}
                 name="note"
@@ -316,14 +318,14 @@ export default async function AdminOrdersPage({
                 disabled={!canCreateOrder}
                 className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90 disabled:cursor-not-allowed disabled:bg-bark/40"
               >
-                {editingOrder ? adminCopy.orders.update : adminCopy.orders.create}
+                {editingOrder ? copy.orders.update : copy.orders.create}
               </button>
 
               <a
                 href="/admin/orders"
                 className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
               >
-                {adminCopy.common.resetForm}
+                {copy.common.resetForm}
               </a>
             </div>
           </form>
@@ -332,26 +334,26 @@ export default async function AdminOrdersPage({
 
       <section className="card-surface overflow-hidden">
         <div className="border-b border-soil/10 px-6 py-5">
-          <p className="eyebrow">{adminCopy.orders.recordsEyebrow}</p>
+          <p className="eyebrow">{copy.orders.recordsEyebrow}</p>
           <h2 className="mt-2 font-serif text-3xl text-bark">
-            {adminCopy.orders.recordsTitle}
+            {copy.orders.recordsTitle}
           </h2>
         </div>
 
         {orders.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">{adminCopy.orders.empty}</div>
+          <div className="px-6 py-8 text-sm text-bark/70">{copy.orders.empty}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/40 text-bark/70">
                 <tr>
-                  <th className="px-6 py-4 font-medium">{adminCopy.orders.date}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.orders.contact}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.orders.status}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.orders.quantity}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.orders.totalPrice}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.orders.fulfilled}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.orders.actions}</th>
+                  <th className="px-6 py-4 font-medium">{copy.orders.date}</th>
+                  <th className="px-6 py-4 font-medium">{copy.orders.contact}</th>
+                  <th className="px-6 py-4 font-medium">{copy.orders.status}</th>
+                  <th className="px-6 py-4 font-medium">{copy.orders.quantity}</th>
+                  <th className="px-6 py-4 font-medium">{copy.orders.totalPrice}</th>
+                  <th className="px-6 py-4 font-medium">{copy.orders.fulfilled}</th>
+                  <th className="px-6 py-4 font-medium">{copy.orders.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -359,7 +361,7 @@ export default async function AdminOrdersPage({
                   <tr key={order.id} className="border-t border-soil/10">
                     <td className="px-6 py-4">{formatDateOnly(order.date)}</td>
                     <td className="px-6 py-4">{order.contact.full_name}</td>
-                    <td className="px-6 py-4">{formatAdminValueLabel(order.status)}</td>
+                    <td className="px-6 py-4">{formatAdminValueLabel(order.status, language)}</td>
                     <td className="px-6 py-4">{order.quantity}</td>
                     <td className="px-6 py-4">
                       {formatDecimalInput(order.total_price)}
@@ -375,18 +377,18 @@ export default async function AdminOrdersPage({
                           href={`/admin/orders?edit=${encodeURIComponent(order.id)}`}
                           className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                         >
-                          {adminCopy.orders.edit}
+                          {copy.orders.edit}
                         </a>
                       ) : order.status === "completed" ? (
                         <a
                           href={`/admin/orders?edit=${encodeURIComponent(order.id)}`}
                           className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                         >
-                          {adminCopy.orders.correct}
+                          {copy.orders.correct}
                         </a>
                       ) : (
                         <span className="text-xs text-bark/50">
-                          {adminCopy.orders.lockedAfterStockRelease}
+                          {copy.orders.lockedAfterStockRelease}
                         </span>
                       )}
                     </td>

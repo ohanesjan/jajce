@@ -3,7 +3,8 @@ import {
   saveNotificationCampaignAction,
   sendNotificationCampaignAction,
 } from "@/app/admin/actions";
-import { adminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
+import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { listContacts } from "@/lib/services/contacts";
 import { listNotificationCampaigns } from "@/lib/services/notification-campaigns";
 import { getSenderLabelDefault } from "@/lib/services/site-settings";
@@ -19,24 +20,24 @@ type NotificationsPageProps = {
   searchParams?: Promise<SearchParamsRecord>;
 };
 
-const NOTIFICATION_SUCCESS_MESSAGES: Record<string, string> = {
-  ...adminCopy.notifications.success,
-};
-
-const NOTIFICATION_ERROR_MESSAGES: Record<string, string> = {
-  ...adminCopy.notifications.errors,
-};
-
 export default async function AdminNotificationsPage({
   searchParams,
 }: NotificationsPageProps) {
-  const [contacts, campaigns, defaultSenderLabel, resolvedSearchParams] =
+  const [contacts, campaigns, defaultSenderLabel, resolvedSearchParams, language] =
     await Promise.all([
       listContacts(),
       listNotificationCampaigns(),
       getSenderLabelDefault(),
       searchParams ?? Promise.resolve({} as SearchParamsRecord),
+      getAdminLanguage(),
     ]);
+  const copy = getAdminCopy(language);
+  const notificationSuccessMessages: Record<string, string> = {
+    ...copy.notifications.success,
+  };
+  const notificationErrorMessages: Record<string, string> = {
+    ...copy.notifications.errors,
+  };
   const editId = readSearchParam(resolvedSearchParams.edit);
   const requestedCampaign = editId
     ? campaigns.find((campaign) => campaign.id === editId) ?? null
@@ -57,44 +58,44 @@ export default async function AdminNotificationsPage({
   return (
     <main className="grid gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
       <section className="card-surface p-6">
-        <p className="eyebrow">{adminCopy.notifications.eyebrow}</p>
+        <p className="eyebrow">{copy.notifications.eyebrow}</p>
         <h2 className="mt-2 font-serif text-3xl text-bark">
           {editingCampaign
-            ? adminCopy.notifications.editTitle
-            : adminCopy.notifications.createTitle}
+            ? copy.notifications.editTitle
+            : copy.notifications.createTitle}
         </h2>
         <p className="mt-3 text-sm leading-6 text-bark/75">
-          {adminCopy.notifications.description}
+          {copy.notifications.description}
         </p>
 
         {successCode ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {NOTIFICATION_SUCCESS_MESSAGES[successCode] ?? adminCopy.common.saveFallback}
+            {notificationSuccessMessages[successCode] ?? copy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {NOTIFICATION_ERROR_MESSAGES[errorCode] ?? adminCopy.common.unknownError}
+            {notificationErrorMessages[errorCode] ?? copy.common.unknownError}
           </div>
         ) : null}
 
         {recoverableCampaign ? (
           <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            {adminCopy.notifications.recoverableDraftWarning}
+            {copy.notifications.recoverableDraftWarning}
           </div>
         ) : null}
 
         {requestedCampaign && !editingCampaign && !recoverableCampaign ? (
           <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            {adminCopy.notifications.readOnlyRequestedWarning}
+            {copy.notifications.readOnlyRequestedWarning}
           </div>
         ) : null}
 
         <form action={saveNotificationCampaignAction} className="mt-6 space-y-4">
           <input type="hidden" name="id" value={editingCampaign?.id ?? ""} />
 
-          <FormField label={adminCopy.notifications.title}>
+          <FormField label={copy.notifications.title}>
             <input
               required
               type="text"
@@ -105,7 +106,7 @@ export default async function AdminNotificationsPage({
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={adminCopy.notifications.channel}>
+            <FormField label={copy.notifications.channel}>
               <select
                 required
                 name="channel"
@@ -114,13 +115,13 @@ export default async function AdminNotificationsPage({
               >
                 {NOTIFICATION_CHANNEL_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatAdminValueLabel(value)}
+                    {formatAdminValueLabel(value, language)}
                   </option>
                 ))}
               </select>
             </FormField>
 
-            <FormField label={adminCopy.notifications.audience}>
+            <FormField label={copy.notifications.audience}>
               <select
                 required
                 name="audience_type"
@@ -129,7 +130,7 @@ export default async function AdminNotificationsPage({
               >
                 {NOTIFICATION_AUDIENCE_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatAdminValueLabel(value)}
+                    {formatAdminValueLabel(value, language)}
                   </option>
                 ))}
               </select>
@@ -137,7 +138,7 @@ export default async function AdminNotificationsPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={adminCopy.notifications.senderLabel}>
+            <FormField label={copy.notifications.senderLabel}>
               <input
                 required
                 type="text"
@@ -147,7 +148,7 @@ export default async function AdminNotificationsPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.notifications.subject}>
+            <FormField label={copy.notifications.subject}>
               <input
                 type="text"
                 name="subject"
@@ -157,7 +158,7 @@ export default async function AdminNotificationsPage({
             </FormField>
           </div>
 
-          <FormField label={adminCopy.notifications.body}>
+          <FormField label={copy.notifications.body}>
             <textarea
               required
               rows={8}
@@ -171,20 +172,20 @@ export default async function AdminNotificationsPage({
             <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-sm font-medium text-bark">
-                  {adminCopy.notifications.selectedContactsTitle}
+                  {copy.notifications.selectedContactsTitle}
                 </p>
                 <p className="mt-1 text-sm leading-6 text-bark/70">
-                  {adminCopy.notifications.selectedContactsDescription}
+                  {copy.notifications.selectedContactsDescription}
                 </p>
               </div>
               <p className="text-xs uppercase tracking-[0.2em] text-bark/50">
-                {contacts.length} {adminCopy.notifications.savedContactsSuffix}
+                {contacts.length} {copy.notifications.savedContactsSuffix}
               </p>
             </div>
 
             {contacts.length === 0 ? (
               <div className="mt-4 rounded-2xl border border-dashed border-soil/20 px-4 py-4 text-sm text-bark/70">
-                {adminCopy.notifications.noContactsYet}
+                {copy.notifications.noContactsYet}
               </div>
             ) : (
               <div className="mt-4 max-h-72 space-y-3 overflow-y-auto pr-1">
@@ -210,8 +211,8 @@ export default async function AdminNotificationsPage({
                           {contact.full_name}
                         </span>
                         <span className="mt-1 block text-xs text-bark/65">
-                          {contact.email ?? adminCopy.notifications.noEmail} ·{" "}
-                          {contact.phone ?? adminCopy.notifications.noPhone}
+                          {contact.email ?? copy.notifications.noEmail} ·{" "}
+                          {contact.phone ?? copy.notifications.noPhone}
                         </span>
                       </span>
                     </label>
@@ -227,15 +228,15 @@ export default async function AdminNotificationsPage({
               className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
             >
               {editingCampaign
-                ? adminCopy.notifications.saveDraft
-                : adminCopy.notifications.createDraft}
+                ? copy.notifications.saveDraft
+                : copy.notifications.createDraft}
             </button>
 
             <a
               href="/admin/notifications"
               className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
             >
-              {adminCopy.common.resetForm}
+              {copy.common.resetForm}
             </a>
           </div>
         </form>
@@ -243,12 +244,12 @@ export default async function AdminNotificationsPage({
         {editingCampaign || recoverableCampaign ? (
           <div className="mt-6 rounded-3xl border border-soil/15 bg-white/45 p-4">
             <p className="text-sm font-medium text-bark">
-              {adminCopy.notifications.sendDraftTitle}
+              {copy.notifications.sendDraftTitle}
             </p>
             <p className="mt-2 text-sm leading-6 text-bark/70">
               {recoverableCampaign
-                ? adminCopy.notifications.recoverableDraftDescription
-                : adminCopy.notifications.sendDraftDescription}
+                ? copy.notifications.recoverableDraftDescription
+                : copy.notifications.sendDraftDescription}
             </p>
 
             {(editingCampaign ?? recoverableCampaign)?.channel === "email" ? (
@@ -263,13 +264,13 @@ export default async function AdminNotificationsPage({
                   className="rounded-2xl bg-earth px-5 py-3 text-sm font-medium text-parchment transition hover:bg-earth/90"
                 >
                   {recoverableCampaign
-                    ? adminCopy.notifications.resumeSending
-                    : adminCopy.notifications.sendDraft}
+                    ? copy.notifications.resumeSending
+                    : copy.notifications.sendDraft}
                 </button>
               </form>
             ) : (
               <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                {adminCopy.notifications.emailOnlyDraftWarning}
+                {copy.notifications.emailOnlyDraftWarning}
               </div>
             )}
           </div>
@@ -278,28 +279,28 @@ export default async function AdminNotificationsPage({
 
       <section className="card-surface overflow-hidden">
         <div className="border-b border-soil/10 px-6 py-5">
-          <p className="eyebrow">{adminCopy.notifications.historyEyebrow}</p>
+          <p className="eyebrow">{copy.notifications.historyEyebrow}</p>
           <h2 className="mt-2 font-serif text-3xl text-bark">
-            {adminCopy.notifications.historyTitle}
+            {copy.notifications.historyTitle}
           </h2>
         </div>
 
         {campaigns.length === 0 ? (
           <div className="px-6 py-8 text-sm text-bark/70">
-            {adminCopy.notifications.empty}
+            {copy.notifications.empty}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/40 text-bark/70">
                 <tr>
-                  <th className="px-6 py-4 font-medium">{adminCopy.notifications.title}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.notifications.channel}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.notifications.audience}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.status}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.notifications.recipients}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.notifications.updated}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costs.actions}</th>
+                  <th className="px-6 py-4 font-medium">{copy.notifications.title}</th>
+                  <th className="px-6 py-4 font-medium">{copy.notifications.channel}</th>
+                  <th className="px-6 py-4 font-medium">{copy.notifications.audience}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.status}</th>
+                  <th className="px-6 py-4 font-medium">{copy.notifications.recipients}</th>
+                  <th className="px-6 py-4 font-medium">{copy.notifications.updated}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costs.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,31 +310,31 @@ export default async function AdminNotificationsPage({
                       <div className="font-medium text-bark">{campaign.title}</div>
                       {campaign.subject ? (
                         <div className="mt-1 text-xs text-bark/65">
-                          {adminCopy.notifications.subject}: {campaign.subject}
+                          {copy.notifications.subject}: {campaign.subject}
                         </div>
                       ) : null}
                     </td>
                     <td className="px-6 py-4 align-top">
-                      {formatAdminValueLabel(campaign.channel)}
+                      {formatAdminValueLabel(campaign.channel, language)}
                     </td>
                     <td className="px-6 py-4 align-top">
-                      {formatAdminValueLabel(campaign.audience_type)}
+                      {formatAdminValueLabel(campaign.audience_type, language)}
                     </td>
                     <td className="px-6 py-4 align-top">
                       <span className={statusClassName(campaign.status)}>
-                        {formatAdminValueLabel(campaign.status)}
+                        {formatAdminValueLabel(campaign.status, language)}
                       </span>
                     </td>
                     <td className="px-6 py-4 align-top text-xs text-bark/75">
-                      <div>{adminCopy.notifications.total}: {campaign.recipient_count}</div>
-                      <div>{adminCopy.notifications.sent}: {campaign.sent_recipient_count}</div>
-                      <div>{adminCopy.notifications.failed}: {campaign.failed_recipient_count}</div>
+                      <div>{copy.notifications.total}: {campaign.recipient_count}</div>
+                      <div>{copy.notifications.sent}: {campaign.sent_recipient_count}</div>
+                      <div>{copy.notifications.failed}: {campaign.failed_recipient_count}</div>
                     </td>
                     <td className="px-6 py-4 align-top text-xs text-bark/75">
                       <div>{formatDateOnly(campaign.updated_at)}</div>
                       {campaign.sent_at ? (
                         <div className="mt-1">
-                          {adminCopy.notifications.sentOn}: {formatDateOnly(campaign.sent_at)}
+                          {copy.notifications.sentOn}: {formatDateOnly(campaign.sent_at)}
                         </div>
                       ) : null}
                     </td>
@@ -345,7 +346,7 @@ export default async function AdminNotificationsPage({
                             href={`/admin/notifications?edit=${encodeURIComponent(campaign.id)}`}
                             className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                           >
-                            {adminCopy.notifications.edit}
+                            {copy.notifications.edit}
                           </a>
                         ) : null}
 
@@ -357,8 +358,8 @@ export default async function AdminNotificationsPage({
                               className="rounded-full bg-earth px-3 py-1.5 text-xs text-parchment transition hover:bg-earth/90"
                             >
                               {campaign.is_recoverable_send_only
-                                ? adminCopy.notifications.resume
-                                : adminCopy.notifications.send}
+                                ? copy.notifications.resume
+                                : copy.notifications.send}
                             </button>
                           </form>
                         ) : null}

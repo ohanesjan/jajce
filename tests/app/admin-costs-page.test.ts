@@ -6,6 +6,7 @@ const listCostEntriesMock = vi.fn();
 const listRecurringCostSuggestionsForDateMock = vi.fn();
 const listRecurringCostOccurrencesInRangeMock = vi.fn();
 const listCostTemplatesMock = vi.fn();
+const getAdminLanguageMock = vi.fn();
 
 vi.mock("@/lib/services/cost-entries", () => ({
   listCostEntries: listCostEntriesMock,
@@ -27,9 +28,14 @@ vi.mock("@/app/admin/actions", () => ({
   toggleCostTemplateActiveAction: vi.fn(),
 }));
 
+vi.mock("@/lib/admin-language", () => ({
+  getAdminLanguage: getAdminLanguageMock,
+}));
+
 describe("AdminCostsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getAdminLanguageMock.mockResolvedValue("mk");
     listCostEntriesMock.mockResolvedValue([
       {
         id: "cost_entry_1",

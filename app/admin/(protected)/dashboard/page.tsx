@@ -1,5 +1,6 @@
 import { saveHomepagePublicNoteSettingAction } from "@/app/admin/actions";
-import { adminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
+import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { getAdminDashboardData } from "@/lib/services/admin-dashboard";
 import { getHomepagePublicNoteEnabled } from "@/lib/services/site-settings";
 import { formatDateOnly } from "@/lib/utils/date";
@@ -15,6 +16,8 @@ export default async function AdminDashboardPage({
 }: AdminDashboardPageProps) {
   const resolvedSearchParams =
     (await searchParams) ?? ({} as SearchParamsRecord);
+  const language = await getAdminLanguage();
+  const copy = getAdminCopy(language);
   const mode = readSearchParam(resolvedSearchParams.mode);
   const settingsSuccessCode = readSearchParam(resolvedSearchParams.settingsSuccess);
   const settingsErrorCode = readSearchParam(resolvedSearchParams.settingsError);
@@ -28,27 +31,27 @@ export default async function AdminDashboardPage({
       <section className="card-surface p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="eyebrow">{adminCopy.dashboard.eyebrow}</p>
+            <p className="eyebrow">{copy.dashboard.eyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
-              {adminCopy.dashboard.title}
+              {copy.dashboard.title}
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
-              {adminCopy.dashboard.description}
+              {copy.dashboard.description}
             </p>
             <p className="mt-2 text-sm text-bark/60">
-              {adminCopy.dashboard.localDate}: {formatDateOnly(dashboard.date)}
+              {copy.dashboard.localDate}: {formatDateOnly(dashboard.date)}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
             <ModeLink
               href="/admin/dashboard?mode=simple"
-              label={adminCopy.dashboard.simple}
+              label={copy.dashboard.simple}
               active={dashboard.mode === "simple"}
             />
             <ModeLink
               href="/admin/dashboard?mode=expanded"
-              label={adminCopy.dashboard.expanded}
+              label={copy.dashboard.expanded}
               active={dashboard.mode === "expanded"}
             />
           </div>
@@ -57,91 +60,91 @@ export default async function AdminDashboardPage({
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <DashboardCard
-          label={adminCopy.dashboard.availableEggs}
+          label={copy.dashboard.availableEggs}
           value={formatMetricValue(dashboard.simple.available_eggs)}
-          detail={adminCopy.dashboard.availableEggsDetail}
+          detail={copy.dashboard.availableEggsDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.todayTotalYield}
+          label={copy.dashboard.todayTotalYield}
           value={formatMetricValue(dashboard.simple.today_total_yield)}
-          detail={adminCopy.dashboard.todayTotalYieldDetail}
+          detail={copy.dashboard.todayTotalYieldDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.todayCollectedForSale}
+          label={copy.dashboard.todayCollectedForSale}
           value={formatMetricValue(dashboard.simple.today_collected_for_sale)}
-          detail={adminCopy.dashboard.todayCollectedForSaleDetail}
+          detail={copy.dashboard.todayCollectedForSaleDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.yesterdayCollectedForSale}
+          label={copy.dashboard.yesterdayCollectedForSale}
           value={formatMetricValue(dashboard.simple.yesterday_collected_for_sale)}
-          detail={adminCopy.dashboard.yesterdayCollectedForSaleDetail}
+          detail={copy.dashboard.yesterdayCollectedForSaleDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.latestChickenCount}
+          label={copy.dashboard.latestChickenCount}
           value={formatMetricValue(dashboard.simple.latest_chicken_count)}
           detail={
             dashboard.simple.latest_chicken_count_date
-              ? `${adminCopy.dashboard.latestLog}: ${formatDateOnly(dashboard.simple.latest_chicken_count_date)}`
-              : adminCopy.dashboard.noDailyLogsYet
+              ? `${copy.dashboard.latestLog}: ${formatDateOnly(dashboard.simple.latest_chicken_count_date)}`
+              : copy.dashboard.noDailyLogsYet
           }
         />
         <DashboardCard
-          label={adminCopy.dashboard.todaySoldEggs}
+          label={copy.dashboard.todaySoldEggs}
           value={formatMetricValue(dashboard.simple.today_sold_eggs)}
-          detail={adminCopy.dashboard.todaySoldEggsDetail}
+          detail={copy.dashboard.todaySoldEggsDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.todayRevenue}
+          label={copy.dashboard.todayRevenue}
           value={formatMetricValue(dashboard.simple.today_revenue)}
-          detail={adminCopy.dashboard.todayRevenueDetail}
+          detail={copy.dashboard.todayRevenueDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.todayTotalCost}
+          label={copy.dashboard.todayTotalCost}
           value={formatMetricValue(dashboard.simple.today_total_cost)}
-          detail={adminCopy.dashboard.todayTotalCostDetail}
+          detail={copy.dashboard.todayTotalCostDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.todayGrossMargin}
+          label={copy.dashboard.todayGrossMargin}
           value={formatMetricValue(dashboard.simple.today_gross_margin)}
-          detail={adminCopy.dashboard.todayGrossMarginDetail}
+          detail={copy.dashboard.todayGrossMarginDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.subscriberCount}
+          label={copy.dashboard.subscriberCount}
           value={formatMetricValue(dashboard.simple.subscriber_count)}
-          detail={adminCopy.dashboard.subscriberCountDetail}
+          detail={copy.dashboard.subscriberCountDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.waitingListCount}
+          label={copy.dashboard.waitingListCount}
           value={formatMetricValue(dashboard.simple.waiting_list_count)}
-          detail={adminCopy.dashboard.waitingListCountDetail}
+          detail={copy.dashboard.waitingListCountDetail}
         />
         <DashboardCard
-          label={adminCopy.dashboard.activeCustomerCount}
+          label={copy.dashboard.activeCustomerCount}
           value={formatMetricValue(dashboard.simple.active_customer_count)}
-          detail={adminCopy.dashboard.activeCustomerCountDetail}
+          detail={copy.dashboard.activeCustomerCountDetail}
         />
       </section>
 
       <section className="card-surface p-6">
-        <p className="eyebrow">{adminCopy.dashboard.homepageEyebrow}</p>
+        <p className="eyebrow">{copy.dashboard.homepageEyebrow}</p>
         <h2 className="mt-2 font-serif text-3xl text-bark">
-          {adminCopy.dashboard.homepageTitle}
+          {copy.dashboard.homepageTitle}
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
-          {adminCopy.dashboard.homepageDescription}
+          {copy.dashboard.homepageDescription}
         </p>
 
         {settingsSuccessCode ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {adminCopy.dashboard.homepageSettingSaved}
+            {copy.dashboard.homepageSettingSaved}
           </div>
         ) : null}
 
         {settingsErrorCode ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {settingsErrorCode === "validation"
-              ? adminCopy.dashboard.homepageSettingValidationError
-              : adminCopy.dashboard.homepageSettingUnknownError}
+              ? copy.dashboard.homepageSettingValidationError
+              : copy.dashboard.homepageSettingUnknownError}
           </div>
         ) : null}
 
@@ -156,7 +159,7 @@ export default async function AdminDashboardPage({
               className="mt-1 h-4 w-4 rounded border-soil/30 text-bark focus:ring-bark/20"
             />
             <span>
-              {adminCopy.dashboard.homepageCheckbox}
+              {copy.dashboard.homepageCheckbox}
             </span>
           </label>
 
@@ -165,7 +168,7 @@ export default async function AdminDashboardPage({
               type="submit"
               className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
             >
-              {adminCopy.dashboard.saveHomepageSetting}
+              {copy.dashboard.saveHomepageSetting}
             </button>
           </div>
         </form>
@@ -175,64 +178,64 @@ export default async function AdminDashboardPage({
         <div className="space-y-6">
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <DashboardCard
-              label={adminCopy.dashboard.totalYieldPerChicken}
+              label={copy.dashboard.totalYieldPerChicken}
               value={formatMetricValue(dashboard.expanded.total_yield_per_chicken)}
-              detail={adminCopy.dashboard.totalYieldPerChickenDetail}
+              detail={copy.dashboard.totalYieldPerChickenDetail}
             />
             <DashboardCard
-              label={adminCopy.dashboard.saleYieldPerChicken}
+              label={copy.dashboard.saleYieldPerChicken}
               value={formatMetricValue(dashboard.expanded.sale_yield_per_chicken)}
-              detail={adminCopy.dashboard.saleYieldPerChickenDetail}
+              detail={copy.dashboard.saleYieldPerChickenDetail}
             />
             <DashboardCard
-              label={adminCopy.dashboard.todayDirectCost}
+              label={copy.dashboard.todayDirectCost}
               value={formatMetricValue(dashboard.expanded.today_direct_cost)}
-              detail={adminCopy.dashboard.todayDirectCostDetail}
+              detail={copy.dashboard.todayDirectCostDetail}
             />
             <DashboardCard
-              label={adminCopy.dashboard.todayAllocatedCost}
+              label={copy.dashboard.todayAllocatedCost}
               value={formatMetricValue(dashboard.expanded.today_allocated_cost)}
-              detail={adminCopy.dashboard.todayAllocatedCostDetail}
+              detail={copy.dashboard.todayAllocatedCostDetail}
             />
             <DashboardCard
-              label={adminCopy.dashboard.grossMargin7d}
+              label={copy.dashboard.grossMargin7d}
               value={formatMetricValue(dashboard.expanded.gross_margin_7d)}
-              detail={adminCopy.dashboard.grossMargin7dDetail}
+              detail={copy.dashboard.grossMargin7dDetail}
             />
             <DashboardCard
-              label={adminCopy.dashboard.grossMargin30d}
+              label={copy.dashboard.grossMargin30d}
               value={formatMetricValue(dashboard.expanded.gross_margin_30d)}
-              detail={adminCopy.dashboard.grossMargin30dDetail}
+              detail={copy.dashboard.grossMargin30dDetail}
             />
           </section>
 
           <section className="card-surface p-6">
-            <p className="eyebrow">{adminCopy.dashboard.todayEyebrow}</p>
+            <p className="eyebrow">{copy.dashboard.todayEyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
-              {adminCopy.dashboard.costByCategoryTitle}
+              {copy.dashboard.costByCategoryTitle}
             </h2>
             <p className="mt-3 text-sm leading-6 text-bark/75">
-              {adminCopy.dashboard.costByCategoryDescription}
+              {copy.dashboard.costByCategoryDescription}
             </p>
 
             {dashboard.expanded.cost_by_category.length === 0 ? (
-              <div className="mt-6 rounded-2xl border border-dashed border-soil/20 px-4 py-5 text-sm text-bark/70">
-                {adminCopy.dashboard.noBookedCostsToday}
+                <div className="mt-6 rounded-2xl border border-dashed border-soil/20 px-4 py-5 text-sm text-bark/70">
+                {copy.dashboard.noBookedCostsToday}
               </div>
             ) : (
               <div className="mt-6 overflow-x-auto">
                 <table className="min-w-full border-separate border-spacing-y-3">
                   <thead>
                     <tr className="text-left text-xs uppercase tracking-[0.2em] text-bark/55">
-                      <th className="px-4">{adminCopy.dashboard.category}</th>
-                      <th className="px-4">{adminCopy.dashboard.totalAmount}</th>
+                      <th className="px-4">{copy.dashboard.category}</th>
+                      <th className="px-4">{copy.dashboard.totalAmount}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {dashboard.expanded.cost_by_category.map((row) => (
                       <tr key={row.category} className="rounded-2xl bg-white/50">
                         <td className="rounded-l-2xl px-4 py-3 text-sm text-bark">
-                          {formatAdminValueLabel(row.category)}
+                          {formatAdminValueLabel(row.category, language)}
                         </td>
                         <td className="rounded-r-2xl px-4 py-3 text-sm font-medium text-bark">
                           {formatMetricValue(row.total_amount)}

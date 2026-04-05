@@ -1,4 +1,5 @@
-import { adminCopy } from "@/lib/admin-localization";
+import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminCopy } from "@/lib/admin-localization";
 import { getMarginInsights } from "@/lib/services/margin-insights";
 import { getDateOnlyInTimeZone } from "@/lib/utils/date";
 
@@ -16,6 +17,8 @@ export default async function AdminMarginPage({
 }: MarginPageProps) {
   const resolvedSearchParams =
     (await searchParams) ?? ({} as SearchParamsRecord);
+  const language = await getAdminLanguage();
+  const copy = getAdminCopy(language);
   const dateParam =
     readSearchParam(resolvedSearchParams.date) ??
     getDateOnlyInTimeZone(new Date(), ADMIN_MARGIN_TIME_ZONE);
@@ -30,18 +33,18 @@ export default async function AdminMarginPage({
       <section className="card-surface p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="eyebrow">{adminCopy.margin.eyebrow}</p>
+            <p className="eyebrow">{copy.margin.eyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
-              {adminCopy.margin.title}
+              {copy.margin.title}
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
-              {adminCopy.margin.description}
+              {copy.margin.description}
             </p>
           </div>
 
           <form className="flex flex-wrap items-end gap-3">
             <label className="block text-sm text-bark">
-              <span className="mb-1 block font-medium">{adminCopy.margin.date}</span>
+              <span className="mb-1 block font-medium">{copy.margin.date}</span>
               <input
                 required
                 type="date"
@@ -54,7 +57,7 @@ export default async function AdminMarginPage({
               type="submit"
               className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
             >
-              {adminCopy.margin.loadDate}
+              {copy.margin.loadDate}
             </button>
           </form>
         </div>
@@ -62,54 +65,56 @@ export default async function AdminMarginPage({
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label={adminCopy.margin.dailyRevenue}
+          label={copy.margin.dailyRevenue}
           value={formatMetricValue(insights.daily.revenue)}
-          detail={adminCopy.margin.dailyRevenueDetail}
+          detail={copy.margin.dailyRevenueDetail}
         />
         <MetricCard
-          label={adminCopy.margin.dailyDirectCost}
+          label={copy.margin.dailyDirectCost}
           value={formatMetricValue(insights.daily.direct_cost)}
-          detail={adminCopy.margin.dailyDirectCostDetail}
+          detail={copy.margin.dailyDirectCostDetail}
         />
         <MetricCard
-          label={adminCopy.margin.dailyAllocatedCost}
+          label={copy.margin.dailyAllocatedCost}
           value={formatMetricValue(insights.daily.allocated_cost)}
-          detail={adminCopy.margin.dailyAllocatedCostDetail}
+          detail={copy.margin.dailyAllocatedCostDetail}
         />
         <MetricCard
-          label={adminCopy.margin.dailyTotalCost}
+          label={copy.margin.dailyTotalCost}
           value={formatMetricValue(insights.daily.total_cost)}
-          detail={adminCopy.margin.dailyTotalCostDetail}
+          detail={copy.margin.dailyTotalCostDetail}
         />
         <MetricCard
-          label={adminCopy.margin.dailyGrossMargin}
+          label={copy.margin.dailyGrossMargin}
           value={formatMetricValue(insights.daily.gross_margin)}
-          detail={adminCopy.margin.dailyGrossMarginDetail}
+          detail={copy.margin.dailyGrossMarginDetail}
         />
         <MetricCard
-          label={adminCopy.margin.dailyDirectMargin}
+          label={copy.margin.dailyDirectMargin}
           value={formatMetricValue(insights.daily.direct_margin)}
-          detail={adminCopy.margin.dailyDirectMarginDetail}
+          detail={copy.margin.dailyDirectMarginDetail}
         />
         <MetricCard
-          label={adminCopy.margin.costPerCollectedEgg}
+          label={copy.margin.costPerCollectedEgg}
           value={formatMetricValue(insights.daily.cost_per_collected_egg)}
-          detail={adminCopy.margin.costPerCollectedEggDetail}
+          detail={copy.margin.costPerCollectedEggDetail}
         />
         <MetricCard
-          label={adminCopy.margin.marginPerSoldEgg}
+          label={copy.margin.marginPerSoldEgg}
           value={formatMetricValue(insights.daily.margin_per_sold_egg)}
-          detail={adminCopy.margin.marginPerSoldEggDetail}
+          detail={copy.margin.marginPerSoldEggDetail}
         />
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
         <SummaryCard
-          title={adminCopy.margin.summary7d}
+          copy={copy.margin}
+          title={copy.margin.summary7d}
           summary={insights.summary_7d}
         />
         <SummaryCard
-          title={adminCopy.margin.summary30d}
+          copy={copy.margin}
+          title={copy.margin.summary30d}
           summary={insights.summary_30d}
         />
       </section>
@@ -136,9 +141,11 @@ function MetricCard({
 }
 
 function SummaryCard({
+  copy,
   title,
   summary,
 }: {
+  copy: ReturnType<typeof getAdminCopy>["margin"];
   title: string;
   summary: {
     eggs_total_yield: number;
@@ -153,30 +160,30 @@ function SummaryCard({
 }) {
   return (
     <section className="card-surface p-6">
-      <p className="eyebrow">{adminCopy.margin.rollingWindow}</p>
+      <p className="eyebrow">{copy.rollingWindow}</p>
       <h2 className="mt-2 font-serif text-3xl text-bark">{title}</h2>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <SummaryRow label={adminCopy.margin.eggsTotalYield} value={summary.eggs_total_yield} />
+        <SummaryRow label={copy.eggsTotalYield} value={summary.eggs_total_yield} />
         <SummaryRow
-          label={adminCopy.margin.eggsCollectedForSale}
+          label={copy.eggsCollectedForSale}
           value={summary.eggs_collected_for_sale}
         />
-        <SummaryRow label={adminCopy.margin.eggsSold} value={summary.eggs_sold} />
-        <SummaryRow label={adminCopy.margin.revenue} value={formatMetricValue(summary.revenue)} />
+        <SummaryRow label={copy.eggsSold} value={summary.eggs_sold} />
+        <SummaryRow label={copy.revenue} value={formatMetricValue(summary.revenue)} />
         <SummaryRow
-          label={adminCopy.margin.directCost}
+          label={copy.directCost}
           value={formatMetricValue(summary.direct_cost)}
         />
         <SummaryRow
-          label={adminCopy.margin.allocatedCost}
+          label={copy.allocatedCost}
           value={formatMetricValue(summary.allocated_cost)}
         />
         <SummaryRow
-          label={adminCopy.margin.totalCost}
+          label={copy.totalCost}
           value={formatMetricValue(summary.total_cost)}
         />
         <SummaryRow
-          label={adminCopy.margin.grossMargin}
+          label={copy.grossMargin}
           value={formatMetricValue(summary.gross_margin)}
         />
       </div>

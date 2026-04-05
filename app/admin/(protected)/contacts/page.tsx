@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { deleteContactAction, saveContactAction } from "@/app/admin/actions";
-import { adminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
+import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { listContacts } from "@/lib/services/contacts";
 import {
   CUSTOMER_STAGE_VALUES,
@@ -16,21 +17,21 @@ type ContactsPageProps = {
   searchParams?: Promise<SearchParamsRecord>;
 };
 
-const CONTACT_ERROR_MESSAGES: Record<string, string> = {
-  ...adminCopy.contacts.errors,
-};
-
-const CONTACT_SUCCESS_MESSAGES: Record<string, string> = {
-  ...adminCopy.contacts.success,
-};
-
 export default async function AdminContactsPage({
   searchParams,
 }: ContactsPageProps) {
-  const [contacts, resolvedSearchParams] = await Promise.all([
+  const [contacts, resolvedSearchParams, language] = await Promise.all([
     listContacts(),
     searchParams ?? Promise.resolve({} as SearchParamsRecord),
+    getAdminLanguage(),
   ]);
+  const copy = getAdminCopy(language);
+  const contactErrorMessages: Record<string, string> = {
+    ...copy.contacts.errors,
+  };
+  const contactSuccessMessages: Record<string, string> = {
+    ...copy.contacts.success,
+  };
   const editId = readSearchParam(resolvedSearchParams.edit);
   const editingContact = editId
     ? contacts.find((contact) => contact.id === editId) ?? null
@@ -41,30 +42,30 @@ export default async function AdminContactsPage({
   return (
     <main className="grid gap-6 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
       <section className="card-surface p-6">
-        <p className="eyebrow">{adminCopy.contacts.eyebrow}</p>
+        <p className="eyebrow">{copy.contacts.eyebrow}</p>
         <h2 className="mt-2 font-serif text-3xl text-bark">
-          {editId ? adminCopy.contacts.editTitle : adminCopy.contacts.createTitle}
+          {editId ? copy.contacts.editTitle : copy.contacts.createTitle}
         </h2>
         <p className="mt-3 text-sm leading-6 text-bark/75">
-          {adminCopy.contacts.description}
+          {copy.contacts.description}
         </p>
 
         {successCode ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {CONTACT_SUCCESS_MESSAGES[successCode] ?? adminCopy.common.saveFallback}
+            {contactSuccessMessages[successCode] ?? copy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {CONTACT_ERROR_MESSAGES[errorCode] ?? adminCopy.common.unknownError}
+            {contactErrorMessages[errorCode] ?? copy.common.unknownError}
           </div>
         ) : null}
 
         <form action={saveContactAction} className="mt-6 space-y-4">
           <input type="hidden" name="id" value={editId ?? ""} />
 
-          <FormField label={adminCopy.contacts.fullName}>
+          <FormField label={copy.contacts.fullName}>
             <input
               required
               type="text"
@@ -75,7 +76,7 @@ export default async function AdminContactsPage({
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={adminCopy.contacts.email}>
+            <FormField label={copy.contacts.email}>
               <input
                 type="email"
                 name="email"
@@ -84,7 +85,7 @@ export default async function AdminContactsPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.contacts.phone}>
+            <FormField label={copy.contacts.phone}>
               <input
                 type="text"
                 name="phone"
@@ -97,17 +98,17 @@ export default async function AdminContactsPage({
           <div className="grid gap-4 md:grid-cols-3">
             <CheckboxField
               name="is_subscriber"
-              label={adminCopy.contacts.subscriber}
+              label={copy.contacts.subscriber}
               defaultChecked={editingContact?.is_subscriber ?? false}
             />
             <CheckboxField
               name="is_waiting_list"
-              label={adminCopy.contacts.waitingList}
+              label={copy.contacts.waitingList}
               defaultChecked={editingContact?.is_waiting_list ?? false}
             />
             <CheckboxField
               name="is_active_customer"
-              label={adminCopy.contacts.activeCustomer}
+              label={copy.contacts.activeCustomer}
               defaultChecked={editingContact?.is_active_customer ?? false}
             />
           </div>
@@ -115,33 +116,33 @@ export default async function AdminContactsPage({
           <div className="grid gap-4 md:grid-cols-2">
             <CheckboxField
               name="email_opt_in"
-              label={adminCopy.contacts.emailOptIn}
+              label={copy.contacts.emailOptIn}
               defaultChecked={editingContact?.email_opt_in ?? false}
             />
             <CheckboxField
               name="phone_opt_in"
-              label={adminCopy.contacts.phoneOptIn}
+              label={copy.contacts.phoneOptIn}
               defaultChecked={editingContact?.phone_opt_in ?? false}
             />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={adminCopy.contacts.preferredChannel}>
+            <FormField label={copy.contacts.preferredChannel}>
               <select
                 name="preferred_channel"
                 defaultValue={editingContact?.preferred_channel ?? ""}
                 className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
               >
-                <option value="">{adminCopy.contacts.none}</option>
+                <option value="">{copy.contacts.none}</option>
                 {PREFERRED_CHANNEL_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatAdminValueLabel(value)}
+                    {formatAdminValueLabel(value, language)}
                   </option>
                 ))}
               </select>
             </FormField>
 
-            <FormField label={adminCopy.contacts.customerStage}>
+            <FormField label={copy.contacts.customerStage}>
               <select
                 required
                 name="customer_stage"
@@ -150,7 +151,7 @@ export default async function AdminContactsPage({
               >
                 {CUSTOMER_STAGE_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatAdminValueLabel(value)}
+                    {formatAdminValueLabel(value, language)}
                   </option>
                 ))}
               </select>
@@ -158,7 +159,7 @@ export default async function AdminContactsPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <FormField label={adminCopy.contacts.preferredQuantity}>
+            <FormField label={copy.contacts.preferredQuantity}>
               <input
                 min={1}
                 step={1}
@@ -169,31 +170,31 @@ export default async function AdminContactsPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.contacts.preferenceUnit}>
+            <FormField label={copy.contacts.preferenceUnit}>
               <select
                 name="preference_unit"
                 defaultValue={editingContact?.preference_unit ?? ""}
                 className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
               >
-                <option value="">{adminCopy.contacts.none}</option>
+                <option value="">{copy.contacts.none}</option>
                 {PREFERENCE_UNIT_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatAdminValueLabel(value)}
+                    {formatAdminValueLabel(value, language)}
                   </option>
                 ))}
               </select>
             </FormField>
 
-            <FormField label={adminCopy.contacts.notificationFrequency}>
+            <FormField label={copy.contacts.notificationFrequency}>
               <select
                 name="notification_frequency"
                 defaultValue={editingContact?.notification_frequency ?? ""}
                 className="w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50"
               >
-                <option value="">{adminCopy.contacts.none}</option>
+                <option value="">{copy.contacts.none}</option>
                 {NOTIFICATION_FREQUENCY_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatAdminValueLabel(value)}
+                    {formatAdminValueLabel(value, language)}
                   </option>
                 ))}
               </select>
@@ -201,7 +202,7 @@ export default async function AdminContactsPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={adminCopy.contacts.joinedWaitingListAt}>
+            <FormField label={copy.contacts.joinedWaitingListAt}>
               <input
                 type="date"
                 name="joined_waiting_list_at"
@@ -214,7 +215,7 @@ export default async function AdminContactsPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.contacts.becameCustomerAt}>
+            <FormField label={copy.contacts.becameCustomerAt}>
               <input
                 type="date"
                 name="became_customer_at"
@@ -228,7 +229,7 @@ export default async function AdminContactsPage({
             </FormField>
           </div>
 
-          <FormField label={adminCopy.contacts.source}>
+          <FormField label={copy.contacts.source}>
             <input
               type="text"
               name="source"
@@ -237,7 +238,7 @@ export default async function AdminContactsPage({
             />
           </FormField>
 
-          <FormField label={adminCopy.contacts.notes}>
+          <FormField label={copy.contacts.notes}>
             <textarea
               rows={4}
               name="notes"
@@ -251,14 +252,14 @@ export default async function AdminContactsPage({
               type="submit"
               className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
             >
-              {editId ? adminCopy.contacts.update : adminCopy.contacts.create}
+              {editId ? copy.contacts.update : copy.contacts.create}
             </button>
 
             <a
               href="/admin/contacts"
               className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
             >
-              {adminCopy.common.resetForm}
+              {copy.common.resetForm}
             </a>
           </div>
         </form>
@@ -266,35 +267,35 @@ export default async function AdminContactsPage({
 
       <section className="card-surface overflow-hidden">
         <div className="border-b border-soil/10 px-6 py-5">
-          <p className="eyebrow">{adminCopy.contacts.recordsEyebrow}</p>
+          <p className="eyebrow">{copy.contacts.recordsEyebrow}</p>
           <h2 className="mt-2 font-serif text-3xl text-bark">
-            {adminCopy.contacts.recordsTitle}
+            {copy.contacts.recordsTitle}
           </h2>
         </div>
 
         {contacts.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">{adminCopy.contacts.empty}</div>
+          <div className="px-6 py-8 text-sm text-bark/70">{copy.contacts.empty}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/40 text-bark/70">
                 <tr>
-                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.name}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.email}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.phone}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.stage}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.flags}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.contacts.actions}</th>
+                  <th className="px-6 py-4 font-medium">{copy.contacts.name}</th>
+                  <th className="px-6 py-4 font-medium">{copy.contacts.email}</th>
+                  <th className="px-6 py-4 font-medium">{copy.contacts.phone}</th>
+                  <th className="px-6 py-4 font-medium">{copy.contacts.stage}</th>
+                  <th className="px-6 py-4 font-medium">{copy.contacts.flags}</th>
+                  <th className="px-6 py-4 font-medium">{copy.contacts.actions}</th>
                 </tr>
               </thead>
               <tbody>
                 {contacts.map((contact) => (
                   <tr key={contact.id} className="border-t border-soil/10">
                     <td className="px-6 py-4">{contact.full_name}</td>
-                    <td className="px-6 py-4">{contact.email ?? adminCopy.common.noValue}</td>
-                    <td className="px-6 py-4">{contact.phone ?? adminCopy.common.noValue}</td>
+                    <td className="px-6 py-4">{contact.email ?? copy.common.noValue}</td>
+                    <td className="px-6 py-4">{contact.phone ?? copy.common.noValue}</td>
                     <td className="px-6 py-4">
-                      {formatAdminValueLabel(contact.customer_stage)}
+                      {formatAdminValueLabel(contact.customer_stage, language)}
                     </td>
                     <td className="px-6 py-4 text-xs text-bark/75">
                       {[
@@ -303,8 +304,8 @@ export default async function AdminContactsPage({
                         contact.is_active_customer ? "active_customer" : null,
                       ]
                         .filter(Boolean)
-                        .map((value) => formatAdminValueLabel(value as string))
-                        .join(", ") || adminCopy.common.noValue}
+                        .map((value) => formatAdminValueLabel(value as string, language))
+                        .join(", ") || copy.common.noValue}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
@@ -312,7 +313,7 @@ export default async function AdminContactsPage({
                           href={`/admin/contacts?edit=${encodeURIComponent(contact.id)}`}
                           className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                         >
-                          {adminCopy.contacts.edit}
+                          {copy.contacts.edit}
                         </a>
                         <form action={deleteContactAction}>
                           <input type="hidden" name="id" value={contact.id} />
@@ -320,7 +321,7 @@ export default async function AdminContactsPage({
                             type="submit"
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
-                            {adminCopy.contacts.delete}
+                            {copy.contacts.delete}
                           </button>
                         </form>
                       </div>

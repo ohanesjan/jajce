@@ -4,8 +4,9 @@ import {
   deleteCostTemplateAction,
   saveCostTemplateAction,
 } from "@/app/admin/actions";
+import { getAdminLanguage } from "@/lib/admin-language";
 import {
-  adminCopy,
+  getAdminCopy,
   formatAdminActiveState,
   formatAdminRecurringSchedule,
   formatAdminValueLabel,
@@ -26,21 +27,21 @@ type CostTemplatesPageProps = {
   searchParams?: Promise<SearchParamsRecord>;
 };
 
-const COST_TEMPLATE_ERROR_MESSAGES: Record<string, string> = {
-  ...adminCopy.costTemplates.errors,
-};
-
-const COST_TEMPLATE_SUCCESS_MESSAGES: Record<string, string> = {
-  ...adminCopy.costTemplates.success,
-};
-
 export default async function AdminCostTemplatesPage({
   searchParams,
 }: CostTemplatesPageProps) {
-  const [costTemplates, resolvedSearchParams] = await Promise.all([
+  const [costTemplates, resolvedSearchParams, language] = await Promise.all([
     listCostTemplates(),
     searchParams ?? Promise.resolve({} as SearchParamsRecord),
+    getAdminLanguage(),
   ]);
+  const copy = getAdminCopy(language);
+  const costTemplateErrorMessages: Record<string, string> = {
+    ...copy.costTemplates.errors,
+  };
+  const costTemplateSuccessMessages: Record<string, string> = {
+    ...copy.costTemplates.success,
+  };
   const editId = readSearchParam(resolvedSearchParams.edit);
   const editingTemplate = editId
     ? costTemplates.find((template) => template.id === editId) ?? null
@@ -53,40 +54,40 @@ export default async function AdminCostTemplatesPage({
       <section className="card-surface p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="eyebrow">{adminCopy.costTemplates.eyebrow}</p>
+            <p className="eyebrow">{copy.costTemplates.eyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
               {editId
-                ? adminCopy.costTemplates.editTitle
-                : adminCopy.costTemplates.createTitle}
+                ? copy.costTemplates.editTitle
+                : copy.costTemplates.createTitle}
             </h2>
           </div>
           <Link
             href="/admin/costs"
             className="rounded-2xl border border-soil/20 px-4 py-2 text-sm text-bark transition hover:border-soil/40"
           >
-            {adminCopy.costTemplates.backToCosts}
+            {copy.costTemplates.backToCosts}
           </Link>
         </div>
         <p className="mt-3 text-sm leading-6 text-bark/75">
-          {adminCopy.costTemplates.description}
+          {copy.costTemplates.description}
         </p>
 
         {successCode ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {COST_TEMPLATE_SUCCESS_MESSAGES[successCode] ?? adminCopy.common.saveFallback}
+            {costTemplateSuccessMessages[successCode] ?? copy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {COST_TEMPLATE_ERROR_MESSAGES[errorCode] ?? adminCopy.common.unknownError}
+            {costTemplateErrorMessages[errorCode] ?? copy.common.unknownError}
           </div>
         ) : null}
 
         <form action={saveCostTemplateAction} className="mt-6 space-y-4">
           <input type="hidden" name="id" value={editId ?? ""} />
 
-          <FormField label={adminCopy.costTemplates.name}>
+          <FormField label={copy.costTemplates.name}>
             <input
               required
               type="text"
@@ -96,7 +97,7 @@ export default async function AdminCostTemplatesPage({
             />
           </FormField>
 
-          <FormField label={adminCopy.costTemplates.category}>
+          <FormField label={copy.costTemplates.category}>
             <select
               required
               name="category"
@@ -105,14 +106,14 @@ export default async function AdminCostTemplatesPage({
             >
               {COST_CATEGORY_VALUES.map((value) => (
                 <option key={value} value={value}>
-                  {formatAdminValueLabel(value)}
+                  {formatAdminValueLabel(value, language)}
                 </option>
               ))}
             </select>
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={adminCopy.costTemplates.costType}>
+            <FormField label={copy.costTemplates.costType}>
               <select
                 required
                 name="cost_type"
@@ -121,13 +122,13 @@ export default async function AdminCostTemplatesPage({
               >
                 {COST_TYPE_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatAdminValueLabel(value)}
+                    {formatAdminValueLabel(value, language)}
                   </option>
                 ))}
               </select>
             </FormField>
 
-            <FormField label={adminCopy.costTemplates.frequency}>
+            <FormField label={copy.costTemplates.frequency}>
               <select
                 required
                 name="frequency"
@@ -136,7 +137,7 @@ export default async function AdminCostTemplatesPage({
               >
                 {COST_FREQUENCY_VALUES.map((value) => (
                   <option key={value} value={value}>
-                    {formatAdminValueLabel(value)}
+                    {formatAdminValueLabel(value, language)}
                   </option>
                 ))}
               </select>
@@ -144,7 +145,7 @@ export default async function AdminCostTemplatesPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={adminCopy.costTemplates.defaultQuantity}>
+            <FormField label={copy.costTemplates.defaultQuantity}>
               <input
                 min={0}
                 step="0.01"
@@ -155,7 +156,7 @@ export default async function AdminCostTemplatesPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.costTemplates.defaultUnit}>
+            <FormField label={copy.costTemplates.defaultUnit}>
               <input
                 type="text"
                 name="default_unit"
@@ -166,7 +167,7 @@ export default async function AdminCostTemplatesPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={adminCopy.costTemplates.defaultUnitPrice}>
+            <FormField label={copy.costTemplates.defaultUnitPrice}>
               <input
                 min={0}
                 step="0.01"
@@ -177,7 +178,7 @@ export default async function AdminCostTemplatesPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.costTemplates.defaultTotalAmount}>
+            <FormField label={copy.costTemplates.defaultTotalAmount}>
               <input
                 required
                 min={0}
@@ -193,7 +194,7 @@ export default async function AdminCostTemplatesPage({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={adminCopy.costTemplates.startDate}>
+            <FormField label={copy.costTemplates.startDate}>
               <input
                 required
                 type="date"
@@ -205,7 +206,7 @@ export default async function AdminCostTemplatesPage({
               />
             </FormField>
 
-            <FormField label={adminCopy.costTemplates.endDate}>
+            <FormField label={copy.costTemplates.endDate}>
               <input
                 type="date"
                 name="end_date"
@@ -225,10 +226,10 @@ export default async function AdminCostTemplatesPage({
               name="is_active"
               defaultChecked={editingTemplate?.is_active ?? true}
             />
-            <span>{adminCopy.costTemplates.templateIsActive}</span>
+            <span>{copy.costTemplates.templateIsActive}</span>
           </label>
 
-          <FormField label={adminCopy.costTemplates.note}>
+          <FormField label={copy.costTemplates.note}>
             <textarea
               rows={4}
               name="note"
@@ -242,14 +243,14 @@ export default async function AdminCostTemplatesPage({
               type="submit"
               className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
             >
-              {editId ? adminCopy.costTemplates.update : adminCopy.costTemplates.create}
+              {editId ? copy.costTemplates.update : copy.costTemplates.create}
             </button>
 
             <a
               href="/admin/cost-templates"
               className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
             >
-              {adminCopy.common.resetForm}
+              {copy.common.resetForm}
             </a>
           </div>
         </form>
@@ -257,34 +258,34 @@ export default async function AdminCostTemplatesPage({
 
       <section className="card-surface overflow-hidden">
         <div className="border-b border-soil/10 px-6 py-5">
-          <p className="eyebrow">{adminCopy.costTemplates.templatesEyebrow}</p>
+          <p className="eyebrow">{copy.costTemplates.templatesEyebrow}</p>
           <h2 className="mt-2 font-serif text-3xl text-bark">
-            {adminCopy.costTemplates.templatesTitle}
+            {copy.costTemplates.templatesTitle}
           </h2>
         </div>
 
         {costTemplates.length === 0 ? (
           <div className="px-6 py-8 text-sm text-bark/70">
-            {adminCopy.costTemplates.empty}
+            {copy.costTemplates.empty}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-white/40 text-bark/70">
                 <tr>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costTemplates.name}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costTemplates.type}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costTemplates.name}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costTemplates.type}</th>
                   <th className="px-6 py-4 font-medium">
-                    {adminCopy.costTemplates.defaultTotal}
+                    {copy.costTemplates.defaultTotal}
                   </th>
                   <th className="px-6 py-4 font-medium">
-                    {adminCopy.costTemplates.schedule}
+                    {copy.costTemplates.schedule}
                   </th>
                   <th className="px-6 py-4 font-medium">
-                    {adminCopy.costTemplates.bookedCosts}
+                    {copy.costTemplates.bookedCosts}
                   </th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costTemplates.status}</th>
-                  <th className="px-6 py-4 font-medium">{adminCopy.costTemplates.actions}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costTemplates.status}</th>
+                  <th className="px-6 py-4 font-medium">{copy.costTemplates.actions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -293,19 +294,19 @@ export default async function AdminCostTemplatesPage({
                     <td className="px-6 py-4">
                       <div className="font-medium text-bark">{template.name}</div>
                       <div className="mt-1 text-xs text-bark/60">
-                        {formatAdminValueLabel(template.category)}
+                        {formatAdminValueLabel(template.category, language)}
                       </div>
                     </td>
-                    <td className="px-6 py-4">{formatAdminValueLabel(template.cost_type)}</td>
+                    <td className="px-6 py-4">{formatAdminValueLabel(template.cost_type, language)}</td>
                     <td className="px-6 py-4">
                       {template.default_total_amount.toString()}
                     </td>
                     <td className="px-6 py-4 text-bark/70">
-                      {formatAdminRecurringSchedule(template)}
+                      {formatAdminRecurringSchedule(template, language)}
                     </td>
                     <td className="px-6 py-4">{template._count.cost_entries}</td>
                     <td className="px-6 py-4">
-                      {formatAdminActiveState(template.is_active)}
+                      {formatAdminActiveState(template.is_active, language)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
@@ -313,7 +314,7 @@ export default async function AdminCostTemplatesPage({
                           href={`/admin/cost-templates?edit=${encodeURIComponent(template.id)}`}
                           className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
                         >
-                          {adminCopy.costTemplates.edit}
+                          {copy.costTemplates.edit}
                         </a>
                         <form action={deleteCostTemplateAction}>
                           <input type="hidden" name="id" value={template.id} />
@@ -323,8 +324,8 @@ export default async function AdminCostTemplatesPage({
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
                             {template._count.cost_entries > 0
-                              ? adminCopy.costTemplates.deleteDisabledAfterBooking
-                              : adminCopy.costTemplates.deleteUnusedTemplate}
+                              ? copy.costTemplates.deleteDisabledAfterBooking
+                              : copy.costTemplates.deleteUnusedTemplate}
                           </button>
                         </form>
                       </div>
