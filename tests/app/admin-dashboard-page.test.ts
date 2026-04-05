@@ -17,7 +17,7 @@ vi.mock("@/lib/services/site-settings", () => ({
   getHomepagePublicNoteEnabled: getHomepagePublicNoteEnabledMock,
 }));
 
-vi.mock("@/lib/admin-language", () => ({
+vi.mock("@/lib/admin-language.server", () => ({
   getAdminLanguage: getAdminLanguageMock,
 }));
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { logoutAdminAction } from "@/app/admin/actions";
 import { AdminLanguageSwitch } from "@/components/admin/AdminLanguageSwitch";
-import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminLanguage } from "@/lib/admin-language.server";
 import { getAdminCopy } from "@/lib/admin-localization";
 import { requireAdminSession } from "@/lib/services/admin-session";
 

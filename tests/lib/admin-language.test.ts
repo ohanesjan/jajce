@@ -6,6 +6,8 @@ vi.mock("next/headers", () => ({
   cookies: cookiesMock,
 }));
 
+vi.mock("server-only", () => ({}));
+
 describe("admin language cookie helper", () => {
   const originalEnv = process.env;
 
@@ -26,7 +28,7 @@ describe("admin language cookie helper", () => {
       get: vi.fn(() => undefined),
     });
 
-    const { getAdminLanguage } = await import("@/lib/admin-language");
+    const { getAdminLanguage } = await import("@/lib/admin-language.server");
 
     await expect(getAdminLanguage()).resolves.toBe("mk");
 
@@ -42,7 +44,7 @@ describe("admin language cookie helper", () => {
       get: vi.fn(() => ({ value: "en" })),
     });
 
-    const { getAdminLanguage } = await import("@/lib/admin-language");
+    const { getAdminLanguage } = await import("@/lib/admin-language.server");
 
     await expect(getAdminLanguage()).resolves.toBe("en");
   });
@@ -62,8 +64,10 @@ describe("admin language cookie helper", () => {
 
     const {
       ADMIN_LANGUAGE_COOKIE_NAME,
-      setAdminLanguageCookie,
     } = await import("@/lib/admin-language");
+    const { setAdminLanguageCookie } = await import(
+      "@/lib/admin-language.server"
+    );
 
     await setAdminLanguageCookie("en");
 

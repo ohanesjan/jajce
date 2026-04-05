@@ -8,7 +8,7 @@ vi.mock("@/app/admin/actions", () => ({
   loginAdminAction: vi.fn(),
 }));
 
-vi.mock("@/lib/admin-language", () => ({
+vi.mock("@/lib/admin-language.server", () => ({
   getAdminLanguage: getAdminLanguageMock,
 }));
 

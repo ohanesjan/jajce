@@ -19,7 +19,7 @@ vi.mock("@/lib/services/site-settings", () => ({
   getDefaultEggUnitPrice: getDefaultEggUnitPriceMock,
 }));
 
-vi.mock("@/lib/admin-language", () => ({
+vi.mock("@/lib/admin-language.server", () => ({
   getAdminLanguage: getAdminLanguageMock,
 }));
 

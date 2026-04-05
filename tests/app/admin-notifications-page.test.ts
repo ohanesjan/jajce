@@ -23,7 +23,7 @@ vi.mock("@/app/admin/actions", () => ({
   sendNotificationCampaignAction: vi.fn(),
 }));
 
-vi.mock("@/lib/admin-language", () => ({
+vi.mock("@/lib/admin-language.server", () => ({
   getAdminLanguage: getAdminLanguageMock,
 }));
 

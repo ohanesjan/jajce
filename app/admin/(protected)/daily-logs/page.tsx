@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { deleteDailyLogAction, saveDailyLogAction } from "@/app/admin/actions";
 import { DailyLogEggFields } from "@/app/admin/(protected)/daily-logs/daily-log-egg-fields";
-import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminLanguage } from "@/lib/admin-language.server";
 import { getAdminCopy } from "@/lib/admin-localization";
 import { listDailyLogs } from "@/lib/services/daily-logs";
 import { formatDateOnly } from "@/lib/utils/date";

@@ -67,9 +67,12 @@ vi.mock("@/lib/admin-language", async () => {
 
   return {
     ...actual,
-    setAdminLanguageCookie: setAdminLanguageCookieMock,
   };
 });
+
+vi.mock("@/lib/admin-language.server", () => ({
+  setAdminLanguageCookie: setAdminLanguageCookieMock,
+}));
 
 vi.mock("@/lib/services/daily-logs", async () => {
   const actual = await vi.importActual<typeof import("@/lib/services/daily-logs")>(

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { loginAdminAction } from "@/app/admin/actions";
-import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminLanguage } from "@/lib/admin-language.server";
 import { getAdminCopy } from "@/lib/admin-localization";
 import { getAdminLoginRedirectPath } from "@/lib/services/admin-auth";
 import { getAdminSession } from "@/lib/services/admin-session";

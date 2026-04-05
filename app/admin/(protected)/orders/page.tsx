@@ -3,7 +3,7 @@ import {
   correctCompletedOrderAction,
   saveOrderAction,
 } from "@/app/admin/actions";
-import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminLanguage } from "@/lib/admin-language.server";
 import { getAdminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { listContacts } from "@/lib/services/contacts";
 import { listOrders } from "@/lib/services/orders";

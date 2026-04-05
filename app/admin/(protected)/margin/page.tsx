@@ -1,4 +1,4 @@
-import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminLanguage } from "@/lib/admin-language.server";
 import { getAdminCopy } from "@/lib/admin-localization";
 import { getMarginInsights } from "@/lib/services/margin-insights";
 import { getDateOnlyInTimeZone } from "@/lib/utils/date";

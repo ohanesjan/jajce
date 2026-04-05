@@ -4,7 +4,7 @@ import {
   deleteCostTemplateAction,
   saveCostTemplateAction,
 } from "@/app/admin/actions";
-import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminLanguage } from "@/lib/admin-language.server";
 import {
   getAdminCopy,
   formatAdminActiveState,

@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
+import { parseAdminLanguage } from "@/lib/admin-language";
 import {
-  parseAdminLanguage,
   setAdminLanguageCookie,
-} from "@/lib/admin-language";
+} from "@/lib/admin-language.server";
 import {
   authenticateAdminCredentials,
   normalizeAdminEmail,

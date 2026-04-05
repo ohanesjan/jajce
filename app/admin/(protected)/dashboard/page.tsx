@@ -1,5 +1,5 @@
 import { saveHomepagePublicNoteSettingAction } from "@/app/admin/actions";
-import { getAdminLanguage } from "@/lib/admin-language";
+import { getAdminLanguage } from "@/lib/admin-language.server";
 import { getAdminCopy, formatAdminValueLabel } from "@/lib/admin-localization";
 import { getAdminDashboardData } from "@/lib/services/admin-dashboard";
 import { getHomepagePublicNoteEnabled } from "@/lib/services/site-settings";

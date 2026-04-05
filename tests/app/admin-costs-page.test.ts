@@ -28,7 +28,7 @@ vi.mock("@/app/admin/actions", () => ({
   toggleCostTemplateActiveAction: vi.fn(),
 }));
 
-vi.mock("@/lib/admin-language", () => ({
+vi.mock("@/lib/admin-language.server", () => ({
   getAdminLanguage: getAdminLanguageMock,
 }));
 

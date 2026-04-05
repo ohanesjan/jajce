@@ -9,7 +9,8 @@ import {
   toggleCostTemplateActiveAction,
 } from "@/app/admin/actions";
 import { CostEntryForm } from "@/app/admin/(protected)/costs/cost-entry-form";
-import { getAdminLanguage } from "@/lib/admin-language";
+import type { AdminLanguage } from "@/lib/admin-language";
+import { getAdminLanguage } from "@/lib/admin-language.server";
 import {
   getAdminCopy,
   formatAdminActiveState,
@@ -17,6 +18,11 @@ import {
   formatAdminValueLabel,
 } from "@/lib/admin-localization";
 import { listCostEntries } from "@/lib/services/cost-entries";
+import {
+  COST_CATEGORY_VALUES,
+  COST_FREQUENCY_VALUES,
+  COST_TYPE_VALUES,
+} from "@/lib/services/cost-validation";
 import {
   buildCostEntryFormKey,
   type CostEntryFormMode,
@@ -49,6 +55,19 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
   const costEntrySuccessMessages: Record<string, string> = {
     ...copy.costs.success,
   };
+  const costEntryFormCopy = copy.costs.form;
+  const categoryOptions = COST_CATEGORY_VALUES.map((value) => ({
+    value,
+    label: formatAdminValueLabel(value, language),
+  }));
+  const costTypeOptions = COST_TYPE_VALUES.map((value) => ({
+    value,
+    label: formatAdminValueLabel(value, language),
+  }));
+  const frequencyOptions = COST_FREQUENCY_VALUES.map((value) => ({
+    value,
+    label: formatAdminValueLabel(value, language),
+  }));
   const todayDateLabel = getDateOnlyInTimeZone(new Date(), ADMIN_COSTS_TIME_ZONE);
   const todayDate = parseDateOnly(todayDateLabel);
   const suggestionDateParam =
@@ -160,7 +179,10 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
 
             <CostEntryForm
               key={formKey}
-              language={language}
+              copy={costEntryFormCopy}
+              categoryOptions={categoryOptions}
+              costTypeOptions={costTypeOptions}
+              frequencyOptions={frequencyOptions}
               mode={formMode}
               todayDate={todayDateLabel}
               initialValues={buildFormInitialValues({
@@ -515,7 +537,7 @@ function RecurringOverviewCard({
 }: {
   title: string;
   occurrences: RecurringCostOccurrence[];
-  language: Awaited<ReturnType<typeof getAdminLanguage>>;
+  language: AdminLanguage;
 }) {
   const copy = getAdminCopy(language);
   const totalAmount = occurrences.reduce(
@@ -564,7 +586,7 @@ function RecurringOverviewCard({
 function renderSuggestionActions(
   suggestion: RecurringCostOccurrence,
   suggestionDate: string,
-  language: Awaited<ReturnType<typeof getAdminLanguage>>,
+  language: AdminLanguage,
 ) {
   const copy = getAdminCopy(language);
 

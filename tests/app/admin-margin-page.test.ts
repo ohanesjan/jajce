@@ -8,7 +8,7 @@ vi.mock("@/lib/services/margin-insights", () => ({
   getMarginInsights: getMarginInsightsMock,
 }));
 
-vi.mock("@/lib/admin-language", () => ({
+vi.mock("@/lib/admin-language.server", () => ({
   getAdminLanguage: getAdminLanguageMock,
 }));
 
