@@ -65,6 +65,7 @@ export class NotificationCampaignNotFoundError extends Error {}
 export class NotificationCampaignReadOnlyError extends Error {}
 export class NotificationCampaignNoEligibleRecipientsError extends Error {}
 export class NotificationCampaignChannelNotSupportedError extends Error {}
+export class NotificationCampaignPersistenceError extends Error {}
 
 export type NotificationCampaignRecord = {
   id: string;
@@ -295,14 +296,36 @@ export async function sendNotificationCampaign(
       continue;
     }
 
+    let result:
+      | {
+          provider_message_id: string | null;
+        }
+      | undefined;
+
     try {
-      const result = await provider.sendEmail({
+      result = await provider.sendEmail({
         sender_label: preparedSend.validated_campaign.sender_label,
         destination: recipient.destination,
         subject: preparedSend.validated_campaign.subject,
         body: preparedSend.validated_campaign.body,
       });
+    } catch (error) {
+      await persistRecipientOutcome(
+        campaignId,
+        {
+          contact_id: recipient.contact_id,
+          delivery_status: "failed",
+          sent_at: null,
+          provider_message_id: null,
+          error_message: getSafeErrorMessage(error),
+        },
+        database,
+      );
 
+      continue;
+    }
+
+    try {
       await persistRecipientOutcome(
         campaignId,
         {
@@ -315,16 +338,8 @@ export async function sendNotificationCampaign(
         database,
       );
     } catch (error) {
-      await persistRecipientOutcome(
-        campaignId,
-        {
-          contact_id: recipient.contact_id,
-          delivery_status: "failed",
-          sent_at: null,
-          provider_message_id: null,
-          error_message: getSafeErrorMessage(error),
-        },
-        database,
+      throw new NotificationCampaignPersistenceError(
+        "Notification delivery succeeded but the send state could not be recorded safely.",
       );
     }
   }
@@ -734,7 +749,8 @@ function normalizeNotificationCampaignError(error: unknown): Error {
     error instanceof NotificationCampaignNotFoundError ||
     error instanceof NotificationCampaignReadOnlyError ||
     error instanceof NotificationCampaignNoEligibleRecipientsError ||
-    error instanceof NotificationCampaignChannelNotSupportedError
+    error instanceof NotificationCampaignChannelNotSupportedError ||
+    error instanceof NotificationCampaignPersistenceError
   ) {
     return error;
   }

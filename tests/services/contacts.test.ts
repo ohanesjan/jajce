@@ -155,11 +155,27 @@ describe("contact mutations", () => {
       ContactInUseError,
     );
   });
+
+  it("blocks delete when the contact is already referenced by orders or notification history", async () => {
+    const database = createContactTestDatabase({
+      contacts: [buildContact({ id: "contact_in_use", full_name: "Used Contact" })],
+      orderCountByContactId: { contact_in_use: 2 },
+      notificationRecipientCountByContactId: { contact_in_use: 1 },
+      notificationSelectionCountByContactId: { contact_in_use: 1 },
+    });
+
+    await expect(deleteContact("contact_in_use", database as never)).rejects.toThrow(
+      "2 orders, 1 notification history row, 1 saved notification draft selection",
+    );
+  });
 });
 
 function createContactTestDatabase(options?: {
   contacts?: ReturnType<typeof buildContact>[];
   failDeleteWithForeignKey?: boolean;
+  orderCountByContactId?: Record<string, number>;
+  notificationRecipientCountByContactId?: Record<string, number>;
+  notificationSelectionCountByContactId?: Record<string, number>;
 }) {
   const contacts = [...(options?.contacts ?? [])];
   let contactSequence = contacts.length;
@@ -217,6 +233,18 @@ function createContactTestDatabase(options?: {
           contacts.splice(index, 1);
         }
       },
+    },
+    order: {
+      count: async ({ where }: { where: { contact_id: string } }) =>
+        options?.orderCountByContactId?.[where.contact_id] ?? 0,
+    },
+    notificationRecipient: {
+      count: async ({ where }: { where: { contact_id: string } }) =>
+        options?.notificationRecipientCountByContactId?.[where.contact_id] ?? 0,
+    },
+    notificationCampaignSelection: {
+      count: async ({ where }: { where: { contact_id: string } }) =>
+        options?.notificationSelectionCountByContactId?.[where.contact_id] ?? 0,
     },
   };
 

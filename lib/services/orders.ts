@@ -163,6 +163,9 @@ export async function updateEditableOrder(
         );
       }
 
+      const inventoryRows = await getOrderInventoryRows(tx, orderId);
+      assertReservedOrderInventoryState(inventoryRows);
+
       await assertContactExists(tx, validatedInput.contact_id);
 
       const resolvedPricing = await resolveOrderPricing(tx, {
@@ -575,6 +578,20 @@ function determineCompletedOrderInventoryMode(
   }
 
   return hasReserved ? "reserved" : "sold";
+}
+
+function assertReservedOrderInventoryState(
+  rows: Array<Pick<InventoryTransaction, "type">>,
+): void {
+  const hasReserved = rows.some((row) => row.type === "reserved");
+  const hasSold = rows.some((row) => row.type === "sold");
+  const hasReleased = rows.some((row) => row.type === "released");
+
+  if (!hasReserved || hasSold || hasReleased) {
+    throw new OrderInventoryStateError(
+      "Reserved order inventory must contain exactly one reserved row and no sold or released rows.",
+    );
+  }
 }
 
 function getInventoryNote(type: OrderInventoryType): string {

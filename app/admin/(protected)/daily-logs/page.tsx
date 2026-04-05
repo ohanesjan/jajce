@@ -14,6 +14,8 @@ const DAILY_LOG_ERROR_MESSAGES: Record<string, string> = {
   validation: "Please check the daily log fields and try again.",
   duplicate_date: "A daily log already exists for that date.",
   not_found: "The selected daily log was not found.",
+  inventory_conflict:
+    "This change would remove collected stock that is already reserved or sold. Adjust downstream orders first.",
   unknown: "The daily log could not be saved.",
 };
 
@@ -45,7 +47,9 @@ export default async function AdminDailyLogsPage({
         </h2>
         <p className="mt-3 text-sm leading-6 text-bark/75">
           Total yield is always auto-calculated on the server from the four egg
-          outcome fields.
+          outcome fields. Edits and deletes are blocked if reducing collected
+          stock would make sellable inventory inconsistent after reservations or
+          completed sales.
         </p>
 
         {successCode ? (
@@ -134,6 +138,11 @@ export default async function AdminDailyLogsPage({
         <div className="border-b border-soil/10 px-6 py-5">
           <p className="eyebrow">Records</p>
           <h2 className="mt-2 font-serif text-3xl text-bark">Saved daily logs</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/70">
+            Deleting a daily log also removes its collected-stock ledger row, so
+            unsafe deletes are blocked once that stock has been reserved or
+            sold.
+          </p>
         </div>
 
         {dailyLogs.length === 0 ? (
@@ -175,7 +184,7 @@ export default async function AdminDailyLogsPage({
                             type="submit"
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
-                            Delete
+                            Delete log
                           </button>
                         </form>
                       </div>

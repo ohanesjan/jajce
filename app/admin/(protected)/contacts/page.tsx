@@ -18,7 +18,8 @@ type ContactsPageProps = {
 const CONTACT_ERROR_MESSAGES: Record<string, string> = {
   validation: "Please check the contact fields and try again.",
   not_found: "The selected contact was not found.",
-  in_use: "This contact is already referenced by another record and cannot be deleted.",
+  in_use:
+    "This contact cannot be deleted because it is still referenced by orders or notification history.",
   unknown: "The contact could not be saved.",
 };
 
@@ -50,7 +51,8 @@ export default async function AdminContactsPage({
         </h2>
         <p className="mt-3 text-sm leading-6 text-bark/75">
           Contacts can carry multiple role flags at once, while customer stage
-          stays a separate lifecycle field.
+          stays a separate lifecycle field. Delete is blocked once a contact is
+          referenced by orders or saved notification history.
         </p>
 
         {successCode ? (
@@ -324,7 +326,7 @@ export default async function AdminContactsPage({
                             type="submit"
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
-                            Delete
+                            Delete contact
                           </button>
                         </form>
                       </div>

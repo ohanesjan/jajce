@@ -375,6 +375,42 @@ describe("order workflows", () => {
     ).rejects.toBeInstanceOf(OrderTransitionNotAllowedError);
   });
 
+  it("blocks normal reserved-order updates when the linked inventory rows are already inconsistent", async () => {
+    const database = createOrderTestDatabase({
+      orders: [
+        buildOrder({
+          id: "reserved_invalid",
+          status: order_status.reserved,
+          quantity: 3,
+          unit_price: new Prisma.Decimal("16.00"),
+          total_price: new Prisma.Decimal("48.00"),
+        }),
+      ],
+      inventoryTransactions: [
+        buildInventoryTransaction({
+          id: "sold_invalid",
+          order_id: "reserved_invalid",
+          type: "sold",
+          quantity: 3,
+        }),
+      ],
+    });
+
+    await expect(
+      updateEditableOrder(
+        "reserved_invalid",
+        {
+          contact_id: "contact_1",
+          date: "2026-04-02",
+          quantity: "3",
+          status: "reserved",
+          price_source: "default",
+        },
+        database as never,
+      ),
+    ).rejects.toBeInstanceOf(OrderInventoryStateError);
+  });
+
   it("fails completed correction when duplicate order-linked rows already exist", async () => {
     const database = createOrderTestDatabase({
       orders: [

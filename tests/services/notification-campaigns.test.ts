@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   NotificationCampaignNoEligibleRecipientsError,
+  NotificationCampaignPersistenceError,
   NotificationCampaignReadOnlyError,
   listNotificationCampaigns,
   saveNotificationCampaignDraft,
@@ -322,6 +323,57 @@ describe("notification campaign sending", () => {
     });
     expect(database.campaigns[0].status).toBe("failed");
   });
+
+  it("does not rewrite a successful provider delivery as failed when sent-state persistence breaks", async () => {
+    const database = createNotificationCampaignTestDatabase({
+      contacts: [
+        buildContact({
+          id: "contact_1",
+          full_name: "Ana",
+          email: "ana@example.com",
+          email_opt_in: true,
+          is_subscriber: true,
+        }),
+      ],
+      campaigns: [
+        buildCampaign({
+          id: "campaign_1",
+          audience_type: "subscribers",
+          status: "draft",
+        }),
+      ],
+      failRecipientUpdateFor: {
+        campaign_id: "campaign_1",
+        contact_id: "contact_1",
+        delivery_status: "sent",
+      },
+    });
+
+    await expect(
+      sendNotificationCampaign("campaign_1", {
+        database: database as never,
+        emailProvider: new FakeNotificationEmailProvider(async () => ({
+          provider_message_id: "provider-ana@example.com",
+        })),
+        now: new Date("2026-04-05T10:00:00.000Z"),
+      }),
+    ).rejects.toBeInstanceOf(NotificationCampaignPersistenceError);
+
+    expect(database.recipients).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          campaign_id: "campaign_1",
+          contact_id: "contact_1",
+          destination: "ana@example.com",
+          delivery_status: "pending",
+          provider_message_id: null,
+          error_message: null,
+        }),
+      ]),
+    );
+    expect(database.campaigns[0].status).toBe("draft");
+    expect(database.campaigns[0].sent_at).toBeNull();
+  });
 });
 
 function createNotificationCampaignTestDatabase(options?: {
@@ -329,6 +381,11 @@ function createNotificationCampaignTestDatabase(options?: {
   campaigns?: Array<ReturnType<typeof buildCampaign>>;
   selections?: Array<ReturnType<typeof buildSelection>>;
   recipients?: Array<ReturnType<typeof buildRecipient>>;
+  failRecipientUpdateFor?: {
+    campaign_id: string;
+    contact_id: string;
+    delivery_status: "pending" | "sent" | "failed";
+  };
 }) {
   const contacts = [...(options?.contacts ?? [])];
   const campaigns = [...(options?.campaigns ?? [])];
@@ -586,6 +643,17 @@ function createNotificationCampaignTestDatabase(options?: {
 
         if (index === -1) {
           throw new Error("Missing recipient");
+        }
+
+        if (
+          options?.failRecipientUpdateFor &&
+          options.failRecipientUpdateFor.campaign_id ===
+            where.campaign_id_contact_id.campaign_id &&
+          options.failRecipientUpdateFor.contact_id ===
+            where.campaign_id_contact_id.contact_id &&
+          options.failRecipientUpdateFor.delivery_status === data.delivery_status
+        ) {
+          throw new Error("Recipient persistence failed");
         }
 
         recipients[index] = {

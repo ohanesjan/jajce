@@ -65,11 +65,12 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
           <h2 className="mt-2 font-serif text-3xl text-bark">
             {editId ? "Edit cost entry" : "Book cost entry"}
           </h2>
-          <p className="mt-3 text-sm leading-6 text-bark/75">
-            Booked costs live only in cost entries. Manual entries default to
-            `source_type = manual`, while accepted suggestions keep
-            `source_type = template`.
-          </p>
+        <p className="mt-3 text-sm leading-6 text-bark/75">
+          Booked costs live only in cost entries. Manual entries default to
+          `source_type = manual`, while accepted suggestions keep
+          `source_type = template`. Template-origin booked costs stay locked to
+          protect the source-of-truth acceptance flow.
+        </p>
 
           {successCode ? (
             <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -352,7 +353,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                             type="submit"
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
-                            Delete
+                            Delete booked cost
                           </button>
                         </form>
                       </div>

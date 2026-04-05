@@ -20,8 +20,9 @@ type NotificationsPageProps = {
 
 const NOTIFICATION_SUCCESS_MESSAGES: Record<string, string> = {
   saved: "Draft saved.",
-  sent: "Campaign sent successfully.",
-  failed: "Send completed with one or more delivery failures.",
+  sent: "Campaign sent successfully. The recipient snapshot is now locked in history.",
+  failed:
+    "Send completed with one or more delivery failures. Review the saved recipient counts below.",
 };
 
 const NOTIFICATION_ERROR_MESSAGES: Record<string, string> = {
@@ -70,7 +71,8 @@ export default async function AdminNotificationsPage({
         </h2>
         <p className="mt-3 text-sm leading-6 text-bark/75">
           Email sending is live for MVP. Viber and WhatsApp stay schema-ready
-          only in this phase.
+          only in this phase. Drafts become read-only once recipient rows are
+          persisted so the saved send snapshot stays consistent.
         </p>
 
         {successCode ? (
@@ -88,13 +90,15 @@ export default async function AdminNotificationsPage({
         {recoverableCampaign ? (
           <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             This draft already has persisted recipient rows, so it is send-only
-            until finalization completes. Editing is blocked for safety.
+            until finalization completes. Editing is blocked for safety because
+            the recipient snapshot is already locked.
           </div>
         ) : null}
 
         {requestedCampaign && !editingCampaign && !recoverableCampaign ? (
           <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            Sent and failed campaigns are read-only in Phase 7.
+            Sent and failed campaigns are read-only. The empty form below is for
+            creating a new draft, not editing this campaign.
           </div>
         ) : null}
 
@@ -250,9 +254,9 @@ export default async function AdminNotificationsPage({
           <div className="mt-6 rounded-3xl border border-soil/15 bg-white/45 p-4">
             <p className="text-sm font-medium text-bark">Send this draft</p>
             <p className="mt-2 text-sm leading-6 text-bark/70">
-              Audience resolution happens again at send time against current
-              contact data. Only contacts with a valid email and explicit
-              email opt-in are eligible.
+              {recoverableCampaign
+                ? "This draft already has a persisted recipient snapshot. Resuming send will continue with those saved recipients only."
+                : "Audience resolution happens again at send time against current contact data. Only contacts with a valid email and explicit email opt-in are eligible."}
             </p>
 
             {(editingCampaign ?? recoverableCampaign)?.channel === "email" ? (
@@ -266,7 +270,9 @@ export default async function AdminNotificationsPage({
                   type="submit"
                   className="rounded-2xl bg-earth px-5 py-3 text-sm font-medium text-parchment transition hover:bg-earth/90"
                 >
-                  {recoverableCampaign ? "Resume send" : "Send draft"}
+                  {recoverableCampaign
+                    ? "Resume sending saved snapshot"
+                    : "Send draft"}
                 </button>
               </form>
             ) : (

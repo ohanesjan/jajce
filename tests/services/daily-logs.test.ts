@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createDailyLog,
+  DailyLogCollectedStockConflictError,
   DailyLogDateConflictError,
   DailyLogValidationError,
   deleteDailyLog,
@@ -227,9 +228,175 @@ describe("daily log inventory reconciliation", () => {
       type: "collected",
     });
   });
+
+  it("blocks stock-reducing updates when downstream reservations already consumed the difference", async () => {
+    const database = createDailyLogTestDatabase({
+      inventoryTransactions: [
+        buildInventoryTransaction({
+          id: "manual_reserved_1",
+          type: "reserved",
+          quantity: 18,
+          order_id: "order_1",
+          daily_log_id: null,
+        }),
+      ],
+    });
+    const dailyLog = await createDailyLog(
+      {
+        date: "2026-04-01",
+        eggs_collected_for_sale: 20,
+        eggs_used_other_purpose: 0,
+        eggs_broken: 0,
+        eggs_unusable_other: 0,
+        chicken_count: 40,
+      },
+      database as never,
+    );
+
+    await expect(
+      updateDailyLog(
+        dailyLog.id,
+        {
+          date: "2026-04-01",
+          eggs_collected_for_sale: 10,
+          eggs_used_other_purpose: 0,
+          eggs_broken: 0,
+          eggs_unusable_other: 0,
+          chicken_count: 40,
+        },
+        database as never,
+      ),
+    ).rejects.toBeInstanceOf(DailyLogCollectedStockConflictError);
+
+    expect(database.inventoryLockCallCount).toBe(1);
+    expect(database.inventoryTransactions.find((row) => row.daily_log_id === dailyLog.id))
+      .toMatchObject({ quantity: 20 });
+  });
+
+  it("blocks deletes when removing the collected stock would make availability negative", async () => {
+    const database = createDailyLogTestDatabase({
+      inventoryTransactions: [
+        buildInventoryTransaction({
+          id: "manual_reserved_1",
+          type: "reserved",
+          quantity: 16,
+          order_id: "order_1",
+          daily_log_id: null,
+        }),
+      ],
+    });
+    const dailyLog = await createDailyLog(
+      {
+        date: "2026-04-01",
+        eggs_collected_for_sale: 15,
+        eggs_used_other_purpose: 0,
+        eggs_broken: 0,
+        eggs_unusable_other: 0,
+        chicken_count: 40,
+      },
+      database as never,
+    );
+
+    await expect(deleteDailyLog(dailyLog.id, database as never)).rejects.toBeInstanceOf(
+      DailyLogCollectedStockConflictError,
+    );
+
+    expect(database.inventoryLockCallCount).toBe(1);
+    expect(database.dailyLogs).toHaveLength(1);
+    expect(database.inventoryTransactions.find((row) => row.daily_log_id === dailyLog.id))
+      .toMatchObject({ quantity: 15 });
+  });
+
+  it("allows same-quantity corrections even when inventory is already negative", async () => {
+    const database = createDailyLogTestDatabase({
+      inventoryTransactions: [
+        buildInventoryTransaction({
+          id: "manual_reserved_1",
+          type: "reserved",
+          quantity: 25,
+          order_id: "order_1",
+        }),
+      ],
+    });
+    const dailyLog = await createDailyLog(
+      {
+        date: "2026-04-01",
+        eggs_collected_for_sale: 20,
+        eggs_used_other_purpose: 0,
+        eggs_broken: 0,
+        eggs_unusable_other: 0,
+        chicken_count: 40,
+        notes: "Before",
+      },
+      database as never,
+    );
+
+    const updated = await updateDailyLog(
+      dailyLog.id,
+      {
+        date: "2026-04-01",
+        eggs_collected_for_sale: 20,
+        eggs_used_other_purpose: 0,
+        eggs_broken: 0,
+        eggs_unusable_other: 0,
+        chicken_count: 41,
+        notes: "After",
+      },
+      database as never,
+    );
+
+    expect(updated.chicken_count).toBe(41);
+    expect(updated.notes).toBe("After");
+    expect(database.inventoryLockCallCount).toBe(1);
+    expect(database.inventoryTransactions.find((row) => row.daily_log_id === dailyLog.id))
+      .toMatchObject({ quantity: 20 });
+  });
+
+  it("allows stock-increasing corrections even when inventory is already negative", async () => {
+    const database = createDailyLogTestDatabase({
+      inventoryTransactions: [
+        buildInventoryTransaction({
+          id: "manual_reserved_1",
+          type: "reserved",
+          quantity: 25,
+          order_id: "order_1",
+        }),
+      ],
+    });
+    const dailyLog = await createDailyLog(
+      {
+        date: "2026-04-01",
+        eggs_collected_for_sale: 20,
+        eggs_used_other_purpose: 0,
+        eggs_broken: 0,
+        eggs_unusable_other: 0,
+        chicken_count: 40,
+      },
+      database as never,
+    );
+
+    await updateDailyLog(
+      dailyLog.id,
+      {
+        date: "2026-04-01",
+        eggs_collected_for_sale: 24,
+        eggs_used_other_purpose: 0,
+        eggs_broken: 0,
+        eggs_unusable_other: 0,
+        chicken_count: 40,
+      },
+      database as never,
+    );
+
+    expect(database.inventoryLockCallCount).toBe(1);
+    expect(database.inventoryTransactions.find((row) => row.daily_log_id === dailyLog.id))
+      .toMatchObject({ quantity: 24 });
+  });
 });
 
-function createDailyLogTestDatabase() {
+function createDailyLogTestDatabase(options?: {
+  inventoryTransactions?: ReturnType<typeof buildInventoryTransaction>[];
+}) {
   const dailyLogs: Array<{
     id: string;
     date: Date;
@@ -247,15 +414,16 @@ function createDailyLogTestDatabase() {
   const inventoryTransactions: Array<{
     id: string;
     date: Date;
-    type: "collected";
+    type: "collected" | "reserved" | "released" | "sold" | "manual_adjustment";
     quantity: number;
     daily_log_id: string | null;
     order_id: string | null;
     note: string | null;
     created_at: Date;
-  }> = [];
+  }> = [...(options?.inventoryTransactions ?? [])];
   let dailyLogSequence = 0;
   let inventorySequence = 0;
+  let inventoryLockCallCount = 0;
   let lastDeleteManyWhere:
     | { daily_log_id?: string; type?: "collected"; id?: { in: string[] } }
     | null = null;
@@ -309,7 +477,7 @@ function createDailyLogTestDatabase() {
         select,
       }: {
         where: { id: string };
-        select?: { id: true };
+        select?: { id?: true; eggs_collected_for_sale?: true };
       }) => {
         const dailyLog = dailyLogs.find((record) => record.id === where.id) ?? null;
 
@@ -317,7 +485,12 @@ function createDailyLogTestDatabase() {
           return dailyLog;
         }
 
-        return { id: dailyLog.id };
+        return {
+          ...(select.id ? { id: dailyLog.id } : {}),
+          ...(select.eggs_collected_for_sale
+            ? { eggs_collected_for_sale: dailyLog.eggs_collected_for_sale }
+            : {}),
+        };
       },
       update: async ({
         where,
@@ -360,6 +533,12 @@ function createDailyLogTestDatabase() {
     $queryRaw: async <T>(query: unknown) => {
       const sql = query as { values?: unknown[] };
       const values = sql.values ?? [];
+
+      if (values.length === 1 && values[0] === "jajce_sellable_inventory") {
+        inventoryLockCallCount += 1;
+        return [] as T;
+      }
+
       const [id, date, quantity, dailyLogId, note] = values as [
         string,
         Date,
@@ -400,6 +579,27 @@ function createDailyLogTestDatabase() {
       return [createdTransaction] as T;
     },
     inventoryTransaction: {
+      findMany: async ({
+        select,
+      }: {
+        select?: {
+          type?: true;
+          quantity?: true;
+          daily_log_id?: true;
+        };
+      } = {}) => {
+        if (!select) {
+          return [...inventoryTransactions];
+        }
+
+        return inventoryTransactions.map((transaction) => ({
+          ...(select.type ? { type: transaction.type } : {}),
+          ...(select.quantity ? { quantity: transaction.quantity } : {}),
+          ...(select.daily_log_id
+            ? { daily_log_id: transaction.daily_log_id }
+            : {}),
+        }));
+      },
       deleteMany: async ({
         where,
       }: {
@@ -437,6 +637,9 @@ function createDailyLogTestDatabase() {
   const database = {
     dailyLogs,
     inventoryTransactions,
+    get inventoryLockCallCount() {
+      return inventoryLockCallCount;
+    },
     get lastDeleteManyWhere() {
       return lastDeleteManyWhere;
     },
@@ -450,4 +653,28 @@ function createDailyLogTestDatabase() {
   };
 
   return database;
+}
+
+function buildInventoryTransaction(
+  overrides?: Partial<{
+    id: string;
+    date: Date;
+    type: "collected" | "reserved" | "released" | "sold" | "manual_adjustment";
+    quantity: number;
+    daily_log_id: string | null;
+    order_id: string | null;
+    note: string | null;
+    created_at: Date;
+  }>,
+) {
+  return {
+    id: overrides?.id ?? "inventory_seed",
+    date: overrides?.date ?? new Date("2026-04-01T08:00:00.000Z"),
+    type: overrides?.type ?? "collected",
+    quantity: overrides?.quantity ?? 10,
+    daily_log_id: overrides?.daily_log_id ?? null,
+    order_id: overrides?.order_id ?? null,
+    note: overrides?.note ?? null,
+    created_at: overrides?.created_at ?? new Date("2026-04-01T08:30:00.000Z"),
+  };
 }

@@ -59,8 +59,18 @@ export type ContactWriteInput = Pick<
   | "notes"
 >;
 
-type ContactDb = Pick<PrismaClient, "$transaction" | "contact">;
+type ContactDb = Pick<
+  PrismaClient,
+  | "$transaction"
+  | "contact"
+  | "notificationCampaignSelection"
+  | "notificationRecipient"
+  | "order"
+>;
 type ContactListDb = Pick<PrismaClient, "contact">;
+type ContactTransactionDb = Parameters<
+  Parameters<ContactDb["$transaction"]>[0]
+>[0];
 
 export function validateContactInput(
   input: ContactMutationInput,
@@ -175,6 +185,8 @@ export async function deleteContact(
         throw new ContactNotFoundError("Contact not found.");
       }
 
+      await assertContactCanBeDeleted(tx, contactId);
+
       await tx.contact.delete({
         where: { id: contactId },
       });
@@ -261,4 +273,57 @@ function normalizeContactMutationError(error: unknown): Error {
   }
 
   return error instanceof Error ? error : new Error("Unknown contact error.");
+}
+
+async function assertContactCanBeDeleted(
+  database: Pick<
+    ContactTransactionDb,
+    "notificationCampaignSelection" | "notificationRecipient" | "order"
+  >,
+  contactId: string,
+): Promise<void> {
+  const [
+    orderCount,
+    notificationRecipientCount,
+    notificationSelectionCount,
+  ] = await Promise.all([
+    database.order.count({
+      where: { contact_id: contactId },
+    }),
+    database.notificationRecipient.count({
+      where: { contact_id: contactId },
+    }),
+    database.notificationCampaignSelection.count({
+      where: { contact_id: contactId },
+    }),
+  ]);
+  const blockers: string[] = [];
+
+  if (orderCount > 0) {
+    blockers.push(orderCount === 1 ? "1 order" : `${orderCount} orders`);
+  }
+
+  if (notificationRecipientCount > 0) {
+    blockers.push(
+      notificationRecipientCount === 1
+        ? "1 notification history row"
+        : `${notificationRecipientCount} notification history rows`,
+    );
+  }
+
+  if (notificationSelectionCount > 0) {
+    blockers.push(
+      notificationSelectionCount === 1
+        ? "1 saved notification draft selection"
+        : `${notificationSelectionCount} saved notification draft selections`,
+    );
+  }
+
+  if (blockers.length === 0) {
+    return;
+  }
+
+  throw new ContactInUseError(
+    `This contact cannot be deleted because it is still referenced by ${blockers.join(", ")}.`,
+  );
 }

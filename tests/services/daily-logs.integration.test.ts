@@ -4,7 +4,10 @@ import { getDb } from "@/lib/db";
 import { createDailyLog, updateDailyLog } from "@/lib/services/daily-logs";
 import { formatDateOnly } from "@/lib/utils/date";
 
-const describeWithDatabase = process.env.DATABASE_URL ? describe : describe.skip;
+const describeWithDatabase =
+  process.env.DATABASE_URL && process.env.RUN_DB_TESTS === "1"
+    ? describe
+    : describe.skip;
 const TEST_DATES = ["2099-12-30", "2099-12-31"] as const;
 
 describeWithDatabase("daily log reconciliation integration", () => {

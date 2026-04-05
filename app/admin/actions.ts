@@ -14,6 +14,7 @@ import {
 } from "@/lib/services/admin-session";
 import {
   createDailyLog,
+  DailyLogCollectedStockConflictError,
   DailyLogDateConflictError,
   deleteDailyLog,
   DailyLogNotFoundError,
@@ -115,9 +116,12 @@ export async function saveDailyLogAction(formData: FormData): Promise<never> {
       await createDailyLog(extractDailyLogFormData(formData));
     }
   } catch (error) {
+    const errorCode = getDailyLogErrorCode(error);
+
+    logUnexpectedAdminActionError("saveDailyLogAction", error, errorCode);
     redirect(
       `/admin/daily-logs?${new URLSearchParams({
-        error: getDailyLogErrorCode(error),
+        error: errorCode,
         ...(dailyLogId ? { edit: dailyLogId } : {}),
       }).toString()}`,
     );
@@ -134,8 +138,11 @@ export async function deleteDailyLogAction(formData: FormData): Promise<never> {
   try {
     await deleteDailyLog(dailyLogId);
   } catch (error) {
+    const errorCode = getDailyLogErrorCode(error);
+
+    logUnexpectedAdminActionError("deleteDailyLogAction", error, errorCode);
     redirect(
-      `/admin/daily-logs?error=${encodeURIComponent(getDailyLogErrorCode(error))}`,
+      `/admin/daily-logs?error=${encodeURIComponent(errorCode)}`,
     );
   }
 
@@ -154,9 +161,12 @@ export async function saveCostTemplateAction(formData: FormData): Promise<never>
       await createCostTemplate(extractCostTemplateFormData(formData));
     }
   } catch (error) {
+    const errorCode = getCostTemplateErrorCode(error);
+
+    logUnexpectedAdminActionError("saveCostTemplateAction", error, errorCode);
     redirect(
       `/admin/cost-templates?${new URLSearchParams({
-        error: getCostTemplateErrorCode(error),
+        error: errorCode,
         ...(costTemplateId ? { edit: costTemplateId } : {}),
       }).toString()}`,
     );
@@ -175,8 +185,11 @@ export async function deleteCostTemplateAction(
   try {
     await deleteCostTemplate(costTemplateId);
   } catch (error) {
+    const errorCode = getCostTemplateErrorCode(error);
+
+    logUnexpectedAdminActionError("deleteCostTemplateAction", error, errorCode);
     redirect(
-      `/admin/cost-templates?error=${encodeURIComponent(getCostTemplateErrorCode(error))}`,
+      `/admin/cost-templates?error=${encodeURIComponent(errorCode)}`,
     );
   }
 
@@ -196,9 +209,12 @@ export async function saveCostEntryAction(formData: FormData): Promise<never> {
       await createCostEntry(extractCostEntryFormData(formData));
     }
   } catch (error) {
+    const errorCode = getCostEntryErrorCode(error);
+
+    logUnexpectedAdminActionError("saveCostEntryAction", error, errorCode);
     redirect(
       `/admin/costs?${buildCostsRedirectParams({
-        error: getCostEntryErrorCode(error),
+        error: errorCode,
         edit: costEntryId,
         suggestionDate,
       })}`,
@@ -217,9 +233,12 @@ export async function deleteCostEntryAction(formData: FormData): Promise<never> 
   try {
     await deleteCostEntry(costEntryId);
   } catch (error) {
+    const errorCode = getCostEntryErrorCode(error);
+
+    logUnexpectedAdminActionError("deleteCostEntryAction", error, errorCode);
     redirect(
       `/admin/costs?${buildCostsRedirectParams({
-        error: getCostEntryErrorCode(error),
+        error: errorCode,
         suggestionDate,
       })}`,
     );
@@ -244,9 +263,12 @@ export async function acceptCostSuggestionAction(
   try {
     await acceptRecurringCostSuggestion(costTemplateId, suggestionDate);
   } catch (error) {
+    const errorCode = getCostEntryErrorCode(error);
+
+    logUnexpectedAdminActionError("acceptCostSuggestionAction", error, errorCode);
     redirect(
       `/admin/costs?${buildCostsRedirectParams({
-        error: getCostEntryErrorCode(error),
+        error: errorCode,
         suggestionDate,
       })}`,
     );
@@ -272,9 +294,12 @@ export async function saveContactAction(formData: FormData): Promise<never> {
       await createContact(extractContactFormData(formData));
     }
   } catch (error) {
+    const errorCode = getContactErrorCode(error);
+
+    logUnexpectedAdminActionError("saveContactAction", error, errorCode);
     redirect(
       `/admin/contacts?${new URLSearchParams({
-        error: getContactErrorCode(error),
+        error: errorCode,
         ...(contactId ? { edit: contactId } : {}),
       }).toString()}`,
     );
@@ -291,8 +316,11 @@ export async function deleteContactAction(formData: FormData): Promise<never> {
   try {
     await deleteContact(contactId);
   } catch (error) {
+    const errorCode = getContactErrorCode(error);
+
+    logUnexpectedAdminActionError("deleteContactAction", error, errorCode);
     redirect(
-      `/admin/contacts?error=${encodeURIComponent(getContactErrorCode(error))}`,
+      `/admin/contacts?error=${encodeURIComponent(errorCode)}`,
     );
   }
 
@@ -311,9 +339,12 @@ export async function saveOrderAction(formData: FormData): Promise<never> {
       await createOrder(extractOrderFormData(formData));
     }
   } catch (error) {
+    const errorCode = getOrderErrorCode(error);
+
+    logUnexpectedAdminActionError("saveOrderAction", error, errorCode);
     redirect(
       `/admin/orders?${new URLSearchParams({
-        error: getOrderErrorCode(error),
+        error: errorCode,
         ...(orderId ? { edit: orderId } : {}),
       }).toString()}`,
     );
@@ -332,9 +363,16 @@ export async function correctCompletedOrderAction(
   try {
     await correctCompletedOrder(orderId, extractCompletedOrderCorrectionFormData(formData));
   } catch (error) {
+    const errorCode = getOrderErrorCode(error);
+
+    logUnexpectedAdminActionError(
+      "correctCompletedOrderAction",
+      error,
+      errorCode,
+    );
     redirect(
       `/admin/orders?${new URLSearchParams({
-        error: getOrderErrorCode(error),
+        error: errorCode,
         edit: orderId,
       }).toString()}`,
     );
@@ -355,10 +393,17 @@ export async function saveHomepagePublicNoteSettingAction(
       formData.get("homepage_public_note_enabled"),
     );
   } catch (error) {
+    const errorCode = getSiteSettingErrorCode(error);
+
+    logUnexpectedAdminActionError(
+      "saveHomepagePublicNoteSettingAction",
+      error,
+      errorCode,
+    );
     redirect(
       `/admin/dashboard?${new URLSearchParams({
         ...(mode ? { mode } : {}),
-        settingsError: getSiteSettingErrorCode(error),
+        settingsError: errorCode,
       }).toString()}`,
     );
   }
@@ -393,9 +438,16 @@ export async function saveNotificationCampaignAction(
     );
     savedCampaignId = campaign.id;
   } catch (error) {
+    const errorCode = getNotificationCampaignErrorCode(error);
+
+    logUnexpectedAdminActionError(
+      "saveNotificationCampaignAction",
+      error,
+      errorCode,
+    );
     redirect(
       `/admin/notifications?${new URLSearchParams({
-        error: getNotificationCampaignErrorCode(error),
+        error: errorCode,
         ...(campaignId ? { edit: campaignId } : {}),
       }).toString()}`,
     );
@@ -421,9 +473,16 @@ export async function sendNotificationCampaignAction(
     const result = await sendNotificationCampaign(campaignId);
     sendStatus = result.status === "sent" ? "sent" : "failed";
   } catch (error) {
+    const errorCode = getNotificationCampaignErrorCode(error);
+
+    logUnexpectedAdminActionError(
+      "sendNotificationCampaignAction",
+      error,
+      errorCode,
+    );
     redirect(
       `/admin/notifications?${new URLSearchParams({
-        error: getNotificationCampaignErrorCode(error),
+        error: errorCode,
         edit: campaignId,
       }).toString()}`,
     );
@@ -568,6 +627,10 @@ function getDailyLogErrorCode(error: unknown): string {
 
   if (error instanceof DailyLogNotFoundError) {
     return "not_found";
+  }
+
+  if (error instanceof DailyLogCollectedStockConflictError) {
+    return "inventory_conflict";
   }
 
   return "unknown";
@@ -724,4 +787,16 @@ function getSafeNextPath(value: FormDataEntryValue | null): string | null {
   }
 
   return normalizedValue;
+}
+
+function logUnexpectedAdminActionError(
+  actionName: string,
+  error: unknown,
+  errorCode: string,
+): void {
+  if (errorCode !== "unknown") {
+    return;
+  }
+
+  console.error(`[admin action:${actionName}] Unexpected error`, error);
 }

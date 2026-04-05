@@ -468,6 +468,31 @@ describe("admin actions", () => {
     });
   });
 
+  describe("daily log error mapping", () => {
+    it("maps stock-reduction blockers to the daily-log inventory_conflict code", async () => {
+      const { DailyLogCollectedStockConflictError } = await import(
+        "@/lib/services/daily-logs"
+      );
+
+      updateDailyLogMock.mockRejectedValueOnce(
+        new DailyLogCollectedStockConflictError(
+          "This change would remove sellable stock that is already reserved or sold.",
+          3,
+        ),
+      );
+
+      const { saveDailyLogAction } = await import("@/app/admin/actions");
+      const formData = buildDailyLogFormData();
+
+      formData.set("id", "daily_log_1");
+      formData.set("eggs_collected_for_sale", "10");
+
+      await expect(saveDailyLogAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/daily-logs?error=inventory_conflict&edit=daily_log_1",
+      );
+    });
+  });
+
   describe("notification campaign error mapping", () => {
     it("maps no eligible recipients to a notification error code", async () => {
       const { NotificationCampaignNoEligibleRecipientsError } = await import(

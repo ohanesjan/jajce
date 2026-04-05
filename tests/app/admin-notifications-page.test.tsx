@@ -105,7 +105,9 @@ describe("AdminNotificationsPage", () => {
     );
 
     expect(markup).toContain("Create notification draft");
-    expect(markup).toContain("Sent and failed campaigns are read-only in Phase 7.");
+    expect(markup).toContain(
+      "Sent and failed campaigns are read-only. The empty form below is for creating a new draft, not editing this campaign.",
+    );
     expect(markup).toContain("Previous send");
   });
 
@@ -142,8 +144,10 @@ describe("AdminNotificationsPage", () => {
       }),
     );
 
-    expect(markup).toContain("This draft already has persisted recipient rows");
-    expect(markup).toContain(">Resume send</button>");
+    expect(markup).toContain(
+      "This draft already has persisted recipient rows, so it is send-only",
+    );
+    expect(markup).toContain(">Resume sending saved snapshot</button>");
     expect(markup).not.toContain("Edit notification draft");
   });
 });

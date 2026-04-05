@@ -55,7 +55,8 @@ export default async function AdminCostTemplatesPage({
         </h2>
         <p className="mt-3 text-sm leading-6 text-bark/75">
           Templates define recurring cost suggestions only. They never book costs
-          until accepted into a real cost entry.
+          until accepted into a real cost entry. Deletes are blocked once booked
+          cost entries already reference a template.
         </p>
 
         {successCode ? (
@@ -300,7 +301,7 @@ export default async function AdminCostTemplatesPage({
                             type="submit"
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
-                            Delete
+                            Delete unused template
                           </button>
                         </form>
                       </div>

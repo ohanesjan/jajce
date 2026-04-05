@@ -25,11 +25,11 @@ const ORDER_ERROR_MESSAGES: Record<string, string> = {
   insufficient_inventory:
     "This operation would reduce sellable inventory below zero.",
   transition_not_allowed:
-    "That order change is not allowed in the normal order workflow.",
+    "That order change is not allowed in the normal order workflow for this order state.",
   completed_correction_required:
     "Completed orders must be changed through the dedicated correction flow.",
   invalid_inventory_state:
-    "This order has an invalid inventory state and needs manual investigation.",
+    "This order has an invalid inventory state and cannot be changed until it is manually investigated.",
   unknown: "The order could not be saved.",
 };
 
@@ -73,7 +73,8 @@ export default async function AdminOrdersPage({
         <p className="mt-3 text-sm leading-6 text-bark/75">
           Total price is always computed on the backend from quantity and the
           resolved unit price. Completed-order corrections use a dedicated
-          service path.
+          service path, and normal reserved-order edits stay blocked when the
+          linked inventory state is no longer safe or consistent.
         </p>
 
         {successCode ? (
@@ -106,6 +107,12 @@ export default async function AdminOrdersPage({
               label="Status"
               value="Completed"
             />
+
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              This correction keeps the original stock-reducing inventory mode
+              and will be blocked if the linked inventory state is inconsistent
+              or the correction would oversell stock.
+            </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <FormField label="Quantity">
@@ -165,7 +172,7 @@ export default async function AdminOrdersPage({
                 type="submit"
                 className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
               >
-                Apply completed correction
+                Apply stock-safe completed correction
               </button>
 
               <a
@@ -179,6 +186,14 @@ export default async function AdminOrdersPage({
         ) : (
           <form action={saveOrderAction} className="mt-6 space-y-4">
             <input type="hidden" name="id" value={editingOrder?.id ?? ""} />
+
+            {editingOrder ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                Normal editing is only available while this order is still a
+                clean reservation. If it has already moved into an inconsistent
+                inventory state, the update will be blocked for manual review.
+              </div>
+            ) : null}
 
             <FormField label="Contact">
               <select
@@ -384,7 +399,9 @@ export default async function AdminOrdersPage({
                           Correct
                         </a>
                       ) : (
-                        <span className="text-xs text-bark/50">Locked</span>
+                        <span className="text-xs text-bark/50">
+                          Locked after stock release
+                        </span>
                       )}
                     </td>
                   </tr>

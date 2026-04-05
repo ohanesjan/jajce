@@ -7,13 +7,23 @@ import {
 } from "@prisma/client";
 import { getDb } from "@/lib/db";
 import { calculateEggsTotalYield } from "@/lib/domain/daily-log";
+import { calculateAvailableInventory } from "@/lib/domain/inventory";
 import { formatDateOnly, parseDateOnly } from "@/lib/utils/date";
 
 const COLLECTED_INVENTORY_NOTE = "Daily log collected inventory reconciliation";
+const SELLABLE_INVENTORY_LOCK_KEY = "jajce_sellable_inventory";
 
 export class DailyLogValidationError extends Error {}
 export class DailyLogDateConflictError extends Error {}
 export class DailyLogNotFoundError extends Error {}
+export class DailyLogCollectedStockConflictError extends Error {
+  readonly shortage: number;
+
+  constructor(message: string, shortage: number) {
+    super(message);
+    this.shortage = shortage;
+  }
+}
 
 export type DailyLogMutationInput = {
   date: unknown;
@@ -40,11 +50,17 @@ export type DailyLogWriteInput = Pick<
   | "notes"
 >;
 
-type DailyLogDb = Pick<PrismaClient, "$transaction" | "dailyLog">;
+type DailyLogDb = Pick<
+  PrismaClient,
+  "$transaction" | "dailyLog" | "inventoryTransaction"
+>;
 type DailyLogListDb = Pick<PrismaClient, "dailyLog">;
 type InventoryTransactionReconciliationDelegate = {
   $queryRaw<T = unknown>(query: Prisma.Sql): Promise<T>;
 };
+type DailyLogTransactionDb = Parameters<
+  Parameters<DailyLogDb["$transaction"]>[0]
+>[0];
 
 export function validateDailyLogInput(
   input: DailyLogMutationInput,
@@ -123,14 +139,21 @@ export async function updateDailyLog(
 
   try {
     return await database.$transaction(async (tx) => {
+      await acquireSellableInventoryLock(tx);
       const existingDailyLog = await tx.dailyLog.findUnique({
         where: { id: dailyLogId },
-        select: { id: true },
+        select: { id: true, eggs_collected_for_sale: true },
       });
 
       if (!existingDailyLog) {
         throw new DailyLogNotFoundError("Daily log not found.");
       }
+
+      await assertCollectedInventoryCanSupportDesiredQuantity(tx, {
+        dailyLogId,
+        currentCollectedQuantity: existingDailyLog.eggs_collected_for_sale,
+        desiredCollectedQuantity: validatedInput.eggs_collected_for_sale,
+      });
 
       const dailyLog = await tx.dailyLog.update({
         where: { id: dailyLogId },
@@ -152,14 +175,21 @@ export async function deleteDailyLog(
 ): Promise<void> {
   try {
     await database.$transaction(async (tx) => {
+      await acquireSellableInventoryLock(tx);
       const existingDailyLog = await tx.dailyLog.findUnique({
         where: { id: dailyLogId },
-        select: { id: true },
+        select: { id: true, eggs_collected_for_sale: true },
       });
 
       if (!existingDailyLog) {
         throw new DailyLogNotFoundError("Daily log not found.");
       }
+
+      await assertCollectedInventoryCanSupportDesiredQuantity(tx, {
+        dailyLogId,
+        currentCollectedQuantity: existingDailyLog.eggs_collected_for_sale,
+        desiredCollectedQuantity: 0,
+      });
 
       await tx.inventoryTransaction.deleteMany({
         where: {
@@ -247,7 +277,8 @@ function normalizeDailyLogMutationError(error: unknown): Error {
   if (
     error instanceof DailyLogValidationError ||
     error instanceof DailyLogDateConflictError ||
-    error instanceof DailyLogNotFoundError
+    error instanceof DailyLogNotFoundError ||
+    error instanceof DailyLogCollectedStockConflictError
   ) {
     return error;
   }
@@ -264,4 +295,64 @@ function normalizeDailyLogMutationError(error: unknown): Error {
   }
 
   return error instanceof Error ? error : new Error("Daily log update failed.");
+}
+
+async function assertCollectedInventoryCanSupportDesiredQuantity(
+  database: Pick<DailyLogTransactionDb, "inventoryTransaction">,
+  {
+    dailyLogId,
+    currentCollectedQuantity,
+    desiredCollectedQuantity,
+  }: {
+    dailyLogId: string;
+    currentCollectedQuantity: number;
+    desiredCollectedQuantity: number;
+  },
+): Promise<void> {
+  if (desiredCollectedQuantity >= currentCollectedQuantity) {
+    return;
+  }
+
+  const inventoryTransactions = await database.inventoryTransaction.findMany({
+    select: {
+      type: true,
+      quantity: true,
+      daily_log_id: true,
+    },
+  });
+  const availableWithoutCurrentDailyLog = calculateAvailableInventory(
+    inventoryTransactions
+      .filter(
+        (transaction) =>
+          !(
+            transaction.type === "collected" &&
+            transaction.daily_log_id === dailyLogId
+          ),
+      )
+      .map((transaction) => ({
+        type: transaction.type,
+        quantity: transaction.quantity,
+      })),
+  );
+  const availableAfterChange =
+    availableWithoutCurrentDailyLog + desiredCollectedQuantity;
+
+  if (availableAfterChange >= 0) {
+    return;
+  }
+
+  const shortage = Math.abs(availableAfterChange);
+
+  throw new DailyLogCollectedStockConflictError(
+    `This change would remove sellable stock that is already reserved or sold. The inventory ledger would be short by ${shortage} eggs.`,
+    shortage,
+  );
+}
+
+async function acquireSellableInventoryLock(
+  database: Pick<DailyLogTransactionDb, "$queryRaw">,
+): Promise<void> {
+  await database.$queryRaw(
+    Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${SELLABLE_INVENTORY_LOCK_KEY}));`,
+  );
 }
