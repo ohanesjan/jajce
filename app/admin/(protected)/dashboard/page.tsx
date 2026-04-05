@@ -163,6 +163,10 @@ export default async function AdminDashboardPage({
             </span>
           </label>
 
+          <p className="mt-3 text-sm leading-6 text-bark/70">
+            {copy.dashboard.homepageHelper}
+          </p>
+
           <div className="mt-4">
             <button
               type="submit"

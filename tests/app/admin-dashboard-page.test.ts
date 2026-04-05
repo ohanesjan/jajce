@@ -48,6 +48,12 @@ describe("AdminDashboardPage", () => {
 
     expect(markup).toContain("Достапни јајца");
     expect(markup).toContain("Видливост на јавна белешка");
+    expect(markup).toContain(
+      "Прикажи ја денешната јавна белешка на почетната страница кога постои во дневниот запис. Кога е исклучено, почетната страница се враќа на стандардното однесување.",
+    );
+    expect(markup).toContain(
+      "Кога е исклучено, почетната страница прикажува само живи производствени податоци и порака за достапност.",
+    );
     expect(markup).toContain("Зачувај поставка за почетната страница");
     expect(markup).toContain("Денешна бруто маржа");
     expect(markup).not.toContain("Трошоци по категорија");
@@ -101,6 +107,12 @@ describe("AdminDashboardPage", () => {
 
     expect(markup).toContain("Available eggs");
     expect(markup).toContain("Public note visibility");
+    expect(markup).toContain(
+      "When disabled, the homepage returns to its default behavior.",
+    );
+    expect(markup).toContain(
+      "When disabled, the homepage shows only live production data and availability.",
+    );
     expect(markup).toContain("Save homepage setting");
     expect(markup).toContain("Costs by category");
   });

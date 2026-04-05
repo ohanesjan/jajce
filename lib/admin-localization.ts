@@ -78,7 +78,9 @@ const mkAdminCopy = {
     homepageSettingUnknownError:
       "Поставката за почетната страница не можеше да се зачува.",
     homepageCheckbox:
-      "Прикажи ја денешната јавна белешка на почетната страница кога постои во дневниот запис.",
+      "Прикажи ја денешната јавна белешка на почетната страница кога постои во дневниот запис. Кога е исклучено, почетната страница се враќа на стандардното однесување.",
+    homepageHelper:
+      "Кога е исклучено, почетната страница прикажува само живи производствени податоци и порака за достапност.",
     saveHomepageSetting: "Зачувај поставка за почетната страница",
     totalYieldPerChicken: "Вкупен принос по кокошка",
     totalYieldPerChickenDetail:
@@ -590,7 +592,9 @@ const enAdminCopy: typeof mkAdminCopy = {
     homepageSettingUnknownError:
       "The homepage setting could not be saved.",
     homepageCheckbox:
-      "Show today's public note on the homepage when it exists in the daily log.",
+      "Show today's public note on the homepage when it exists in the daily log. When disabled, the homepage returns to its default behavior.",
+    homepageHelper:
+      "When disabled, the homepage shows only live production data and availability.",
     saveHomepageSetting: "Save homepage setting",
     totalYieldPerChicken: "Total yield per chicken",
     totalYieldPerChickenDetail:

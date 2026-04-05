@@ -60,9 +60,16 @@ describe("getHomepageData", () => {
     });
   });
 
-  it("hides the public note unless the homepage setting is enabled", async () => {
+  it("hides the public note unless the homepage setting is enabled while keeping derived values intact", async () => {
     const database = createHomepageTestDatabase({
       dailyLogs: [
+        buildDailyLog({
+          id: "daily_log_yesterday",
+          date: "2026-04-09",
+          eggs_collected_for_sale: 14,
+          chicken_count: 11,
+          public_note: "Yesterday note should never be shown.",
+        }),
         buildDailyLog({
           id: "daily_log_today",
           date: "2026-04-10",
@@ -71,7 +78,10 @@ describe("getHomepageData", () => {
           public_note: "Small batch today.",
         }),
       ],
-      inventoryTransactions: [],
+      inventoryTransactions: [
+        buildInventoryTransaction({ type: "collected", quantity: 28 }),
+        buildInventoryTransaction({ type: "sold", quantity: 8 }),
+      ],
       siteSettings: {
         low_stock_threshold: 30,
         homepage_public_note_enabled: false,
@@ -86,8 +96,17 @@ describe("getHomepageData", () => {
       database as never,
     );
 
-    expect(homepageData.public_note).toBeNull();
-    expect(homepageData.availability.state).toBe("none");
+    expect(homepageData).toEqual({
+      today_eggs_collected_for_sale: 18,
+      yesterday_eggs_collected_for_sale: 14,
+      latest_chicken_count: 12,
+      availability: {
+        state: "limited",
+        mk: "Ограничена достапност",
+        en: "Limited availability",
+      },
+      public_note: null,
+    });
   });
 });
 
