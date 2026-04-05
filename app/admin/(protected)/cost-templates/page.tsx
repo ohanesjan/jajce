@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import {
   deleteCostTemplateAction,
@@ -49,14 +50,25 @@ export default async function AdminCostTemplatesPage({
   return (
     <main className="grid gap-6 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
       <section className="card-surface p-6">
-        <p className="eyebrow">Phase 3</p>
-        <h2 className="mt-2 font-serif text-3xl text-bark">
-          {editId ? "Edit cost template" : "Create cost template"}
-        </h2>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="eyebrow">Maintenance</p>
+            <h2 className="mt-2 font-serif text-3xl text-bark">
+              {editId ? "Edit recurring template" : "Create recurring template"}
+            </h2>
+          </div>
+          <Link
+            href="/admin/costs"
+            className="rounded-2xl border border-soil/20 px-4 py-2 text-sm text-bark transition hover:border-soil/40"
+          >
+            Back to costs
+          </Link>
+        </div>
         <p className="mt-3 text-sm leading-6 text-bark/75">
-          Templates define recurring cost suggestions only. They never book costs
-          until accepted into a real cost entry. Deletes are blocked once booked
-          cost entries already reference a template.
+          This is a secondary maintenance route. The primary recurring-cost
+          workflow now lives on the costs page, where booked costs and recurring
+          templates can be handled together. Use this screen for occasional
+          detailed edits or manual cleanup only.
         </p>
 
         {successCode ? (
@@ -264,6 +276,7 @@ export default async function AdminCostTemplatesPage({
                   <th className="px-6 py-4 font-medium">Type</th>
                   <th className="px-6 py-4 font-medium">Default total</th>
                   <th className="px-6 py-4 font-medium">Schedule</th>
+                  <th className="px-6 py-4 font-medium">Booked costs</th>
                   <th className="px-6 py-4 font-medium">Status</th>
                   <th className="px-6 py-4 font-medium">Actions</th>
                 </tr>
@@ -284,6 +297,7 @@ export default async function AdminCostTemplatesPage({
                     <td className="px-6 py-4 text-bark/70">
                       {describeTemplateSchedule(template)}
                     </td>
+                    <td className="px-6 py-4">{template._count.cost_entries}</td>
                     <td className="px-6 py-4">
                       {template.is_active ? "Active" : "Inactive"}
                     </td>
@@ -299,9 +313,12 @@ export default async function AdminCostTemplatesPage({
                           <input type="hidden" name="id" value={template.id} />
                           <button
                             type="submit"
+                            disabled={template._count.cost_entries > 0}
                             className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
                           >
-                            Delete unused template
+                            {template._count.cost_entries > 0
+                              ? "Delete disabled after booking"
+                              : "Delete unused template"}
                           </button>
                         </form>
                       </div>

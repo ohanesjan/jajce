@@ -190,6 +190,7 @@ model CostTemplate {
   created_at           DateTime      @default(now())
   updated_at           DateTime      @updatedAt
   cost_entries         CostEntry[]
+  cost_template_skips  CostTemplateSkip[]
 
   @@index([is_active])
   @@index([category])
@@ -221,6 +222,19 @@ model CostEntry {
   @@index([cost_template_id])
   @@index([date, cost_type])
   @@map("cost_entries")
+}
+
+model CostTemplateSkip {
+  id               String       @id @default(cuid())
+  cost_template_id String
+  date             DateTime     @db.Date
+  created_at       DateTime     @default(now())
+  cost_template    CostTemplate @relation(fields: [cost_template_id], references: [id], onDelete: Cascade)
+
+  @@index([cost_template_id])
+  @@index([date])
+  @@unique([cost_template_id, date])
+  @@map("cost_template_skips")
 }
 
 model Order {

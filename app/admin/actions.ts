@@ -26,6 +26,7 @@ import {
   CostTemplateNotFoundError,
   createCostTemplate,
   deleteCostTemplate,
+  setCostTemplateActiveState,
   updateCostTemplate,
 } from "@/lib/services/cost-templates";
 import {
@@ -34,8 +35,11 @@ import {
   DuplicateAcceptedCostTemplateEntryError,
   TemplateCostEntryMutationNotAllowedError,
   acceptRecurringCostSuggestion,
+  acceptRecurringCostSuggestionWithOverrides,
   createCostEntry,
+  createCostEntryWithRecurringTemplate,
   deleteCostEntry,
+  skipRecurringCostSuggestion,
   updateCostEntry,
 } from "@/lib/services/cost-entries";
 import {
@@ -181,15 +185,36 @@ export async function deleteCostTemplateAction(
   await requireAdminSession();
 
   const costTemplateId = getStringField(formData, "id");
+  const returnTo = getSafeNextPath(formData.get("return_to"));
+  const suggestionDate = getOptionalStringField(formData, "suggestion_date");
 
   try {
     await deleteCostTemplate(costTemplateId);
   } catch (error) {
-    const errorCode = getCostTemplateErrorCode(error);
+    const errorCode =
+      returnTo === "/admin/costs"
+        ? getCostTemplateCostsErrorCode(error)
+        : getCostTemplateErrorCode(error);
 
     logUnexpectedAdminActionError("deleteCostTemplateAction", error, errorCode);
+    if (returnTo === "/admin/costs") {
+      redirect(
+        `/admin/costs?${buildCostsRedirectParams({
+          error: errorCode,
+          suggestionDate,
+        })}`,
+      );
+    }
+
+    redirect(`/admin/cost-templates?error=${encodeURIComponent(errorCode)}`);
+  }
+
+  if (returnTo === "/admin/costs") {
     redirect(
-      `/admin/cost-templates?error=${encodeURIComponent(errorCode)}`,
+      `/admin/costs?${buildCostsRedirectParams({
+        success: "template_deleted",
+        suggestionDate,
+      })}`,
     );
   }
 
@@ -201,10 +226,25 @@ export async function saveCostEntryAction(formData: FormData): Promise<never> {
 
   const costEntryId = getOptionalStringField(formData, "id");
   const suggestionDate = getOptionalStringField(formData, "suggestion_date");
+  const acceptCostTemplateId = getOptionalStringField(
+    formData,
+    "accept_cost_template_id",
+  );
+  const shouldSaveAsRecurring = formData.get("save_as_recurring") !== null;
 
   try {
     if (costEntryId) {
       await updateCostEntry(costEntryId, extractCostEntryFormData(formData));
+    } else if (acceptCostTemplateId) {
+      await acceptRecurringCostSuggestionWithOverrides(
+        acceptCostTemplateId,
+        extractCostEntryFormData(formData),
+      );
+    } else if (shouldSaveAsRecurring) {
+      await createCostEntryWithRecurringTemplate(
+        extractCostEntryFormData(formData),
+        extractRecurringTemplateFormData(formData),
+      );
     } else {
       await createCostEntry(extractCostEntryFormData(formData));
     }
@@ -216,12 +256,22 @@ export async function saveCostEntryAction(formData: FormData): Promise<never> {
       `/admin/costs?${buildCostsRedirectParams({
         error: errorCode,
         edit: costEntryId,
+        acceptTemplate: acceptCostTemplateId,
         suggestionDate,
       })}`,
     );
   }
 
-  redirect(`/admin/costs?${buildCostsRedirectParams({ success: "saved", suggestionDate })}`);
+  redirect(
+    `/admin/costs?${buildCostsRedirectParams({
+      success: acceptCostTemplateId
+        ? "accepted"
+        : shouldSaveAsRecurring
+          ? "saved_with_recurring"
+          : "saved",
+      suggestionDate,
+    })}`,
+  );
 }
 
 export async function deleteCostEntryAction(formData: FormData): Promise<never> {
@@ -280,6 +330,86 @@ export async function acceptCostSuggestionAction(
       suggestionDate,
     })}`,
   );
+}
+
+export async function skipCostSuggestionAction(
+  formData: FormData,
+): Promise<never> {
+  await requireAdminSession();
+
+  const costTemplateId = getStringField(formData, "cost_template_id");
+  const suggestionDate = getStringField(formData, "date");
+
+  try {
+    await skipRecurringCostSuggestion(costTemplateId, suggestionDate);
+  } catch (error) {
+    const errorCode = getCostEntryErrorCode(error);
+
+    logUnexpectedAdminActionError("skipCostSuggestionAction", error, errorCode);
+    redirect(
+      `/admin/costs?${buildCostsRedirectParams({
+        error: errorCode,
+        suggestionDate,
+      })}`,
+    );
+  }
+
+  redirect(
+    `/admin/costs?${buildCostsRedirectParams({
+      success: "skipped",
+      suggestionDate,
+    })}`,
+  );
+}
+
+export async function toggleCostTemplateActiveAction(
+  formData: FormData,
+): Promise<never> {
+  await requireAdminSession();
+
+  const costTemplateId = getStringField(formData, "id");
+  const suggestionDate = getOptionalStringField(formData, "suggestion_date");
+  const returnTo = getSafeNextPath(formData.get("return_to")) ?? "/admin/costs";
+
+  try {
+    await setCostTemplateActiveState(
+      costTemplateId,
+      formData.get("is_active") !== null,
+    );
+  } catch (error) {
+    const errorCode =
+      returnTo === "/admin/costs"
+        ? getCostTemplateCostsErrorCode(error)
+        : getCostTemplateErrorCode(error);
+
+    logUnexpectedAdminActionError(
+      "toggleCostTemplateActiveAction",
+      error,
+      errorCode,
+    );
+
+    if (returnTo === "/admin/costs") {
+      redirect(
+        `/admin/costs?${buildCostsRedirectParams({
+          error: errorCode,
+          suggestionDate,
+        })}`,
+      );
+    }
+
+    redirect(`/admin/cost-templates?error=${encodeURIComponent(errorCode)}`);
+  }
+
+  if (returnTo === "/admin/costs") {
+    redirect(
+      `/admin/costs?${buildCostsRedirectParams({
+        success: "template_updated",
+        suggestionDate,
+      })}`,
+    );
+  }
+
+  redirect("/admin/cost-templates?success=saved");
 }
 
 export async function saveContactAction(formData: FormData): Promise<never> {
@@ -541,6 +671,16 @@ function extractCostEntryFormData(formData: FormData) {
   };
 }
 
+function extractRecurringTemplateFormData(formData: FormData) {
+  return {
+    name: formData.get("template_name"),
+    frequency: formData.get("recurring_frequency"),
+    start_date: formData.get("recurring_start_date"),
+    end_date: formData.get("recurring_end_date"),
+    is_active: formData.get("recurring_is_active"),
+  };
+}
+
 function extractContactFormData(formData: FormData) {
   return {
     full_name: formData.get("full_name"),
@@ -676,6 +816,22 @@ function getCostEntryErrorCode(error: unknown): string {
   return "unknown";
 }
 
+function getCostTemplateCostsErrorCode(error: unknown): string {
+  if (error instanceof SharedCostValidationError) {
+    return "template_validation";
+  }
+
+  if (error instanceof CostTemplateNotFoundError) {
+    return "template_not_found";
+  }
+
+  if (error instanceof CostTemplateInUseError) {
+    return "template_in_use";
+  }
+
+  return "unknown";
+}
+
 function getContactErrorCode(error: unknown): string {
   if (error instanceof ContactValidationError) {
     return "validation";
@@ -760,17 +916,20 @@ function buildCostsRedirectParams({
   success,
   error,
   edit,
+  acceptTemplate,
   suggestionDate,
 }: {
   success?: string;
   error?: string;
   edit?: string | null;
+  acceptTemplate?: string | null;
   suggestionDate?: string | null;
 }): string {
   return new URLSearchParams({
     ...(success ? { success } : {}),
     ...(error ? { error } : {}),
     ...(edit ? { edit } : {}),
+    ...(acceptTemplate ? { acceptTemplate } : {}),
     ...(suggestionDate ? { suggestionDate } : {}),
   }).toString();
 }

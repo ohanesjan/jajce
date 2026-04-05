@@ -1,4 +1,9 @@
-import { Prisma, cost_category, cost_frequency, cost_type } from "@prisma/client";
+import {
+  Prisma,
+  cost_category,
+  cost_frequency,
+  cost_type,
+} from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import {
   CostEntryNotFoundError,
@@ -6,11 +11,18 @@ import {
   DuplicateAcceptedCostTemplateEntryError,
   TemplateCostEntryMutationNotAllowedError,
   acceptRecurringCostSuggestion,
+  acceptRecurringCostSuggestionWithOverrides,
   createCostEntry,
+  createCostEntryWithRecurringTemplate,
+  skipRecurringCostSuggestion,
   updateCostEntry,
   validateCostEntryInput,
 } from "@/lib/services/cost-entries";
 import { CostValidationError } from "@/lib/services/cost-validation";
+import {
+  listRecurringCostOccurrencesInRange,
+  listRecurringCostSuggestionsForDate,
+} from "@/lib/services/cost-templates";
 import { formatDateOnly } from "@/lib/utils/date";
 
 describe("validateCostEntryInput", () => {
@@ -67,7 +79,7 @@ describe("validateCostEntryInput", () => {
   });
 });
 
-describe("acceptRecurringCostSuggestion", () => {
+describe("recurring suggestion mutations", () => {
   it("accepts a matching recurring suggestion into a booked cost entry", async () => {
     const database = createCostEntryTestDatabase();
 
@@ -87,6 +99,97 @@ describe("acceptRecurringCostSuggestion", () => {
     expect(formatDateOnly(entry.date)).toBe("2026-04-09");
   });
 
+  it("accepts a recurring suggestion with one-off overrides without mutating the template", async () => {
+    const database = createCostEntryTestDatabase();
+
+    const entry = await acceptRecurringCostSuggestionWithOverrides(
+      "template_weekly",
+      {
+        date: "2026-04-09",
+        category: "feed",
+        cost_type: "direct",
+        quantity: "25",
+        unit: "kg",
+        unit_price: "1.60",
+        total_amount: "40.00",
+        note: "One-off higher invoice",
+      },
+      database as never,
+    );
+
+    expect(entry).toMatchObject({
+      source_type: "template",
+      cost_template_id: "template_weekly",
+      quantity: new Prisma.Decimal("25"),
+      unit_price: new Prisma.Decimal("1.60"),
+      total_amount: new Prisma.Decimal("40.00"),
+      note: "One-off higher invoice",
+    });
+
+    const suggestions = await listRecurringCostSuggestionsForDate(
+      "2026-04-09",
+      database as never,
+    );
+    const occurrences = await listRecurringCostOccurrencesInRange(
+      {
+        startDate: "2026-04-09",
+        endDate: "2026-04-09",
+      },
+      database as never,
+    );
+
+    expect(
+      suggestions.find((suggestion) => suggestion.template.id === "template_weekly"),
+    ).toBeUndefined();
+    expect(
+      occurrences.find((occurrence) => occurrence.template.id === "template_weekly"),
+    ).toMatchObject({
+      status: "accepted",
+    });
+    expect(database.templates.find((template) => template.id === "template_weekly"))
+      .toMatchObject({
+        default_total_amount: new Prisma.Decimal("28.00"),
+      });
+  });
+
+  it("creates a durable skip for only that occurrence", async () => {
+    const database = createCostEntryTestDatabase();
+
+    const skip = await skipRecurringCostSuggestion(
+      "template_weekly",
+      "2026-04-09",
+      database as never,
+    );
+
+    expect(skip).toMatchObject({
+      cost_template_id: "template_weekly",
+    });
+    expect(formatDateOnly(skip.date)).toBe("2026-04-09");
+
+    const suggestions = await listRecurringCostSuggestionsForDate(
+      "2026-04-09",
+      database as never,
+    );
+
+    expect(
+      suggestions.find((suggestion) => suggestion.template.id === "template_weekly"),
+    ).toBeUndefined();
+
+    const occurrences = await listRecurringCostOccurrencesInRange(
+      {
+        startDate: "2026-04-09",
+        endDate: "2026-04-09",
+      },
+      database as never,
+    );
+
+    expect(
+      occurrences.find((occurrence) => occurrence.template.id === "template_weekly"),
+    ).toMatchObject({
+      status: "skipped",
+    });
+  });
+
   it("rejects dates with no active matching suggestion", async () => {
     const database = createCostEntryTestDatabase();
 
@@ -100,6 +203,24 @@ describe("acceptRecurringCostSuggestion", () => {
 
     await expect(
       acceptRecurringCostSuggestion("template_weekly", "2026-04-16", database as never),
+    ).rejects.toBeInstanceOf(DuplicateAcceptedCostTemplateEntryError);
+  });
+
+  it("does not allow accepting an occurrence that was already skipped", async () => {
+    const database = createCostEntryTestDatabase();
+
+    await skipRecurringCostSuggestion("template_weekly", "2026-04-09", database as never);
+
+    await expect(
+      acceptRecurringCostSuggestion("template_weekly", "2026-04-09", database as never),
+    ).rejects.toBeInstanceOf(CostTemplateSuggestionNotFoundError);
+  });
+
+  it("does not allow skipping an occurrence that was already accepted", async () => {
+    const database = createCostEntryTestDatabase();
+
+    await expect(
+      skipRecurringCostSuggestion("template_weekly", "2026-04-16", database as never),
     ).rejects.toBeInstanceOf(DuplicateAcceptedCostTemplateEntryError);
   });
 
@@ -156,6 +277,165 @@ describe("create and update cost entries", () => {
       source_type: "manual",
       total_amount: new Prisma.Decimal("14.50"),
     });
+  });
+
+  it("creates a booked cost and recurring template together", async () => {
+    const database = createCostEntryTestDatabase();
+
+    const result = await createCostEntryWithRecurringTemplate(
+      {
+        date: "2026-04-12",
+        category: "feed",
+        cost_type: "direct",
+        quantity: "12",
+        unit: "kg",
+        unit_price: "1.75",
+        total_amount: "21.00",
+        note: "Feed invoice",
+      },
+      {
+        name: "Weekly feed refill",
+        frequency: "weekly",
+        start_date: "2026-04-12",
+        end_date: "",
+        is_active: "on",
+      },
+      database as never,
+    );
+
+    expect(result.cost_entry).toMatchObject({
+      source_type: "manual",
+      total_amount: new Prisma.Decimal("21.00"),
+    });
+    expect(result.cost_template).toMatchObject({
+      name: "Weekly feed refill",
+      category: cost_category.feed,
+      cost_type: cost_type.direct,
+      default_quantity: new Prisma.Decimal("12"),
+      default_unit_price: new Prisma.Decimal("1.75"),
+      default_total_amount: new Prisma.Decimal("21.00"),
+      frequency: cost_frequency.weekly,
+      end_date: null,
+      note: "Feed invoice",
+    });
+    expect(database.skips).toContainEqual(
+      expect.objectContaining({
+        cost_template_id: result.cost_template.id,
+      }),
+    );
+    expect(
+      database.skips.some(
+        (skip) =>
+          skip.cost_template_id === result.cost_template.id &&
+          formatDateOnly(skip.date) === "2026-04-12",
+      ),
+    ).toBe(true);
+  });
+
+  it("suppresses the template's originating date from pending suggestions while keeping future occurrences pending", async () => {
+    const database = createCostEntryTestDatabase();
+
+    const result = await createCostEntryWithRecurringTemplate(
+      {
+        date: "2026-04-12",
+        category: "feed",
+        cost_type: "direct",
+        quantity: "12",
+        unit: "kg",
+        unit_price: "1.75",
+        total_amount: "21.00",
+      },
+      {
+        name: "Weekly feed refill",
+        frequency: "weekly",
+        start_date: "2026-04-12",
+        end_date: "",
+        is_active: "on",
+      },
+      database as never,
+    );
+
+    const sameDaySuggestions = await listRecurringCostSuggestionsForDate(
+      "2026-04-12",
+      database as never,
+    );
+    const nextOccurrenceSuggestions = await listRecurringCostSuggestionsForDate(
+      "2026-04-19",
+      database as never,
+    );
+    const occurrences = await listRecurringCostOccurrencesInRange(
+      {
+        startDate: "2026-04-12",
+        endDate: "2026-04-19",
+      },
+      database as never,
+    );
+
+    expect(
+      sameDaySuggestions.find(
+        (suggestion) => suggestion.template.id === result.cost_template.id,
+      ),
+    ).toBeUndefined();
+    expect(
+      nextOccurrenceSuggestions.find(
+        (suggestion) => suggestion.template.id === result.cost_template.id,
+      ),
+    ).toMatchObject({
+      status: "pending",
+    });
+    expect(
+      occurrences.find(
+        (occurrence) =>
+          occurrence.template.id === result.cost_template.id &&
+          formatDateOnly(occurrence.date) === "2026-04-12",
+      ),
+    ).toMatchObject({
+      status: "skipped",
+    });
+    expect(
+      occurrences.find(
+        (occurrence) =>
+          occurrence.template.id === result.cost_template.id &&
+          formatDateOnly(occurrence.date) === "2026-04-19",
+      ),
+    ).toMatchObject({
+      status: "pending",
+    });
+  });
+
+  it("reuses an existing same-day skip when creating a booked cost plus template", async () => {
+    const database = createCostEntryTestDatabase({
+      initialSkips: [
+        {
+          cost_template_id: "cost_template_2",
+          date: "2026-04-12",
+        },
+      ],
+    });
+
+    const result = await createCostEntryWithRecurringTemplate(
+      {
+        date: "2026-04-12",
+        category: "feed",
+        cost_type: "direct",
+        total_amount: "21.00",
+      },
+      {
+        name: "Weekly feed refill",
+        frequency: "weekly",
+        start_date: "2026-04-12",
+      },
+      database as never,
+    );
+
+    expect(result.cost_template.id).toBe("cost_template_2");
+    expect(
+      database.skips.filter(
+        (skip) =>
+          skip.cost_template_id === "cost_template_2" &&
+          formatDateOnly(skip.date) === "2026-04-12",
+      ),
+    ).toHaveLength(1);
   });
 
   it("rejects forged template-origin creates in the normal flow", async () => {
@@ -228,9 +508,33 @@ describe("create and update cost entries", () => {
       ),
     ).rejects.toBeInstanceOf(TemplateCostEntryMutationNotAllowedError);
   });
+
+  it("rejects missing recurring-template names when saving booked cost plus template", async () => {
+    const database = createCostEntryTestDatabase();
+
+    await expect(
+      createCostEntryWithRecurringTemplate(
+        {
+          date: "2026-04-12",
+          category: "feed",
+          cost_type: "direct",
+          total_amount: "21.00",
+        },
+        {
+          name: "",
+          frequency: "weekly",
+          start_date: "2026-04-12",
+        },
+        database as never,
+      ),
+    ).rejects.toBeInstanceOf(CostValidationError);
+  });
 });
 
-function createCostEntryTestDatabase(options?: { forceDuplicateOnCreate?: boolean }) {
+function createCostEntryTestDatabase(options?: {
+  forceDuplicateOnCreate?: boolean;
+  initialSkips?: Array<{ cost_template_id: string; date: string }>;
+}) {
   const templates: Array<{
     id: string;
     name: string;
@@ -313,6 +617,18 @@ function createCostEntryTestDatabase(options?: { forceDuplicateOnCreate?: boolea
       updated_at: new Date("2026-04-16T09:00:00.000Z"),
     },
   ];
+  const skips: Array<{
+    id: string;
+    cost_template_id: string;
+    date: Date;
+    created_at: Date;
+  }> =
+    options?.initialSkips?.map((skip, index) => ({
+      id: `seed_skip_${index + 1}`,
+      cost_template_id: skip.cost_template_id,
+      date: new Date(`${skip.date}T00:00:00.000Z`),
+      created_at: new Date("2026-04-01T07:00:00.000Z"),
+    })) ?? [];
   let sequence = 0;
 
   const tx = {
@@ -352,19 +668,39 @@ function createCostEntryTestDatabase(options?: { forceDuplicateOnCreate?: boolea
 
           return true;
         }),
+      create: async ({ data }: { data: Omit<(typeof templates)[number], "id" | "created_at" | "updated_at"> }) => {
+        const created = {
+          id: `cost_template_${++sequence}`,
+          created_at: new Date("2026-04-01T10:00:00.000Z"),
+          updated_at: new Date("2026-04-01T10:00:00.000Z"),
+          ...data,
+        };
+
+        templates.push(created);
+
+        return created;
+      },
     },
     costEntry: {
       findMany: async ({
         where,
       }: {
         where?: {
-          date?: Date;
+          date?: Date | { gte: Date; lte: Date };
           source_type?: "template";
           cost_template_id?: { in: string[] };
         };
       }) =>
         costEntries.filter((entry) => {
-          if (where?.date && entry.date.getTime() !== where.date.getTime()) {
+          if (where?.date instanceof Date && entry.date.getTime() !== where.date.getTime()) {
+            return false;
+          }
+
+          if (
+            typeof where?.date === "object" &&
+            "gte" in where.date &&
+            (entry.date < where.date.gte || entry.date > where.date.lte)
+          ) {
             return false;
           }
 
@@ -470,10 +806,82 @@ function createCostEntryTestDatabase(options?: { forceDuplicateOnCreate?: boolea
       },
       delete: async () => undefined,
     },
+    costTemplateSkip: {
+      findMany: async ({
+        where,
+      }: {
+        where?: {
+          date?: { gte: Date; lte: Date };
+          cost_template_id?: { in: string[] };
+        };
+      }) =>
+        skips.filter((skip) => {
+          if (
+            where?.date &&
+            (skip.date < where.date.gte || skip.date > where.date.lte)
+          ) {
+            return false;
+          }
+
+          if (
+            where?.cost_template_id?.in &&
+            !where.cost_template_id.in.includes(skip.cost_template_id)
+          ) {
+            return false;
+          }
+
+          return true;
+        }),
+      findUnique: async ({
+        where,
+      }: {
+        where: {
+          cost_template_id_date: {
+            cost_template_id: string;
+            date: Date;
+          };
+        };
+      }) =>
+        skips.find(
+          (skip) =>
+            skip.cost_template_id === where.cost_template_id_date.cost_template_id &&
+            skip.date.getTime() === where.cost_template_id_date.date.getTime(),
+        ) ?? null,
+      create: async ({
+        data,
+      }: {
+        data: {
+          cost_template_id: string;
+          date: Date;
+        };
+      }) => {
+        const existing = skips.find(
+          (skip) =>
+            skip.cost_template_id === data.cost_template_id &&
+            skip.date.getTime() === data.date.getTime(),
+        );
+
+        if (existing) {
+          throw { code: "P2002" };
+        }
+
+        const created = {
+          id: `cost_template_skip_${++sequence}`,
+          created_at: new Date("2026-04-01T12:00:00.000Z"),
+          ...data,
+        };
+
+        skips.push(created);
+
+        return created;
+      },
+    },
   };
 
   return {
     ...tx,
+    skips,
+    templates,
     async $transaction<T>(callback: (transaction: typeof tx) => Promise<T>) {
       return callback(tx);
     },

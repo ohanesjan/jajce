@@ -24,6 +24,10 @@ const phaseSevenNotificationGuardsMigrationPath = path.join(
   projectRoot,
   "prisma/migrations/20260405120000_phase7_notification_selection_and_recipient_unique/migration.sql",
 );
+const phaseThreeCostTemplateSkipMigrationPath = path.join(
+  projectRoot,
+  "prisma/migrations/20260405130000_phase3_cost_template_skips/migration.sql",
+);
 
 describe("Phase 1 schema and migration safeguards", () => {
   it("does not keep a global uniqueness constraint on inventory_transactions.daily_log_id", () => {
@@ -108,6 +112,21 @@ describe("Phase 1 schema and migration safeguards", () => {
     );
     expect(migration).toContain(
       'FOREIGN KEY ("contact_id") REFERENCES "contacts"("id")',
+    );
+  });
+
+  it("adds durable recurring-template skip tracking keyed by template and date", () => {
+    const schema = readFileSync(schemaPath, "utf8");
+    const migration = readFileSync(phaseThreeCostTemplateSkipMigrationPath, "utf8");
+
+    expect(schema).toContain("model CostTemplateSkip");
+    expect(schema).toContain("@@unique([cost_template_id, date])");
+    expect(migration).toContain('CREATE TABLE "cost_template_skips"');
+    expect(migration).toContain(
+      'CREATE UNIQUE INDEX "cost_template_skips_cost_template_id_date_key"',
+    );
+    expect(migration).toContain(
+      'FOREIGN KEY ("cost_template_id") REFERENCES "cost_templates"("id")',
     );
   });
 

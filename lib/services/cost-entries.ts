@@ -1,23 +1,29 @@
 import {
   CostEntry,
   CostTemplate,
+  CostTemplateSkip,
   Prisma,
   PrismaClient,
 } from "@prisma/client";
 import { getDb } from "@/lib/db";
 import {
-  RecurringCostSuggestion,
+  RecurringCostOccurrence,
   getRecurringCostSuggestionForDate,
 } from "@/lib/services/cost-templates";
 import {
   CostValidationError,
+  assertDateRangeOrder,
+  parseBooleanLike,
   parseCostCategory,
+  parseCostFrequency,
   parseCostSourceType,
   parseCostType,
+  parseOptionalDateOnly,
   parseOptionalNonNegativeDecimal,
   parseOptionalText,
   parseRequiredDateOnly,
   parseRequiredNonNegativeDecimal,
+  parseRequiredText,
 } from "@/lib/services/cost-validation";
 
 export class CostEntryNotFoundError extends Error {}
@@ -58,7 +64,18 @@ export type CostEntryWriteInput = Pick<
   | "note"
 >;
 
-type CostEntryDb = Pick<PrismaClient, "$transaction" | "costEntry" | "costTemplate">;
+export type RecurringTemplateFromCostEntryInput = {
+  name: unknown;
+  frequency: unknown;
+  start_date: unknown;
+  end_date?: unknown;
+  is_active?: unknown;
+};
+
+type CostEntryDb = Pick<
+  PrismaClient,
+  "$transaction" | "costEntry" | "costTemplate" | "costTemplateSkip"
+>;
 type CostEntryListDb = Pick<PrismaClient, "costEntry">;
 
 export function validateCostEntryInput(
@@ -148,6 +165,45 @@ export async function createCostEntry(
   }
 }
 
+export async function createCostEntryWithRecurringTemplate(
+  costEntryInput: CostEntryMutationInput,
+  recurringTemplateInput: RecurringTemplateFromCostEntryInput,
+  database: CostEntryDb = getDb(),
+): Promise<{
+  cost_entry: CostEntry;
+  cost_template: CostTemplate;
+}> {
+  const validatedCostEntry = validateCostEntryInput(costEntryInput);
+  const validatedRecurringTemplate = validateRecurringTemplateFromCostEntryInput(
+    validatedCostEntry,
+    recurringTemplateInput,
+  );
+
+  try {
+    return await database.$transaction(async (tx) => {
+      const costEntry = await tx.costEntry.create({
+        data: validatedCostEntry,
+      });
+      const costTemplate = await tx.costTemplate.create({
+        data: validatedRecurringTemplate,
+      });
+
+      await createOrReuseCostTemplateSkip(
+        tx,
+        costTemplate.id,
+        validatedCostEntry.date,
+      );
+
+      return {
+        cost_entry: costEntry,
+        cost_template: costTemplate,
+      };
+    });
+  } catch (error) {
+    throw normalizeCostEntryMutationError(error);
+  }
+}
+
 export async function updateCostEntry(
   costEntryId: string,
   input: CostEntryMutationInput,
@@ -211,6 +267,59 @@ export async function acceptRecurringCostSuggestion(
 
   try {
     return await database.$transaction(async (tx) => {
+      const suggestion = await getPendingRecurringSuggestionOrThrow(
+        tx,
+        costTemplateId,
+        date,
+      );
+
+      return tx.costEntry.create({
+        data: buildAcceptedSuggestionCreateInput(suggestion),
+      });
+    });
+  } catch (error) {
+    throw normalizeCostEntryMutationError(error);
+  }
+}
+
+export async function acceptRecurringCostSuggestionWithOverrides(
+  costTemplateId: string,
+  input: CostEntryMutationInput,
+  database: CostEntryDb = getDb(),
+): Promise<CostEntry> {
+  const suggestionDate = parseRequiredDateOnly(input.date, "Suggestion date");
+
+  try {
+    return await database.$transaction(async (tx) => {
+      const suggestion = await getPendingRecurringSuggestionOrThrow(
+        tx,
+        costTemplateId,
+        suggestionDate,
+      );
+      const validatedInput = validateTemplateAcceptedSuggestionInput(
+        costTemplateId,
+        suggestion.date,
+        input,
+      );
+
+      return tx.costEntry.create({
+        data: validatedInput,
+      });
+    });
+  } catch (error) {
+    throw normalizeCostEntryMutationError(error);
+  }
+}
+
+export async function skipRecurringCostSuggestion(
+  costTemplateId: string,
+  dateInput: unknown,
+  database: CostEntryDb = getDb(),
+): Promise<CostTemplateSkip> {
+  const date = parseRequiredDateOnly(dateInput, "Suggestion date");
+
+  try {
+    return await database.$transaction(async (tx) => {
       const suggestion = await getRecurringCostSuggestionForDate(
         costTemplateId,
         date,
@@ -223,14 +332,30 @@ export async function acceptRecurringCostSuggestion(
         );
       }
 
-      if (suggestion.already_accepted) {
+      if (suggestion.status === "accepted") {
         throw new DuplicateAcceptedCostTemplateEntryError(
           "That recurring cost has already been accepted for the selected date.",
         );
       }
 
-      return tx.costEntry.create({
-        data: buildAcceptedSuggestionCreateInput(suggestion),
+      const existingSkip = await tx.costTemplateSkip.findUnique({
+        where: {
+          cost_template_id_date: {
+            cost_template_id: costTemplateId,
+            date,
+          },
+        },
+      });
+
+      if (existingSkip) {
+        return existingSkip;
+      }
+
+      return tx.costTemplateSkip.create({
+        data: {
+          cost_template_id: costTemplateId,
+          date,
+        },
       });
     });
   } catch (error) {
@@ -238,8 +363,89 @@ export async function acceptRecurringCostSuggestion(
   }
 }
 
+async function getPendingRecurringSuggestionOrThrow(
+  database: Pick<CostEntryDb, "costEntry" | "costTemplate" | "costTemplateSkip">,
+  costTemplateId: string,
+  date: Date,
+): Promise<RecurringCostOccurrence> {
+  const suggestion = await getRecurringCostSuggestionForDate(
+    costTemplateId,
+    date,
+    database,
+  );
+
+  if (!suggestion) {
+    throw new CostTemplateSuggestionNotFoundError(
+      "No recurring cost suggestion is available for that date.",
+    );
+  }
+
+  if (suggestion.status === "accepted") {
+    throw new DuplicateAcceptedCostTemplateEntryError(
+      "That recurring cost has already been accepted for the selected date.",
+    );
+  }
+
+  if (suggestion.status === "skipped") {
+    throw new CostTemplateSuggestionNotFoundError(
+      "That recurring cost suggestion was already skipped for the selected date.",
+    );
+  }
+
+  return suggestion;
+}
+
+function validateTemplateAcceptedSuggestionInput(
+  costTemplateId: string,
+  suggestionDate: Date,
+  input: CostEntryMutationInput,
+): CostEntryWriteInput {
+  const validatedInput = validateCostEntryInputInternal(
+    {
+      ...input,
+      date: suggestionDate,
+      source_type: "template",
+      cost_template_id: costTemplateId,
+    },
+    { allowTemplateSource: true },
+  );
+
+  return {
+    ...validatedInput,
+    date: suggestionDate,
+    source_type: "template",
+    cost_template_id: costTemplateId,
+  };
+}
+
+function validateRecurringTemplateFromCostEntryInput(
+  validatedCostEntry: CostEntryWriteInput,
+  input: RecurringTemplateFromCostEntryInput,
+): Prisma.CostTemplateCreateInput {
+  const start_date = parseRequiredDateOnly(input.start_date, "Recurring start date");
+  const end_date = parseOptionalDateOnly(input.end_date, "Recurring end date");
+
+  assertDateRangeOrder(start_date, end_date, "Recurring end date");
+
+  return {
+    name: parseRequiredText(input.name, "Template name"),
+    category: validatedCostEntry.category,
+    cost_type: validatedCostEntry.cost_type,
+    default_quantity: validatedCostEntry.quantity,
+    default_unit: validatedCostEntry.unit,
+    default_unit_price: validatedCostEntry.unit_price,
+    default_total_amount: validatedCostEntry.total_amount,
+    frequency: parseCostFrequency(input.frequency),
+    start_date,
+    end_date,
+    is_active:
+      input.is_active === undefined ? true : parseBooleanLike(input.is_active),
+    note: validatedCostEntry.note,
+  };
+}
+
 function buildAcceptedSuggestionCreateInput(
-  suggestion: RecurringCostSuggestion,
+  suggestion: RecurringCostOccurrence,
 ): Prisma.CostEntryUncheckedCreateInput {
   const template = suggestion.template;
 
@@ -255,6 +461,53 @@ function buildAcceptedSuggestionCreateInput(
     cost_template_id: template.id,
     note: template.note,
   };
+}
+
+async function createOrReuseCostTemplateSkip(
+  database: Pick<CostEntryDb, "costTemplateSkip">,
+  costTemplateId: string,
+  date: Date,
+): Promise<CostTemplateSkip> {
+  const existingSkip = await database.costTemplateSkip.findUnique({
+    where: {
+      cost_template_id_date: {
+        cost_template_id: costTemplateId,
+        date,
+      },
+    },
+  });
+
+  if (existingSkip) {
+    return existingSkip;
+  }
+
+  try {
+    return await database.costTemplateSkip.create({
+      data: {
+        cost_template_id: costTemplateId,
+        date,
+      },
+    });
+  } catch (error) {
+    if (!isPrismaErrorCode(error, "P2002")) {
+      throw error;
+    }
+
+    const duplicateSkip = await database.costTemplateSkip.findUnique({
+      where: {
+        cost_template_id_date: {
+          cost_template_id: costTemplateId,
+          date,
+        },
+      },
+    });
+
+    if (duplicateSkip) {
+      return duplicateSkip;
+    }
+
+    throw error;
+  }
 }
 
 function normalizeCostEntryMutationError(error: unknown): Error {

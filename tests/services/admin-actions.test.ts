@@ -15,10 +15,14 @@ const deleteDailyLogMock = vi.fn();
 const createCostTemplateMock = vi.fn();
 const updateCostTemplateMock = vi.fn();
 const deleteCostTemplateMock = vi.fn();
+const setCostTemplateActiveStateMock = vi.fn();
 const createCostEntryMock = vi.fn();
+const createCostEntryWithRecurringTemplateMock = vi.fn();
 const updateCostEntryMock = vi.fn();
 const deleteCostEntryMock = vi.fn();
 const acceptRecurringCostSuggestionMock = vi.fn();
+const acceptRecurringCostSuggestionWithOverridesMock = vi.fn();
+const skipRecurringCostSuggestionMock = vi.fn();
 const createContactMock = vi.fn();
 const updateContactMock = vi.fn();
 const deleteContactMock = vi.fn();
@@ -78,6 +82,7 @@ vi.mock("@/lib/services/cost-templates", async () => {
     createCostTemplate: createCostTemplateMock,
     updateCostTemplate: updateCostTemplateMock,
     deleteCostTemplate: deleteCostTemplateMock,
+    setCostTemplateActiveState: setCostTemplateActiveStateMock,
   };
 });
 
@@ -89,9 +94,13 @@ vi.mock("@/lib/services/cost-entries", async () => {
   return {
     ...actual,
     createCostEntry: createCostEntryMock,
+    createCostEntryWithRecurringTemplate: createCostEntryWithRecurringTemplateMock,
     updateCostEntry: updateCostEntryMock,
     deleteCostEntry: deleteCostEntryMock,
     acceptRecurringCostSuggestion: acceptRecurringCostSuggestionMock,
+    acceptRecurringCostSuggestionWithOverrides:
+      acceptRecurringCostSuggestionWithOverridesMock,
+    skipRecurringCostSuggestion: skipRecurringCostSuggestionMock,
   };
 });
 
@@ -281,6 +290,44 @@ describe("admin actions", () => {
       expect(createCostEntryMock).toHaveBeenCalledTimes(1);
     });
 
+    it("saveCostEntryAction redirects to recurring success when saving a cost plus template", async () => {
+      createCostEntryWithRecurringTemplateMock.mockResolvedValueOnce({
+        cost_entry: { id: "cost_entry_1" },
+        cost_template: { id: "template_1" },
+      });
+
+      const { saveCostEntryAction } = await import("@/app/admin/actions");
+
+      await expect(
+        saveCostEntryAction(buildRecurringCostEntryFormData()),
+      ).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/costs?success=saved_with_recurring&suggestionDate=2026-04-09",
+      );
+      expect(createCostEntryWithRecurringTemplateMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("saveCostEntryAction redirects to accepted when saving an edited recurring suggestion", async () => {
+      acceptRecurringCostSuggestionWithOverridesMock.mockResolvedValueOnce({
+        id: "cost_entry_1",
+      });
+
+      const { saveCostEntryAction } = await import("@/app/admin/actions");
+      const formData = buildCostEntryFormData();
+
+      formData.set("accept_cost_template_id", "template_1");
+
+      await expect(saveCostEntryAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/costs?success=accepted&suggestionDate=2026-04-09",
+      );
+      expect(acceptRecurringCostSuggestionWithOverridesMock).toHaveBeenCalledWith(
+        "template_1",
+        expect.objectContaining({
+          date: "2026-04-09",
+          total_amount: "15.00",
+        }),
+      );
+    });
+
     it("deleteCostEntryAction redirects to success after deleting a cost entry", async () => {
       deleteCostEntryMock.mockResolvedValueOnce(undefined);
 
@@ -311,6 +358,46 @@ describe("admin actions", () => {
       expect(acceptRecurringCostSuggestionMock).toHaveBeenCalledWith(
         "template_1",
         "2026-04-09",
+      );
+    });
+
+    it("skipCostSuggestionAction redirects to success after skipping one occurrence", async () => {
+      skipRecurringCostSuggestionMock.mockResolvedValueOnce({ id: "skip_1" });
+
+      const { skipCostSuggestionAction } = await import("@/app/admin/actions");
+      const formData = new FormData();
+
+      formData.set("cost_template_id", "template_1");
+      formData.set("date", "2026-04-09");
+
+      await expect(skipCostSuggestionAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/costs?success=skipped&suggestionDate=2026-04-09",
+      );
+      expect(skipRecurringCostSuggestionMock).toHaveBeenCalledWith(
+        "template_1",
+        "2026-04-09",
+      );
+    });
+
+    it("toggleCostTemplateActiveAction redirects back to costs after updating lifecycle state", async () => {
+      setCostTemplateActiveStateMock.mockResolvedValueOnce({ id: "template_1" });
+
+      const { toggleCostTemplateActiveAction } = await import(
+        "@/app/admin/actions"
+      );
+      const formData = new FormData();
+
+      formData.set("id", "template_1");
+      formData.set("is_active", "on");
+      formData.set("return_to", "/admin/costs");
+      formData.set("suggestion_date", "2026-04-09");
+
+      await expect(toggleCostTemplateActiveAction(formData)).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/costs?success=template_updated&suggestionDate=2026-04-09",
+      );
+      expect(setCostTemplateActiveStateMock).toHaveBeenCalledWith(
+        "template_1",
+        true,
       );
     });
 
@@ -564,6 +651,19 @@ function buildCostEntryFormData() {
   formData.set("cost_template_id", "");
   formData.set("note", "Feed cost");
   formData.set("suggestion_date", "2026-04-09");
+
+  return formData;
+}
+
+function buildRecurringCostEntryFormData() {
+  const formData = buildCostEntryFormData();
+
+  formData.set("save_as_recurring", "on");
+  formData.set("template_name", "Weekly feed");
+  formData.set("recurring_frequency", "weekly");
+  formData.set("recurring_start_date", "2026-04-09");
+  formData.set("recurring_end_date", "");
+  formData.set("recurring_is_active", "on");
 
   return formData;
 }
