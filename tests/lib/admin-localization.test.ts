@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { ADMIN_LANGUAGE } from "@/lib/admin-language";
 import {
-  ADMIN_LANGUAGE,
-  adminCopy,
   getAdminCopy,
   formatAdminActiveState,
   formatAdminRecurringSchedule,
@@ -11,7 +10,7 @@ import {
 describe("admin localization helpers", () => {
   it("defaults admin language to Macedonian", () => {
     expect(ADMIN_LANGUAGE).toBe("mk");
-    expect(adminCopy.login.email).toBe("Е-пошта");
+    expect(getAdminCopy().login.email).toBe("Е-пошта");
   });
 
   it("maps admin-visible enum values to Macedonian labels", () => {

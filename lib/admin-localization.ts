@@ -1122,9 +1122,6 @@ const ADMIN_COPY: Record<AdminLanguage, typeof mkAdminCopy> = {
 
 export type AdminCopy = typeof mkAdminCopy;
 
-export const adminCopy = mkAdminCopy;
-export { ADMIN_LANGUAGE };
-
 export function getAdminCopy(language: AdminLanguage = ADMIN_LANGUAGE): AdminCopy {
   return ADMIN_COPY[language];
 }
