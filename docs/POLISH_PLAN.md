@@ -15,90 +15,64 @@ This document tracks narrow post-MVP polish/refinement passes so future work sta
 
 ## Planned polish passes
 
-### Polish Pass 1A — Costs UX
+### Polish Pass 1A — Costs UX ✅ Completed
 Goal: improve the operational cost-entry workflow without changing the underlying cost model.
 
-Scope:
-- Move recurring-template creation into the normal cost-entry flow.
-- Add a checkbox/toggle for:
-  - “save as recurring template”
-- When enabled, show recurring-template fields inline:
-  - frequency
-  - start date
-  - end date optional
-  - active/inactive if needed
-- Keep `cost_templates` and `cost_entries` as separate underlying records.
-- Saving a cost with recurring enabled should create:
-  - the current cost entry
-  - the recurring template
-
-#### Cost field behavior
-- Prefill cost date with today by default.
-- `quantity` and `unit_price` may be empty.
-- UI should compute the missing third field when possible:
-  - quantity + unit_price → total_amount
-  - quantity + total_amount → unit_price
-- Do not aggressively overwrite fields the user is actively editing.
-- Backend still treats `total_amount` as the accounting truth on save.
-
-#### Recurring suggestions UX
-Recurring suggestions should support:
-- Accept
-- Edit & accept
-- Skip
-
-Meaning of skip:
-- skip only that occurrence
-- do not disable or delete the template
-
-#### Forward-looking recurring costs
-Add a compact read-only overview for recurring costs:
-- next 7 days
-- next 30 days
-
-This should remain lightweight and not become a large scheduler UI.
-
-#### Template lifecycle
-Prefer:
-- active / inactive
-
-Do not make delete the primary recurring-template control.
-
----
-
-### Polish Pass 1B — Admin Macedonian
-Goal: translate the user-facing admin UI to Macedonian and make Macedonian the default admin language.
-
-Scope:
-- Translate user-facing admin UI labels, messages, buttons, headings, and help text.
-- Keep translations aligned in tone with the public landing page.
-- Macedonian should be the default language.
-- Only user-facing admin UI needs translation.
-- Do not change business logic in this pass.
+Implemented:
+- recurring-template creation moved into the normal cost-entry flow
+- inline recurring-template fields in the cost-entry form
+- `quantity` / `unit_price` / `total_amount` helper behavior in UI
+- date in costs prefilled with today
+- recurring suggestions now support:
+  - Accept
+  - Edit & accept
+  - Skip
+- skip is per-occurrence only
+- compact read-only recurring overview for:
+  - next 7 days
+  - next 30 days
+- recurring-template lifecycle is now oriented around:
+  - active / inactive
+- cost templates are no longer the primary admin workflow
+- when a recurring template is created from a booked cost on date X, that same occurrence is automatically treated as handled and does not reappear as pending on that date
 
 Notes:
-- Internal technical values and schema names do not need to change.
-- Keep translation work separate from business-logic changes where possible.
+- `cost_templates` and `cost_entries` remain separate underlying records
+- `total_amount` remains backend truth on save
 
 ---
 
-### Polish Pass 1C — Docs refresh
+### Polish Pass 1B — Admin Macedonian + bilingual admin UI ✅ Completed
+Goal: translate the admin UI to Macedonian, keep Macedonian as default, and add a safe bilingual admin switch.
+
+Implemented:
+- user-facing admin UI translated to Macedonian
+- Macedonian remains the default admin language
+- bilingual admin UI now supports:
+  - `mk`
+  - `en`
+- admin language is SSR-safe and cookie-based
+- admin language switch added in the header
+- logout moved into the same top-right header control area
+- English app label remains:
+  - `Jajce Admin`
+- Macedonian app label is:
+  - `Jajce Администратор`
+
+Notes:
+- this pass stayed UI-text-only
+- internal enum values, routes, query params, schema/service identifiers, and business logic remain unchanged
+- public homepage language handling was not changed by this pass
+
+---
+
+### Polish Pass 1C — Docs refresh ✅ Completed
 Goal: keep Codex and the repo aligned with the actual implemented MVP and current polish direction.
 
-Scope:
-- Add/update `MVP_CURRENT_STATE.md`
-- Keep original MVP planning docs as historical references
-- Lightly update:
-  - `IMPLEMENTATION_PLAN.md`
-  - `PRODUCT_SCOPE.md`
-  - `DATA_MODEL.md`
-  - `BUSINESS_RULES.md`
-  - `CODEX_GUARDRAILS.md`
-- Keep `STABILITY_BACKLOG.md` current
-
-Principle:
-- Do not rewrite all docs from scratch
-- Update only what is misleading or now part of the implemented current state
+Implemented:
+- current-state docs refreshed
+- original MVP planning docs preserved as historical references
+- key docs updated so future work uses the actual implemented system as context
 
 ---
 
@@ -130,6 +104,16 @@ Principle:
 - Macedonian should be default
 - Keep translation tone aligned with the landing page
 
+### Admin language switch / header
+- admin language is cookie-based and SSR-safe
+- Macedonian is the default
+- English app label remains:
+  - `Jajce Admin`
+- Macedonian app label is:
+  - `Jajce Администратор`
+- language switch uses the same visual style direction as the public page
+- logout lives in the same top-right header area as the language switch
+
 ---
 
 ## Not part of this polish plan unless explicitly approved
@@ -150,23 +134,22 @@ For polish work:
 - preserve existing service-layer source-of-truth logic
 - do not introduce broad architectural changes unless explicitly requested
 
-### Polish Pass 1D — Homepage public-note behavior
-
+### Polish Pass 1D — Homepage public-note behavior ⏳ Planned
 Goal: make homepage behavior consistent and predictable when the public note is disabled.
 
-Scope:
-- When `homepage_public_note_enabled = false`:
+Planned scope:
+- when `homepage_public_note_enabled = false`:
   - homepage must fully fall back to the standard derived values:
     - today eggs
     - yesterday eggs
     - chicken count
     - availability message
-- No stale or previously entered public note should remain visible.
+- no stale or previously entered public note should remain visible
 
 Admin UX:
-- In the dashboard toggle section:
+- in the dashboard toggle section:
   - clearly indicate that disabling the public note restores default homepage behavior
-- Optionally show helper text:
+- optionally show helper text:
   - “When disabled, the homepage shows only live production data and availability.”
 
 Data behavior:
@@ -177,3 +160,24 @@ Data behavior:
 Principle:
 - toggle controls visibility only, not data
 - homepage always has a deterministic fallback state
+
+### Polish Pass 1E — Admin language switch + header polish ✅ Completed
+Goal: add a safe admin language switch and improve the protected admin header layout.
+
+Implemented:
+- cookie-only admin language source of truth
+- SSR-safe language switching for server-rendered admin pages
+- top-right header cluster with:
+  - language switch
+  - logout
+- clean protected admin header layout with:
+  - app/admin identity on the left
+  - switch + logout on the right
+  - nav row below
+- current admin URL and search params are preserved when switching language
+
+Rules kept:
+- no route-based language system
+- no localStorage-based admin language source of truth
+- no heavy i18n framework
+- no business-logic changes

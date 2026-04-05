@@ -5,6 +5,7 @@
 > - `docs/MVP_CURRENT_STATE.md`
 > - `docs/STABILITY_BACKLOG.md`
 > - future polish-plan docs
+> Post-MVP polish work has already started and should continue from `docs/POLISH_PLAN.md` rather than reopening the original MVP implementation phases.
 
 # Jajce Admin/Dashboard MVP — Recommended Codex Implementation Plan
 

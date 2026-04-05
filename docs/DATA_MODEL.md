@@ -120,6 +120,24 @@ Enums:
 - `cost_type`: `direct`, `allocated`
 - `frequency`: `daily`, `weekly`, `monthly`
 
+Polish-state note:
+- recurring-template creation is now primarily driven from the costs flow
+- the separate cost-templates page remains a secondary maintenance route
+
+## 4A. cost_template_skips
+Purpose: persisted per-occurrence skips for recurring cost suggestions.
+
+Fields:
+- `id`
+- `cost_template_id`
+- `date`
+- `created_at`
+
+Notes:
+- this table records “skip only this occurrence”
+- skipping an occurrence does not disable or delete the template
+- keep one row max per `(cost_template_id, date)`
+
 ## 5. cost_entries
 Purpose: actual accepted/booked costs for a specific day.
 
@@ -286,6 +304,7 @@ Notes:
 - `inventory_transactions.daily_log_id -> daily_logs.id`
 - `inventory_transactions.order_id -> orders.id`
 - `cost_entries.cost_template_id -> cost_templates.id`
+- `cost_template_skips.cost_template_id -> cost_templates.id`
 - `notification_recipients.campaign_id -> notification_campaigns.id`
 - `notification_recipients.contact_id -> contacts.id`
 

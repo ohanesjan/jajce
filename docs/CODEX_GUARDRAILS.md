@@ -12,6 +12,7 @@
 - MVP core implementation is complete.
 - Further Codex work should be treated as narrow polish/refinement passes unless explicitly asked otherwise.
 - Avoid broad architectural rework unless explicitly requested.
+- Post-MVP polish already includes costs UX improvements and bilingual admin UI with SSR-safe language switching.
 
 ## Implementation boundaries
 - Do not build the full system in one shot.
@@ -19,6 +20,7 @@
 - Do not add speculative abstractions unless they clearly reduce risk.
 - Do not overbuild auth or permissions.
 - Do not add customer self-serve accounts in MVP.
+- Do not reintroduce cost templates as the primary recurring-cost workflow unless explicitly requested.
 
 ## Data/business constraints
 - `eggs_total_yield` must be auto-calculated from the other egg outcome fields.

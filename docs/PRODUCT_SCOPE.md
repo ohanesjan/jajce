@@ -50,7 +50,9 @@ Implemented modules/pages:
 
 Notes:
 - homepage public-note control currently exists as a minimal dashboard toggle
-- recurring cost template behavior exists in the system, but future/admin UX may move further toward creation and management from the costs flow rather than a separate long-term template-centric page
+- recurring cost template behavior is now primarily driven from the costs flow
+- the separate cost-templates page is now a secondary maintenance route, not the primary recurring-cost workflow
+- admin UI now supports Macedonian and English, with Macedonian as the default
 
 ## What the MVP must do
 - secure admin login

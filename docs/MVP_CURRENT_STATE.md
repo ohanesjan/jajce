@@ -97,3 +97,22 @@ Exact stock remains admin-only.
 
 ## Current direction for polish work
 Post-MVP work should be treated as narrow polish/refinement passes, not new MVP architecture work.
+
+## Post-MVP polish completed so far
+### Costs UX
+Implemented:
+- inline recurring-template creation from the normal cost-entry flow
+- per-occurrence skip for recurring suggestions
+- accept / edit & accept / skip suggestion handling
+- compact recurring preview for next 7 / 30 days
+- today-prefilled cost date
+- cost form helper behavior for quantity / unit_price / total_amount
+- same-day recurring occurrence auto-handled when created from a booked cost
+
+### Admin language / localization
+Implemented:
+- Macedonian admin UI
+- bilingual admin UI (`mk` / `en`)
+- SSR-safe cookie-based admin language
+- admin language switch in header
+- top-right header control cluster for language switch + logout

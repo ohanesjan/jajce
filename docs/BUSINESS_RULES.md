@@ -134,6 +134,30 @@ Do not use inventory ledger as the primary sales-truth source for this KPI.
 `cost_templates` generate suggestions only.
 Accepted suggestions become real `cost_entries`.
 
+### Recurring cost UX rules
+- recurring-template creation may happen directly from the normal cost-entry flow
+- creating a booked cost and recurring template together must create:
+  - the booked `cost_entry`
+  - the recurring `cost_template`
+- if a recurring template is created from a booked cost on date X, that same occurrence for date X must be treated as already handled and must not show as a pending recurring suggestion
+
+### Per-occurrence skip rule
+- recurring suggestions may be skipped per occurrence
+- skip means:
+  - skip only that occurrence
+  - do not disable or delete the template
+
+### Recurring suggestions UX
+Recurring suggestions support:
+- Accept
+- Edit & accept
+- Skip
+
+### Forward-looking recurring overview
+The costs flow may show a compact read-only recurring overview for:
+- next 7 days
+- next 30 days
+
 ### Cost truth
 For margin calculations:
 - `total_amount` is always the accounting truth
@@ -283,6 +307,12 @@ A provider delivery success must not later be rewritten as a delivery failure on
 - local email/password auth for MVP
 - keep implementation structured so broader user auth can evolve later
 - do not overbuild multi-role auth now
+
+### Admin language state
+- admin language is cookie-based and SSR-safe
+- Macedonian is the default admin language
+- the admin UI may support both `mk` and `en`
+- admin language switching must preserve the current admin URL and search params
 
 ## 12. Dashboard rules
 Support two modes.

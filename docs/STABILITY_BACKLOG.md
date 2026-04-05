@@ -14,3 +14,6 @@
 - Fixed false admin success->error redirects caused by redirect() inside try/catch
 - Fixed daily-log raw SQL insert ID mismatch against DB schema
 - Fixed manual cost-entry source_type null/undefined defaulting
+- Removed server/client boundary leak from admin language switching by splitting shared language helpers from server-only cookie helpers
+- Fixed stale client cost-form state by keying the form by create/edit/accept context
+- Auto-handled same-day recurring occurrence when creating a recurring template from a booked cost
