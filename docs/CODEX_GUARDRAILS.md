@@ -8,6 +8,11 @@
 - Keep exact stock admin-only.
 - Public homepage shows soft availability messaging only.
 
+## Current project state
+- MVP core implementation is complete.
+- Further Codex work should be treated as narrow polish/refinement passes unless explicitly asked otherwise.
+- Avoid broad architectural rework unless explicitly requested.
+
 ## Implementation boundaries
 - Do not build the full system in one shot.
 - Do not skip schema/domain logic and jump straight to UI.
@@ -25,6 +30,8 @@
 - Keep `source_type` in `cost_entries`.
 - Cost templates are suggestion definitions, not booked costs.
 - Design recurring cost flow so pending suggestion behavior can be added later.
+- Daily-log stock-reducing edits/deletes must be blocked if they would unsafely reduce sellable stock already consumed by downstream reservations/sales.
+- Non-destructive daily-log corrections must remain allowed.
 
 ## Public sync constraints
 - Homepage `Денес` and `Вчера` must use `eggs_collected_for_sale`.
@@ -39,6 +46,9 @@
 - Schema must already support channels for email, viber, whatsapp.
 - Preserve per-recipient delivery history.
 - Store the destination actually used.
+- Draft campaigns with persisted recipient rows may become recoverable send-only drafts.
+- Only pending recipients should be retried in that recovery flow.
+- Do not recreate recipient rows during recovery sends.
 
 ## Dashboard constraints
 - Support simple and expanded dashboard modes.

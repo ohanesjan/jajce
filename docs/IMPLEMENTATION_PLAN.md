@@ -1,3 +1,11 @@
+> Note:
+> Phases 1–8 of the original MVP implementation are completed.
+> This file remains as historical implementation guidance for how the MVP was built.
+> Ongoing work should now be treated as post-MVP polish/refinement and should use:
+> - `docs/MVP_CURRENT_STATE.md`
+> - `docs/STABILITY_BACKLOG.md`
+> - future polish-plan docs
+
 # Jajce Admin/Dashboard MVP — Recommended Codex Implementation Plan
 
 ## Core principle

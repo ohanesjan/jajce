@@ -3,6 +3,10 @@
 ## Objective
 Build a private admin/backoffice system for jajce.mk that manages daily egg production, sellable stock, detailed costs, contacts, orders/reservations, notifications, and dashboard insights, while keeping the existing public homepage and wiring it to backend data.
 
+## Current state note
+The MVP described in this file is now implemented.
+This file remains useful as the product-scope baseline, but ongoing work should be treated as post-MVP polish/refinement of the existing system rather than first-time MVP build work.
+
 ## Existing public site
 - Preserve the existing homepage at jajce.mk.
 - Do not redesign it from scratch.
@@ -34,17 +38,19 @@ Later, the system should support:
 - recurring customer preferences
 
 ## Admin-side MVP scope
-Build these modules/pages:
+Implemented modules/pages:
 - login
 - dashboard
 - daily logs
 - costs
-- cost templates
 - contacts
 - orders
 - notifications
-- settings
 - margin insights
+
+Notes:
+- homepage public-note control currently exists as a minimal dashboard toggle
+- recurring cost template behavior exists in the system, but future/admin UX may move further toward creation and management from the costs flow rather than a separate long-term template-centric page
 
 ## What the MVP must do
 - secure admin login

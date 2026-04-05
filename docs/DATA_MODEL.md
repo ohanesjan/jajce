@@ -248,7 +248,21 @@ Notes:
 - Preserve the actual destination used.
 - Preserve provider message ID for later integrations.
 
-## 10. site_settings
+
+## 10. notification_campaign_selected_contacts
+Purpose: persisted selected-contact membership for `selected_contacts` draft campaigns.
+
+Fields:
+- `campaign_id`
+- `contact_id`
+- `created_at`
+
+Notes:
+- this join table persists explicit selected contact membership while a campaign is still a draft
+- selected contacts are re-resolved against current contact data at send time
+- keep one row max per `(campaign_id, contact_id)`
+
+## 11. site_settings
 Purpose: small global config values.
 
 Fields:
@@ -263,6 +277,10 @@ Required MVP keys:
 - `homepage_availability_mode`
 - `homepage_public_note_enabled`
 
+Notes:
+- `homepage_availability_mode` currently exists in schema/settings but is not part of the active homepage decision flow
+- current homepage availability behavior is threshold-based from source-of-truth services
+
 ## Relationships
 - `orders.contact_id -> contacts.id`
 - `inventory_transactions.daily_log_id -> daily_logs.id`
@@ -270,3 +288,6 @@ Required MVP keys:
 - `cost_entries.cost_template_id -> cost_templates.id`
 - `notification_recipients.campaign_id -> notification_campaigns.id`
 - `notification_recipients.contact_id -> contacts.id`
+
+- `notification_campaign_selected_contacts.campaign_id -> notification_campaigns.id`
+- `notification_campaign_selected_contacts.contact_id -> contacts.id`

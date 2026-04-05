@@ -61,6 +61,17 @@ Important implementation rule:
 - daily log edits must reconcile inventory safely
 - do not simply append duplicate `collected` rows on edits
 
+### Daily-log safety rules
+Unsafe daily-log edits/deletes must be blocked in service logic.
+
+Specifically:
+- reducing or removing `eggs_collected_for_sale` must be blocked if that change would make sellable stock inconsistent or negative after downstream `reserved` / `sold` usage is considered
+- do not silently auto-reconcile destructive stock edits
+- non-destructive corrections must remain allowed, including:
+  - same-quantity edits
+  - stock-increasing edits
+  - note/public-note/chicken-count-only corrections
+
 ## 4. Order lifecycle rules
 ### Statuses
 - `reserved`
@@ -213,6 +224,9 @@ Important:
 MVP public intake is notify-only.
 Contacts may later gain richer preference flows.
 
+### Homepage freshness
+The homepage route must stay fresh for backend-derived values and is currently implemented as dynamic / non-cached.
+
 ## 10. Notifications rules
 ### MVP sending
 - email sending only
@@ -231,6 +245,39 @@ The system must already support channels in schema for:
 
 ### Delivery history
 Store recipient-level delivery outcome rows.
+
+### Campaign editability
+- only `draft` campaigns are editable
+- `sent` and `failed` campaigns are read-only in MVP
+
+### selected_contacts drafts
+- explicit selected-contact membership must be persisted while the campaign is still a draft
+- selected contacts must be re-resolved against current contact data at send time
+
+### Email eligibility
+A contact is email-eligible only if:
+- a valid email exists
+- `email_opt_in = true`
+
+Do not block email eligibility based on `preferred_channel`.
+
+### Recoverable send-only drafts
+If recipient snapshotting already happened and the campaign is still not terminal:
+- the campaign must no longer behave as a normal editable draft
+- it becomes a recoverable send-only draft
+- send may resume using persisted recipient rows
+- only `pending` recipients should be retried
+- existing recipient rows must not be recreated
+
+### Recipient outcome persistence
+- persist the actual destination used
+- persist recipient outcomes incrementally after each provider call when possible
+- campaign status becomes:
+  - `sent` only if all recipients succeed
+  - otherwise `failed`
+
+### Failure-handling rule
+A provider delivery success must not later be rewritten as a delivery failure only because post-send DB persistence failed.
 
 ## 11. Auth rules
 - local email/password auth for MVP
