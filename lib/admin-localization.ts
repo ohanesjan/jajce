@@ -939,6 +939,8 @@ const enAdminCopy: typeof mkAdminCopy = {
         "Completed orders must be changed through the separate correction flow.",
       invalid_inventory_state:
         "This order has an invalid inventory state and cannot be changed until it is checked manually.",
+      save_failed:
+        "The order could not be saved because of a system error. Try again.",
       unknown: "The order could not be saved.",
     },
     success: {

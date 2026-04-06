@@ -60,6 +60,7 @@ export class OrderInventoryInsufficientError extends Error {}
 export class OrderTransitionNotAllowedError extends Error {}
 export class CompletedOrderCorrectionNotAllowedError extends Error {}
 export class OrderInventoryStateError extends Error {}
+export class OrderInfrastructureError extends Error {}
 
 export type OrderListRecord = OrderRecord;
 
@@ -403,9 +404,9 @@ function getUpdatedReservedOrderFulfilledAt(
 }
 
 async function acquireSellableInventoryLock(
-  database: Pick<OrderTransactionDb, "$queryRaw">,
+  database: Pick<OrderTransactionDb, "$executeRaw">,
 ): Promise<void> {
-  await database.$queryRaw(
+  await database.$executeRaw(
     Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${SELLABLE_INVENTORY_LOCK_KEY}));`,
   );
 }
@@ -620,9 +621,21 @@ function normalizeOrderMutationError(error: unknown): Error {
     error instanceof OrderTransitionNotAllowedError ||
     error instanceof CompletedOrderCorrectionNotAllowedError ||
     error instanceof OrderInventoryStateError ||
+    error instanceof OrderInfrastructureError ||
     error instanceof SiteSettingValidationError
   ) {
     return error;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2010"
+  ) {
+    return new OrderInfrastructureError(
+      "Order save failed while acquiring the inventory lock.",
+    );
   }
 
   if (

@@ -2,6 +2,7 @@ import { Prisma, order_status, price_source } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import {
   CompletedOrderCorrectionNotAllowedError,
+  OrderInfrastructureError,
   OrderInventoryInsufficientError,
   OrderInventoryStateError,
   OrderTransitionNotAllowedError,
@@ -88,6 +89,29 @@ describe("order workflows", () => {
         database as never,
       ),
     ).rejects.toBeInstanceOf(OrderInventoryInsufficientError);
+  });
+
+  it("normalizes advisory-lock runtime failures into an order infrastructure error", async () => {
+    const lockError = new Error("Raw query failed.") as Error & {
+      code?: string;
+    };
+    lockError.code = "P2010";
+    const database = createOrderTestDatabase({
+      inventoryLockError: lockError,
+    });
+
+    await expect(
+      createOrder(
+        {
+          contact_id: "contact_1",
+          date: "2026-04-02",
+          quantity: "4",
+          status: "reserved",
+          price_source: "default",
+        },
+        database as never,
+      ),
+    ).rejects.toBeInstanceOf(OrderInfrastructureError);
   });
 
   it("transitions reserved to completed without a second stock reduction", async () => {
@@ -456,6 +480,7 @@ function createOrderTestDatabase(options?: {
   contacts?: ReturnType<typeof buildContact>[];
   orders?: ReturnType<typeof buildOrder>[];
   inventoryTransactions?: ReturnType<typeof buildInventoryTransaction>[];
+  inventoryLockError?: Error & { code?: string };
 }) {
   const contacts = [
     buildContact({ id: "contact_1", full_name: "Ana Trajkovska" }),
@@ -468,9 +493,14 @@ function createOrderTestDatabase(options?: {
   let inventoryLockCallCount = 0;
 
   const tx = {
-    $queryRaw: async () => {
+    $executeRaw: async () => {
       inventoryLockCallCount += 1;
-      return [];
+
+      if (options?.inventoryLockError) {
+        throw options.inventoryLockError;
+      }
+
+      return 1;
     },
     contact: {
       findUnique: async ({

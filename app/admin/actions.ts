@@ -58,6 +58,7 @@ import { ContactValidationError } from "@/lib/services/contact-validation";
 import {
   CompletedOrderCorrectionNotAllowedError,
   OrderContactNotFoundError,
+  OrderInfrastructureError,
   OrderInventoryInsufficientError,
   OrderInventoryStateError,
   OrderNotFoundError,
@@ -946,6 +947,13 @@ function getOrderErrorCode(error: unknown): string {
 
   if (error instanceof OrderInventoryStateError) {
     return "invalid_inventory_state";
+  }
+
+  if (
+    error instanceof OrderInfrastructureError ||
+    error instanceof SiteSettingValidationError
+  ) {
+    return "save_failed";
   }
 
   return "unknown";

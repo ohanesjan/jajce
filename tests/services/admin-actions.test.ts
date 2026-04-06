@@ -642,6 +642,44 @@ describe("admin actions", () => {
     });
   });
 
+  describe("order error mapping", () => {
+    it("maps order infrastructure failures to save_failed", async () => {
+      const { OrderInfrastructureError } = await import(
+        "@/lib/services/orders"
+      );
+
+      createOrderMock.mockRejectedValueOnce(
+        new OrderInfrastructureError(
+          "Order save failed while acquiring the inventory lock.",
+        ),
+      );
+
+      const { saveOrderAction } = await import("@/app/admin/actions");
+
+      await expect(saveOrderAction(buildOrderFormData())).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/orders?error=save_failed",
+      );
+    });
+
+    it("maps site-setting pricing failures to save_failed", async () => {
+      const { SiteSettingValidationError } = await import(
+        "@/lib/services/site-settings"
+      );
+
+      createOrderMock.mockRejectedValueOnce(
+        new SiteSettingValidationError(
+          "default_egg_unit_price site setting is missing.",
+        ),
+      );
+
+      const { saveOrderAction } = await import("@/app/admin/actions");
+
+      await expect(saveOrderAction(buildOrderFormData())).rejects.toThrow(
+        "NEXT_REDIRECT:/admin/orders?error=save_failed",
+      );
+    });
+  });
+
   describe("notification campaign error mapping", () => {
     it("maps no eligible recipients to a notification error code", async () => {
       const { NotificationCampaignNoEligibleRecipientsError } = await import(
