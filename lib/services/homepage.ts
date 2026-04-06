@@ -12,6 +12,7 @@ import {
   parseRequiredText,
 } from "@/lib/services/contact-validation";
 import {
+  getDefaultEggUnitPrice,
   getHomepageStatOverrides,
   getHomepagePublicNoteEnabled,
   getLowStockThreshold,
@@ -39,6 +40,7 @@ export type HomepageData = {
   today_eggs_collected_for_sale: number | null;
   yesterday_eggs_collected_for_sale: number | null;
   latest_chicken_count: number | null;
+  public_price: number;
   availability: HomepageAvailabilityMessages;
   public_note: string | null;
 };
@@ -89,6 +91,7 @@ export async function getHomepageData(
     latestDailyLog,
     inventoryTransactions,
     lowStockThreshold,
+    defaultEggUnitPrice,
     homepagePublicNoteEnabled,
     homepageStatOverrides,
   ] = await Promise.all([
@@ -118,6 +121,7 @@ export async function getHomepageData(
       },
     }),
     getLowStockThreshold(database),
+    getDefaultEggUnitPrice(database),
     getHomepagePublicNoteEnabled(database),
     getHomepageStatOverrides(database),
   ]);
@@ -133,20 +137,27 @@ export async function getHomepageData(
     low_stock_threshold: lowStockThreshold,
     locale: "en",
   });
+  const derivedTodayEggsCollectedForSale = todayLog?.eggs_collected_for_sale ?? null;
+  const derivedYesterdayEggsCollectedForSale =
+    yesterdayLog?.eggs_collected_for_sale ?? null;
+  const derivedLatestChickenCount = latestDailyLog?.chicken_count ?? null;
+  const resolvedDefaultEggUnitPrice = decimalToNumber(defaultEggUnitPrice);
 
   return {
-    today_eggs_collected_for_sale:
-      homepageStatOverrides.today_eggs_collected_for_sale ??
-      todayLog?.eggs_collected_for_sale ??
-      null,
-    yesterday_eggs_collected_for_sale:
-      homepageStatOverrides.yesterday_eggs_collected_for_sale ??
-      yesterdayLog?.eggs_collected_for_sale ??
-      null,
-    latest_chicken_count:
-      homepageStatOverrides.latest_chicken_count ??
-      latestDailyLog?.chicken_count ??
-      null,
+    today_eggs_collected_for_sale: homepageStatOverrides.manual_counts_enabled
+      ? homepageStatOverrides.today_eggs_collected_for_sale ??
+        derivedTodayEggsCollectedForSale
+      : derivedTodayEggsCollectedForSale,
+    yesterday_eggs_collected_for_sale: homepageStatOverrides.manual_counts_enabled
+      ? homepageStatOverrides.yesterday_eggs_collected_for_sale ??
+        derivedYesterdayEggsCollectedForSale
+      : derivedYesterdayEggsCollectedForSale,
+    latest_chicken_count: homepageStatOverrides.manual_counts_enabled
+      ? homepageStatOverrides.latest_chicken_count ?? derivedLatestChickenCount
+      : derivedLatestChickenCount,
+    public_price: homepageStatOverrides.manual_price_enabled
+      ? homepageStatOverrides.public_price ?? resolvedDefaultEggUnitPrice
+      : resolvedDefaultEggUnitPrice,
     availability: {
       state: availabilityMk.state,
       mk: availabilityMk.message,
@@ -157,6 +168,10 @@ export async function getHomepageData(
         ? todayLog.public_note
         : null,
   };
+}
+
+function decimalToNumber(value: { toNumber(): number } | number): number {
+  return typeof value === "number" ? value : value.toNumber();
 }
 
 export async function submitHomepageNotifySignup(

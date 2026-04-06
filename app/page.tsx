@@ -19,6 +19,7 @@ export default async function HomePage() {
         today={homepageData.today_eggs_collected_for_sale}
         yesterday={homepageData.yesterday_eggs_collected_for_sale}
         chickens={homepageData.latest_chicken_count}
+        publicPrice={homepageData.public_price}
         availabilityMessages={homepageData.availability}
         publicNote={homepageData.public_note}
       />

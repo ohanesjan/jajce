@@ -11,7 +11,6 @@ vi.mock("@/lib/services/admin-dashboard", () => ({
 }));
 
 vi.mock("@/app/admin/actions", () => ({
-  saveHomepagePublicNoteSettingAction: vi.fn(),
   saveHomepageStatOverridesAction: vi.fn(),
 }));
 
@@ -30,9 +29,12 @@ describe("AdminDashboardPage", () => {
     getAdminLanguageMock.mockResolvedValue("mk");
     getHomepagePublicNoteEnabledMock.mockResolvedValue(true);
     getHomepageStatOverridesMock.mockResolvedValue({
+      manual_counts_enabled: true,
+      manual_price_enabled: true,
       today_eggs_collected_for_sale: 44,
       yesterday_eggs_collected_for_sale: null,
       latest_chicken_count: 18,
+      public_price: 19.5,
     });
     getAdminDashboardDataMock.mockImplementation(
       async ({ mode }: { mode?: unknown } = {}) => {
@@ -55,26 +57,24 @@ describe("AdminDashboardPage", () => {
     );
 
     expect(markup).toContain("Достапни јајца");
-    expect(markup).toContain("Видливост на јавна белешка");
-    expect(markup).toContain(
-      "Прикажи ја денешната јавна белешка на почетната страница кога постои во дневниот запис. Кога е исклучено, почетната страница се враќа на стандардното однесување.",
-    );
-    expect(markup).toContain(
-      "Кога е исклучено, почетната страница прикажува само живи производствени податоци и порака за достапност.",
-    );
-    expect(markup).toContain("Зачувај поставка за почетната страница");
     expect(markup).toContain("Денешна бруто маржа");
-    expect(markup).toContain("Прикажани бројки на почетната страница");
+    expect(markup).toContain("Јавен приказ на почетната страница");
     expect(markup).toContain(
-      "Овие полиња менуваат само што се прикажува јавно на почетната страница за Денес, Вчера и број на кокошки.",
+      "Овие поставки менуваат само што се прикажува јавно на почетната страница за белешката, бројките и цената.",
     );
-    expect(markup).toContain(
-      "Оставете поле празно за да се врати живата изведена вредност.",
-    );
+    expect(markup).toContain("Прикажи јавна белешка");
+    expect(markup).toContain("Кога е исклучено, белешката не се прикажува.");
+    expect(markup).toContain("Рачен приказ на бројки");
+    expect(markup).toContain("Кога е исклучено, се користат автоматските бројки.");
+    expect(markup).toContain("Рачен приказ на цена");
+    expect(markup).toContain("Кога е исклучено, се користи стандардната цена.");
+    expect(markup).toContain("Цена");
     expect(markup).toContain('name="today_eggs_collected_for_sale"');
     expect(markup).toContain('value="44"');
     expect(markup).toContain('name="latest_chicken_count"');
     expect(markup).toContain('value="18"');
+    expect(markup).toContain('name="public_price"');
+    expect(markup).toContain('value="19.5"');
     expect(markup).toContain("Зачувај јавен приказ");
     expect(markup).not.toContain("Трошоци по категорија");
   });
@@ -126,21 +126,17 @@ describe("AdminDashboardPage", () => {
     );
 
     expect(markup).toContain("Available eggs");
-    expect(markup).toContain("Public note visibility");
+    expect(markup).toContain("Public homepage display");
     expect(markup).toContain(
-      "When disabled, the homepage returns to its default behavior.",
+      "These settings change only the public homepage display for the note, the counts, and the price.",
     );
-    expect(markup).toContain(
-      "When disabled, the homepage shows only live production data and availability.",
-    );
-    expect(markup).toContain("Save homepage setting");
-    expect(markup).toContain("Homepage displayed stats");
-    expect(markup).toContain(
-      "These fields change only the public homepage display for Today, Yesterday, and chicken count.",
-    );
-    expect(markup).toContain(
-      "Leave a field blank to restore the live derived value.",
-    );
+    expect(markup).toContain("Show public note");
+    expect(markup).toContain("When disabled, the note is not shown.");
+    expect(markup).toContain("Manual count display");
+    expect(markup).toContain("When disabled, the automatic counts are used.");
+    expect(markup).toContain("Manual price display");
+    expect(markup).toContain("When disabled, the default price is used.");
+    expect(markup).toContain("Price");
     expect(markup).toContain("Save public display");
     expect(markup).toContain("Costs by category");
   });

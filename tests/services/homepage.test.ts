@@ -52,6 +52,7 @@ describe("getHomepageData", () => {
       today_eggs_collected_for_sale: 31,
       yesterday_eggs_collected_for_sale: 24,
       latest_chicken_count: 16,
+      public_price: 16,
       availability: {
         state: "available",
         mk: "Достапни се свежи јајца",
@@ -90,6 +91,7 @@ describe("getHomepageData", () => {
           today_eggs_collected_for_sale: 44,
           yesterday_eggs_collected_for_sale: 33,
           latest_chicken_count: 99,
+          public_price: 18.5,
         },
       },
     });
@@ -106,6 +108,7 @@ describe("getHomepageData", () => {
       today_eggs_collected_for_sale: 44,
       yesterday_eggs_collected_for_sale: 33,
       latest_chicken_count: 99,
+      public_price: 18.5,
       availability: {
         state: "limited",
         mk: "Ограничена достапност",
@@ -141,9 +144,12 @@ describe("getHomepageData", () => {
         low_stock_threshold: 30,
         homepage_public_note_enabled: false,
         homepage_stat_overrides: {
+          manual_counts_enabled: true,
+          manual_price_enabled: true,
           today_eggs_collected_for_sale: null,
           yesterday_eggs_collected_for_sale: null,
           latest_chicken_count: null,
+          public_price: null,
         },
       },
     });
@@ -160,6 +166,7 @@ describe("getHomepageData", () => {
       today_eggs_collected_for_sale: 18,
       yesterday_eggs_collected_for_sale: 14,
       latest_chicken_count: 12,
+      public_price: 16,
       availability: {
         state: "limited",
         mk: "Ограничена достапност",
@@ -167,6 +174,56 @@ describe("getHomepageData", () => {
       },
       public_note: null,
     });
+  });
+
+  it("uses derived counts and default price when manual display is disabled", async () => {
+    const database = createHomepageTestDatabase({
+      dailyLogs: [
+        buildDailyLog({
+          id: "daily_log_yesterday",
+          date: "2026-04-09",
+          eggs_collected_for_sale: 14,
+          chicken_count: 11,
+          public_note: null,
+        }),
+        buildDailyLog({
+          id: "daily_log_today",
+          date: "2026-04-10",
+          eggs_collected_for_sale: 18,
+          chicken_count: 12,
+          public_note: null,
+        }),
+      ],
+      inventoryTransactions: [
+        buildInventoryTransaction({ type: "collected", quantity: 28 }),
+        buildInventoryTransaction({ type: "sold", quantity: 8 }),
+      ],
+      siteSettings: {
+        low_stock_threshold: 30,
+        homepage_public_note_enabled: false,
+        homepage_stat_overrides: {
+          manual_counts_enabled: false,
+          manual_price_enabled: false,
+          today_eggs_collected_for_sale: 44,
+          yesterday_eggs_collected_for_sale: 33,
+          latest_chicken_count: 99,
+          public_price: 21,
+        },
+      },
+    });
+
+    const homepageData = await getHomepageData(
+      {
+        referenceDate: new Date("2026-04-10T12:00:00.000Z"),
+        timeZone: "Europe/Amsterdam",
+      },
+      database as never,
+    );
+
+    expect(homepageData.today_eggs_collected_for_sale).toBe(18);
+    expect(homepageData.yesterday_eggs_collected_for_sale).toBe(14);
+    expect(homepageData.latest_chicken_count).toBe(12);
+    expect(homepageData.public_price).toBe(16);
   });
 
   it("preserves 0 as a valid public display override", async () => {
@@ -195,9 +252,12 @@ describe("getHomepageData", () => {
         low_stock_threshold: 30,
         homepage_public_note_enabled: false,
         homepage_stat_overrides: {
+          manual_counts_enabled: true,
+          manual_price_enabled: true,
           today_eggs_collected_for_sale: 0,
           yesterday_eggs_collected_for_sale: null,
           latest_chicken_count: 0,
+          public_price: 0,
         },
       },
     });
@@ -213,6 +273,7 @@ describe("getHomepageData", () => {
     expect(homepageData.today_eggs_collected_for_sale).toBe(0);
     expect(homepageData.yesterday_eggs_collected_for_sale).toBe(14);
     expect(homepageData.latest_chicken_count).toBe(0);
+    expect(homepageData.public_price).toBe(0);
     expect(homepageData.availability.state).toBe("limited");
   });
 });
@@ -324,15 +385,18 @@ function createHomepageTestDatabase(options?: {
   dailyLogs?: Array<ReturnType<typeof buildDailyLog>>;
   inventoryTransactions?: Array<ReturnType<typeof buildInventoryTransaction>>;
   siteSettings?: Partial<{
+    default_egg_unit_price: number;
     low_stock_threshold: number;
     homepage_public_note_enabled: boolean;
-    homepage_stat_overrides: HomepageStatOverrides;
+    homepage_stat_overrides: Partial<HomepageStatOverrides> &
+      Record<string, unknown>;
   }>;
 }) {
   const contacts = [...(options?.contacts ?? [])];
   const dailyLogs = [...(options?.dailyLogs ?? [])];
   const inventoryTransactions = [...(options?.inventoryTransactions ?? [])];
   const siteSettings = new Map<string, unknown>([
+    ["default_egg_unit_price", 16],
     ["low_stock_threshold", 30],
     ["homepage_public_note_enabled", false],
   ]);

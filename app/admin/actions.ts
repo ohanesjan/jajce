@@ -572,14 +572,26 @@ export async function saveHomepageStatOverridesAction(
   const mode = getOptionalStringField(formData, "mode");
 
   try {
-    await updateHomepageStatOverrides({
-      today_eggs_collected_for_sale: formData.get(
-        "today_eggs_collected_for_sale",
-      ),
-      yesterday_eggs_collected_for_sale: formData.get(
-        "yesterday_eggs_collected_for_sale",
-      ),
-      latest_chicken_count: formData.get("latest_chicken_count"),
+    await getDb().$transaction(async (tx) => {
+      await updateHomepagePublicNoteEnabled(
+        formData.get("homepage_public_note_enabled"),
+        tx,
+      );
+      await updateHomepageStatOverrides(
+        {
+          manual_counts_enabled: formData.get("manual_counts_enabled"),
+          manual_price_enabled: formData.get("manual_price_enabled"),
+          today_eggs_collected_for_sale: formData.get(
+            "today_eggs_collected_for_sale",
+          ),
+          yesterday_eggs_collected_for_sale: formData.get(
+            "yesterday_eggs_collected_for_sale",
+          ),
+          latest_chicken_count: formData.get("latest_chicken_count"),
+          public_price: formData.get("public_price"),
+        },
+        tx,
+      );
     });
   } catch (error) {
     const errorCode = getSiteSettingErrorCode(error);

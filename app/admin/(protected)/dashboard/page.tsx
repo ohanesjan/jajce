@@ -1,5 +1,4 @@
 import {
-  saveHomepagePublicNoteSettingAction,
   saveHomepageStatOverridesAction,
 } from "@/app/admin/actions";
 import { getAdminLanguage } from "@/lib/admin-language.server";
@@ -25,8 +24,6 @@ export default async function AdminDashboardPage({
   const language = await getAdminLanguage();
   const copy = getAdminCopy(language);
   const mode = readSearchParam(resolvedSearchParams.mode);
-  const settingsSuccessCode = readSearchParam(resolvedSearchParams.settingsSuccess);
-  const settingsErrorCode = readSearchParam(resolvedSearchParams.settingsError);
   const displayOverridesSuccessCode = readSearchParam(
     resolvedSearchParams.displayOverridesSuccess,
   );
@@ -139,59 +136,6 @@ export default async function AdminDashboardPage({
         />
       </section>
 
-      <section className="card-surface p-6">
-        <p className="eyebrow">{copy.dashboard.homepageEyebrow}</p>
-        <h2 className="mt-2 font-serif text-3xl text-bark">
-          {copy.dashboard.homepageTitle}
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
-          {copy.dashboard.homepageDescription}
-        </p>
-
-        {settingsSuccessCode ? (
-          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {copy.dashboard.homepageSettingSaved}
-          </div>
-        ) : null}
-
-        {settingsErrorCode ? (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {settingsErrorCode === "validation"
-              ? copy.dashboard.homepageSettingValidationError
-              : copy.dashboard.homepageSettingUnknownError}
-          </div>
-        ) : null}
-
-        <form action={saveHomepagePublicNoteSettingAction} className="mt-6">
-          <input type="hidden" name="mode" value={dashboard.mode} />
-
-          <label className="flex items-start gap-3 rounded-2xl border border-soil/20 bg-white/50 px-4 py-4 text-sm text-bark">
-            <input
-              type="checkbox"
-              name="homepage_public_note_enabled"
-              defaultChecked={homepagePublicNoteEnabled}
-              className="mt-1 h-4 w-4 rounded border-soil/30 text-bark focus:ring-bark/20"
-            />
-            <span>
-              {copy.dashboard.homepageCheckbox}
-            </span>
-          </label>
-
-          <p className="mt-3 text-sm leading-6 text-bark/70">
-            {copy.dashboard.homepageHelper}
-          </p>
-
-          <div className="mt-4">
-            <button
-              type="submit"
-              className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
-            >
-              {copy.dashboard.saveHomepageSetting}
-            </button>
-          </div>
-        </form>
-      </section>
-
       {dashboard.expanded ? (
         <div className="space-y-6">
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -294,58 +238,144 @@ export default async function AdminDashboardPage({
         <form action={saveHomepageStatOverridesAction} className="mt-6">
           <input type="hidden" name="mode" value={dashboard.mode} />
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <label className="flex flex-col gap-2 text-sm text-bark">
-              <span>{copy.dashboard.homepageDisplayToday}</span>
+          <div className="space-y-4">
+            <label className="flex items-start gap-3 rounded-2xl border border-soil/20 bg-white/50 px-4 py-4 text-sm text-bark">
               <input
-                type="number"
-                min="0"
-                step="1"
-                inputMode="numeric"
-                name="today_eggs_collected_for_sale"
-                defaultValue={formatOptionalNumberInput(
-                  homepageStatOverrides.today_eggs_collected_for_sale,
-                )}
-                className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
+                type="checkbox"
+                name="homepage_public_note_enabled"
+                defaultChecked={homepagePublicNoteEnabled}
+                className="mt-1 h-4 w-4 rounded border-soil/30 text-bark focus:ring-bark/20"
               />
+              <span>
+                <span className="block font-medium">
+                  {copy.dashboard.homepageDisplayPublicNoteLabel}
+                </span>
+                <span className="mt-1 block text-bark/70">
+                  {copy.dashboard.homepageDisplayPublicNoteHelper}
+                </span>
+              </span>
             </label>
 
-            <label className="flex flex-col gap-2 text-sm text-bark">
-              <span>{copy.dashboard.homepageDisplayYesterday}</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                inputMode="numeric"
-                name="yesterday_eggs_collected_for_sale"
-                defaultValue={formatOptionalNumberInput(
-                  homepageStatOverrides.yesterday_eggs_collected_for_sale,
-                )}
-                className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
-              />
-            </label>
+            <div className="rounded-2xl border border-soil/20 bg-white/50 px-4 py-4">
+              <div className="grid gap-4 md:grid-cols-[auto_minmax(0,1fr)] md:items-start">
+                <input
+                  id="manual_counts_enabled"
+                  type="checkbox"
+                  name="manual_counts_enabled"
+                  defaultChecked={homepageStatOverrides.manual_counts_enabled}
+                  className="peer mt-1 h-4 w-4 rounded border-soil/30 text-bark focus:ring-bark/20"
+                />
+                <div>
+                  <label
+                    htmlFor="manual_counts_enabled"
+                    className="block text-sm font-medium text-bark"
+                  >
+                    {copy.dashboard.homepageDisplayCountsToggleLabel}
+                  </label>
+                  <p className="mt-1 text-sm leading-6 text-bark/70">
+                    {copy.dashboard.homepageDisplayCountsToggleHelper}
+                  </p>
+                </div>
 
-            <label className="flex flex-col gap-2 text-sm text-bark">
-              <span>{copy.dashboard.homepageDisplayChickens}</span>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                inputMode="numeric"
-                name="latest_chicken_count"
-                defaultValue={formatOptionalNumberInput(
-                  homepageStatOverrides.latest_chicken_count,
-                )}
-                className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
-              />
-            </label>
+                <div
+                  className={`${
+                    homepageStatOverrides.manual_counts_enabled ? "grid" : "hidden"
+                  } gap-4 md:col-span-2 md:grid-cols-3 peer-checked:grid`}
+                >
+                  <label className="flex flex-col gap-2 text-sm text-bark">
+                    <span>{copy.dashboard.homepageDisplayToday}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      inputMode="numeric"
+                      name="today_eggs_collected_for_sale"
+                      defaultValue={formatOptionalNumberInput(
+                        homepageStatOverrides.today_eggs_collected_for_sale,
+                      )}
+                      className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-2 text-sm text-bark">
+                    <span>{copy.dashboard.homepageDisplayYesterday}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      inputMode="numeric"
+                      name="yesterday_eggs_collected_for_sale"
+                      defaultValue={formatOptionalNumberInput(
+                        homepageStatOverrides.yesterday_eggs_collected_for_sale,
+                      )}
+                      className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-2 text-sm text-bark">
+                    <span>{copy.dashboard.homepageDisplayChickens}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      inputMode="numeric"
+                      name="latest_chicken_count"
+                      defaultValue={formatOptionalNumberInput(
+                        homepageStatOverrides.latest_chicken_count,
+                      )}
+                      className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-soil/20 bg-white/50 px-4 py-4">
+              <div className="grid gap-4 md:grid-cols-[auto_minmax(0,1fr)] md:items-start">
+                <input
+                  id="manual_price_enabled"
+                  type="checkbox"
+                  name="manual_price_enabled"
+                  defaultChecked={homepageStatOverrides.manual_price_enabled}
+                  className="peer mt-1 h-4 w-4 rounded border-soil/30 text-bark focus:ring-bark/20"
+                />
+                <div>
+                  <label
+                    htmlFor="manual_price_enabled"
+                    className="block text-sm font-medium text-bark"
+                  >
+                    {copy.dashboard.homepageDisplayPriceToggleLabel}
+                  </label>
+                  <p className="mt-1 text-sm leading-6 text-bark/70">
+                    {copy.dashboard.homepageDisplayPriceToggleHelper}
+                  </p>
+                </div>
+
+                <div
+                  className={`${
+                    homepageStatOverrides.manual_price_enabled ? "grid" : "hidden"
+                  } gap-4 md:col-span-2 md:grid-cols-1 peer-checked:grid`}
+                >
+                  <label className="flex max-w-xs flex-col gap-2 text-sm text-bark">
+                    <span>{copy.dashboard.homepageDisplayPrice}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      inputMode="decimal"
+                      name="public_price"
+                      defaultValue={formatOptionalNumberInput(
+                        homepageStatOverrides.public_price,
+                      )}
+                      className="rounded-2xl border border-soil/20 bg-white/70 px-4 py-3 text-bark outline-none transition focus:border-bark/30 focus:ring-2 focus:ring-bark/10"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-bark/70">
-            {copy.dashboard.homepageDisplayHelper}
-          </p>
-
-          <div className="mt-4">
+          <div className="mt-6">
             <button
               type="submit"
               className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"

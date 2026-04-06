@@ -35,6 +35,13 @@ const getSenderLabelDefaultMock = vi.fn();
 const saveNotificationCampaignDraftMock = vi.fn();
 const sendNotificationCampaignMock = vi.fn();
 const setAdminLanguageCookieMock = vi.fn();
+const databaseTransactionClient = {
+  siteSetting: {},
+};
+const databaseTransactionMock = vi.fn(
+  async (callback: (tx: typeof databaseTransactionClient) => Promise<unknown>) =>
+    callback(databaseTransactionClient),
+);
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
@@ -177,6 +184,7 @@ vi.mock("@/lib/db", () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
     },
+    $transaction: databaseTransactionMock,
   }),
 }));
 
@@ -488,27 +496,10 @@ describe("admin actions", () => {
       expect(correctCompletedOrderMock).toHaveBeenCalledTimes(1);
     });
 
-    it("saveHomepagePublicNoteSettingAction saves the toggle, revalidates the homepage, and redirects back to dashboard", async () => {
+    it("saveHomepageStatOverridesAction saves the unified homepage display settings atomically, revalidates the homepage, and preserves mode", async () => {
       updateHomepagePublicNoteEnabledMock.mockResolvedValueOnce({
         key: "homepage_public_note_enabled",
       });
-
-      const { saveHomepagePublicNoteSettingAction } = await import(
-        "@/app/admin/actions"
-      );
-      const formData = new FormData();
-
-      formData.set("homepage_public_note_enabled", "on");
-      formData.set("mode", "expanded");
-
-      await expect(saveHomepagePublicNoteSettingAction(formData)).rejects.toThrow(
-        "NEXT_REDIRECT:/admin/dashboard?mode=expanded&settingsSuccess=saved",
-      );
-      expect(updateHomepagePublicNoteEnabledMock).toHaveBeenCalledWith("on");
-      expect(revalidatePathMock).toHaveBeenCalledWith("/");
-    });
-
-    it("saveHomepageStatOverridesAction saves the grouped overrides, revalidates the homepage, and preserves mode", async () => {
       updateHomepageStatOverridesMock.mockResolvedValueOnce({
         key: "homepage_stat_overrides",
       });
@@ -518,19 +509,31 @@ describe("admin actions", () => {
       );
       const formData = new FormData();
 
+      formData.set("homepage_public_note_enabled", "on");
+      formData.set("manual_counts_enabled", "on");
+      formData.set("manual_price_enabled", "on");
       formData.set("today_eggs_collected_for_sale", "44");
       formData.set("yesterday_eggs_collected_for_sale", "");
       formData.set("latest_chicken_count", "0");
+      formData.set("public_price", "18.5");
       formData.set("mode", "expanded");
 
       await expect(saveHomepageStatOverridesAction(formData)).rejects.toThrow(
         "NEXT_REDIRECT:/admin/dashboard?mode=expanded&displayOverridesSuccess=saved",
       );
+      expect(databaseTransactionMock).toHaveBeenCalledTimes(1);
+      expect(updateHomepagePublicNoteEnabledMock).toHaveBeenCalledWith(
+        "on",
+        databaseTransactionClient,
+      );
       expect(updateHomepageStatOverridesMock).toHaveBeenCalledWith({
+        manual_counts_enabled: "on",
+        manual_price_enabled: "on",
         today_eggs_collected_for_sale: "44",
         yesterday_eggs_collected_for_sale: "",
         latest_chicken_count: "0",
-      });
+        public_price: "18.5",
+      }, databaseTransactionClient);
       expect(revalidatePathMock).toHaveBeenCalledWith("/");
     });
 
@@ -677,9 +680,13 @@ describe("admin actions", () => {
       );
       const formData = new FormData();
 
+      formData.set("homepage_public_note_enabled", "on");
+      formData.set("manual_counts_enabled", "on");
+      formData.set("manual_price_enabled", "on");
       formData.set("today_eggs_collected_for_sale", "3.5");
       formData.set("yesterday_eggs_collected_for_sale", "");
       formData.set("latest_chicken_count", "");
+      formData.set("public_price", "");
       formData.set("mode", "simple");
 
       await expect(saveHomepageStatOverridesAction(formData)).rejects.toThrow(

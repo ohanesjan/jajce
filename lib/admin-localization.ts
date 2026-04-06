@@ -83,20 +83,28 @@ const mkAdminCopy = {
       "Кога е исклучено, почетната страница прикажува само живи производствени податоци и порака за достапност.",
     saveHomepageSetting: "Зачувај поставка за почетната страница",
     homepageDisplayEyebrow: "Јавен приказ",
-    homepageDisplayTitle: "Прикажани бројки на почетната страница",
+    homepageDisplayTitle: "Јавен приказ на почетната страница",
     homepageDisplayDescription:
-      "Овие полиња менуваат само што се прикажува јавно на почетната страница за Денес, Вчера и број на кокошки. Не влијаат на дневни записи, залиха, админ KPI показатели, нарачки, трошоци или маржа.",
+      "Овие поставки менуваат само што се прикажува јавно на почетната страница за белешката, бројките и цената. Не влијаат на дневни записи, залиха, админ KPI показатели, нарачки, трошоци или маржа.",
     homepageDisplaySaved:
       "Поставките за јавниот приказ на почетната страница се зачувани.",
     homepageDisplayValidationError:
-      "Проверете ги полињата за јавниот приказ и внесете само ненегативни цели броеви.",
+      "Проверете ги полињата за јавниот приказ и внесете само ненегативни цели броеви за бројките и ненегативна цена.",
     homepageDisplayUnknownError:
       "Поставките за јавниот приказ на почетната страница не можеа да се зачуваат.",
-    homepageDisplayToday: "Јавен приказ: јајца денес",
-    homepageDisplayYesterday: "Јавен приказ: јајца вчера",
-    homepageDisplayChickens: "Јавен приказ: број на кокошки",
-    homepageDisplayHelper:
-      "Овие вредности важат само за јавната почетна страница. Оставете поле празно за да се врати живата изведена вредност.",
+    homepageDisplayPublicNoteLabel: "Прикажи јавна белешка",
+    homepageDisplayPublicNoteHelper:
+      "Кога е исклучено, белешката не се прикажува.",
+    homepageDisplayCountsToggleLabel: "Рачен приказ на бројки",
+    homepageDisplayCountsToggleHelper:
+      "Кога е исклучено, се користат автоматските бројки.",
+    homepageDisplayPriceToggleLabel: "Рачен приказ на цена",
+    homepageDisplayPriceToggleHelper:
+      "Кога е исклучено, се користи стандардната цена.",
+    homepageDisplayToday: "Денес",
+    homepageDisplayYesterday: "Вчера",
+    homepageDisplayChickens: "Кокошки",
+    homepageDisplayPrice: "Цена",
     saveHomepageDisplay: "Зачувај јавен приказ",
     totalYieldPerChicken: "Вкупен принос по кокошка",
     totalYieldPerChickenDetail:
@@ -613,19 +621,27 @@ const enAdminCopy: typeof mkAdminCopy = {
       "When disabled, the homepage shows only live production data and availability.",
     saveHomepageSetting: "Save homepage setting",
     homepageDisplayEyebrow: "Public display",
-    homepageDisplayTitle: "Homepage displayed stats",
+    homepageDisplayTitle: "Public homepage display",
     homepageDisplayDescription:
-      "These fields change only the public homepage display for Today, Yesterday, and chicken count. They do not affect daily logs, inventory, admin KPIs, orders, costs, or margin.",
+      "These settings change only the public homepage display for the note, the counts, and the price. They do not affect daily logs, inventory, admin KPIs, orders, costs, or margin.",
     homepageDisplaySaved: "Homepage public display overrides saved.",
     homepageDisplayValidationError:
-      "Check the public display fields and enter only non-negative whole numbers.",
+      "Check the public display fields and enter only non-negative whole numbers for counts and a non-negative price.",
     homepageDisplayUnknownError:
       "The homepage public display overrides could not be saved.",
-    homepageDisplayToday: "Public display: eggs today",
-    homepageDisplayYesterday: "Public display: eggs yesterday",
-    homepageDisplayChickens: "Public display: chickens",
-    homepageDisplayHelper:
-      "These values apply only to the public homepage. Leave a field blank to restore the live derived value.",
+    homepageDisplayPublicNoteLabel: "Show public note",
+    homepageDisplayPublicNoteHelper:
+      "When disabled, the note is not shown.",
+    homepageDisplayCountsToggleLabel: "Manual count display",
+    homepageDisplayCountsToggleHelper:
+      "When disabled, the automatic counts are used.",
+    homepageDisplayPriceToggleLabel: "Manual price display",
+    homepageDisplayPriceToggleHelper:
+      "When disabled, the default price is used.",
+    homepageDisplayToday: "Today",
+    homepageDisplayYesterday: "Yesterday",
+    homepageDisplayChickens: "Chickens",
+    homepageDisplayPrice: "Price",
     saveHomepageDisplay: "Save public display",
     totalYieldPerChicken: "Total yield per chicken",
     totalYieldPerChickenDetail:

@@ -6,12 +6,14 @@ export default function FarmLedgerSection({
   today,
   yesterday,
   chickens,
+  publicPrice,
   availabilityMessages,
   publicNote,
 }: {
   today: number | null;
   yesterday: number | null;
   chickens: number | null;
+  publicPrice: number;
   availabilityMessages: HomepageAvailabilityMessages;
   publicNote: string | null;
 }) {
@@ -28,7 +30,7 @@ export default function FarmLedgerSection({
           publicNote={publicNote}
         />
         <div className="mx-auto mt-8 h-px w-full max-w-[30rem] bg-gradient-to-r from-transparent via-soil/10 to-transparent" />
-        <PriceTransparency compact />
+        <PriceTransparency compact price={publicPrice} />
       </div>
     </section>
   );
