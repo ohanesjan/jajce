@@ -40,13 +40,13 @@ export default async function AdminDashboardPage({
   return (
     <main className="space-y-6">
       <section className="card-surface p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="admin-section-header">
           <div>
             <p className="eyebrow">{copy.dashboard.eyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
               {copy.dashboard.title}
             </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
+            <p className="admin-section-copy max-w-2xl">
               {copy.dashboard.description}
             </p>
             <p className="mt-2 text-sm text-bark/60">
@@ -176,12 +176,12 @@ export default async function AdminDashboardPage({
             <h2 className="mt-2 font-serif text-3xl text-bark">
               {copy.dashboard.costByCategoryTitle}
             </h2>
-            <p className="mt-3 text-sm leading-6 text-bark/75">
+            <p className="admin-section-copy mt-3">
               {copy.dashboard.costByCategoryDescription}
             </p>
 
             {dashboard.expanded.cost_by_category.length === 0 ? (
-                <div className="mt-6 rounded-2xl border border-dashed border-soil/20 px-4 py-5 text-sm text-bark/70">
+              <div className="admin-empty-state mt-6">
                 {copy.dashboard.noBookedCostsToday}
               </div>
             ) : (
@@ -217,18 +217,18 @@ export default async function AdminDashboardPage({
         <h2 className="mt-2 font-serif text-3xl text-bark">
           {copy.dashboard.homepageDisplayTitle}
         </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
+        <p className="admin-section-copy max-w-2xl">
           {copy.dashboard.homepageDisplayDescription}
         </p>
 
         {displayOverridesSuccessCode ? (
-          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="admin-alert admin-alert-success mt-5">
             {copy.dashboard.homepageDisplaySaved}
           </div>
         ) : null}
 
         {displayOverridesErrorCode ? (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="admin-alert admin-alert-error mt-5">
             {displayOverridesErrorCode === "validation"
               ? copy.dashboard.homepageDisplayValidationError
               : copy.dashboard.homepageDisplayUnknownError}
@@ -239,7 +239,7 @@ export default async function AdminDashboardPage({
           <input type="hidden" name="mode" value={dashboard.mode} />
 
           <div className="space-y-4">
-            <label className="flex items-start gap-3 rounded-2xl border border-soil/20 bg-white/50 px-4 py-4 text-sm text-bark">
+            <label className="admin-subsection-shell flex items-start gap-3 text-sm text-bark">
               <input
                 type="checkbox"
                 name="homepage_public_note_enabled"
@@ -250,13 +250,13 @@ export default async function AdminDashboardPage({
                 <span className="block font-medium">
                   {copy.dashboard.homepageDisplayPublicNoteLabel}
                 </span>
-                <span className="mt-1 block text-bark/70">
+                <span className="admin-helper-text block">
                   {copy.dashboard.homepageDisplayPublicNoteHelper}
                 </span>
               </span>
             </label>
 
-            <div className="rounded-2xl border border-soil/20 bg-white/50 px-4 py-4">
+            <div className="admin-subsection-shell">
               <div className="grid gap-4 md:grid-cols-[auto_minmax(0,1fr)] md:items-start">
                 <input
                   id="manual_counts_enabled"
@@ -272,7 +272,7 @@ export default async function AdminDashboardPage({
                   >
                     {copy.dashboard.homepageDisplayCountsToggleLabel}
                   </label>
-                  <p className="mt-1 text-sm leading-6 text-bark/70">
+                  <p className="admin-helper-text">
                     {copy.dashboard.homepageDisplayCountsToggleHelper}
                   </p>
                 </div>
@@ -330,7 +330,7 @@ export default async function AdminDashboardPage({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-soil/20 bg-white/50 px-4 py-4">
+            <div className="admin-subsection-shell">
               <div className="grid gap-4 md:grid-cols-[auto_minmax(0,1fr)] md:items-start">
                 <input
                   id="manual_price_enabled"
@@ -346,7 +346,7 @@ export default async function AdminDashboardPage({
                   >
                     {copy.dashboard.homepageDisplayPriceToggleLabel}
                   </label>
-                  <p className="mt-1 text-sm leading-6 text-bark/70">
+                  <p className="admin-helper-text">
                     {copy.dashboard.homepageDisplayPriceToggleHelper}
                   </p>
                 </div>
@@ -375,10 +375,10 @@ export default async function AdminDashboardPage({
             </div>
           </div>
 
-          <div className="mt-6">
+          <div className="admin-action-row mt-6">
             <button
               type="submit"
-              className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
+              className="admin-button admin-button-primary"
             >
               {copy.dashboard.saveHomepageDisplay}
             </button>
@@ -402,7 +402,7 @@ function DashboardCard({
     <article className="card-surface p-5">
       <p className="text-sm text-bark/70">{label}</p>
       <p className="mt-3 font-serif text-4xl text-bark">{value}</p>
-      <p className="mt-3 text-sm leading-6 text-bark/70">{detail}</p>
+      <p className="admin-helper-text mt-3">{detail}</p>
     </article>
   );
 }
@@ -422,8 +422,8 @@ function ModeLink({
       aria-current={active ? "page" : undefined}
       className={
         active
-          ? "rounded-full bg-bark px-4 py-2 text-sm font-medium text-parchment"
-          : "rounded-full border border-soil/20 px-4 py-2 text-sm text-bark transition hover:border-soil/40"
+          ? "admin-button bg-bark px-4 py-2 text-parchment"
+          : "admin-button border border-soil/20 px-4 py-2 text-bark hover:border-soil/40"
       }
     >
       {label}

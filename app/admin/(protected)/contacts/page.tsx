@@ -46,18 +46,18 @@ export default async function AdminContactsPage({
         <h2 className="mt-2 font-serif text-3xl text-bark">
           {editId ? copy.contacts.editTitle : copy.contacts.createTitle}
         </h2>
-        <p className="mt-3 text-sm leading-6 text-bark/75">
+        <p className="admin-section-copy">
           {copy.contacts.description}
         </p>
 
         {successCode ? (
-          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="admin-alert admin-alert-success mt-5">
             {contactSuccessMessages[successCode] ?? copy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="admin-alert admin-alert-error mt-5">
             {contactErrorMessages[errorCode] ?? copy.common.unknownError}
           </div>
         ) : null}
@@ -247,17 +247,17 @@ export default async function AdminContactsPage({
             />
           </FormField>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="admin-action-row">
             <button
               type="submit"
-              className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
+              className="admin-button admin-button-primary"
             >
               {editId ? copy.contacts.update : copy.contacts.create}
             </button>
 
             <a
               href="/admin/contacts"
-              className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
+              className="admin-button admin-button-secondary"
             >
               {copy.common.resetForm}
             </a>
@@ -274,7 +274,9 @@ export default async function AdminContactsPage({
         </div>
 
         {contacts.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">{copy.contacts.empty}</div>
+          <div className="px-6 py-8">
+            <div className="admin-empty-state">{copy.contacts.empty}</div>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
@@ -311,7 +313,7 @@ export default async function AdminContactsPage({
                       <div className="flex flex-wrap gap-2">
                         <a
                           href={`/admin/contacts?edit=${encodeURIComponent(contact.id)}`}
-                          className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
+                          className="admin-button-pill"
                         >
                           {copy.contacts.edit}
                         </a>
@@ -319,7 +321,7 @@ export default async function AdminContactsPage({
                           <input type="hidden" name="id" value={contact.id} />
                           <button
                             type="submit"
-                            className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
+                            className="admin-button-pill-danger"
                           >
                             {copy.contacts.delete}
                           </button>

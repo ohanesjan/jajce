@@ -31,13 +31,13 @@ export default async function AdminMarginPage({
   return (
     <main className="space-y-6">
       <section className="card-surface p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="admin-section-header">
           <div>
             <p className="eyebrow">{copy.margin.eyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
               {copy.margin.title}
             </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/75">
+            <p className="admin-section-copy max-w-2xl">
               {copy.margin.description}
             </p>
           </div>
@@ -55,7 +55,7 @@ export default async function AdminMarginPage({
             </label>
             <button
               type="submit"
-              className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
+              className="admin-button admin-button-secondary"
             >
               {copy.margin.loadDate}
             </button>
@@ -135,7 +135,7 @@ function MetricCard({
     <article className="card-surface p-5">
       <p className="text-sm text-bark/70">{label}</p>
       <p className="mt-3 font-serif text-4xl text-bark">{value}</p>
-      <p className="mt-3 text-sm leading-6 text-bark/70">{detail}</p>
+      <p className="admin-helper-text mt-3">{detail}</p>
     </article>
   );
 }

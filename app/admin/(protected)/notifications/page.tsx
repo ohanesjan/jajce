@@ -64,30 +64,30 @@ export default async function AdminNotificationsPage({
             ? copy.notifications.editTitle
             : copy.notifications.createTitle}
         </h2>
-        <p className="mt-3 text-sm leading-6 text-bark/75">
+        <p className="admin-section-copy">
           {copy.notifications.description}
         </p>
 
         {successCode ? (
-          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="admin-alert admin-alert-success mt-5">
             {notificationSuccessMessages[successCode] ?? copy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="admin-alert admin-alert-error mt-5">
             {notificationErrorMessages[errorCode] ?? copy.common.unknownError}
           </div>
         ) : null}
 
         {recoverableCampaign ? (
-          <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="admin-alert admin-alert-warning mt-5">
             {copy.notifications.recoverableDraftWarning}
           </div>
         ) : null}
 
         {requestedCampaign && !editingCampaign && !recoverableCampaign ? (
-          <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div className="admin-alert admin-alert-warning mt-5">
             {copy.notifications.readOnlyRequestedWarning}
           </div>
         ) : null}
@@ -168,13 +168,13 @@ export default async function AdminNotificationsPage({
             />
           </FormField>
 
-          <div className="rounded-3xl border border-soil/15 bg-white/45 p-4">
+          <div className="admin-subsection-shell">
             <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-sm font-medium text-bark">
                   {copy.notifications.selectedContactsTitle}
                 </p>
-                <p className="mt-1 text-sm leading-6 text-bark/70">
+                <p className="admin-helper-text">
                   {copy.notifications.selectedContactsDescription}
                 </p>
               </div>
@@ -184,7 +184,7 @@ export default async function AdminNotificationsPage({
             </div>
 
             {contacts.length === 0 ? (
-              <div className="mt-4 rounded-2xl border border-dashed border-soil/20 px-4 py-4 text-sm text-bark/70">
+              <div className="admin-empty-state mt-4 px-4 py-4">
                 {copy.notifications.noContactsYet}
               </div>
             ) : (
@@ -222,10 +222,10 @@ export default async function AdminNotificationsPage({
             )}
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="admin-action-row">
             <button
               type="submit"
-              className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
+              className="admin-button admin-button-primary"
             >
               {editingCampaign
                 ? copy.notifications.saveDraft
@@ -234,7 +234,7 @@ export default async function AdminNotificationsPage({
 
             <a
               href="/admin/notifications"
-              className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
+              className="admin-button admin-button-secondary"
             >
               {copy.common.resetForm}
             </a>
@@ -242,11 +242,11 @@ export default async function AdminNotificationsPage({
         </form>
 
         {editingCampaign || recoverableCampaign ? (
-          <div className="mt-6 rounded-3xl border border-soil/15 bg-white/45 p-4">
+          <div className="admin-subsection-shell mt-6">
             <p className="text-sm font-medium text-bark">
               {copy.notifications.sendDraftTitle}
             </p>
-            <p className="mt-2 text-sm leading-6 text-bark/70">
+            <p className="admin-helper-text mt-2">
               {recoverableCampaign
                 ? copy.notifications.recoverableDraftDescription
                 : copy.notifications.sendDraftDescription}
@@ -261,7 +261,7 @@ export default async function AdminNotificationsPage({
                 />
                 <button
                   type="submit"
-                  className="rounded-2xl bg-earth px-5 py-3 text-sm font-medium text-parchment transition hover:bg-earth/90"
+                  className="admin-button admin-button-primary"
                 >
                   {recoverableCampaign
                     ? copy.notifications.resumeSending
@@ -269,7 +269,7 @@ export default async function AdminNotificationsPage({
                 </button>
               </form>
             ) : (
-              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <div className="admin-alert admin-alert-warning mt-4">
                 {copy.notifications.emailOnlyDraftWarning}
               </div>
             )}
@@ -286,8 +286,10 @@ export default async function AdminNotificationsPage({
         </div>
 
         {campaigns.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">
-            {copy.notifications.empty}
+          <div className="px-6 py-8">
+            <div className="admin-empty-state">
+              {copy.notifications.empty}
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -344,7 +346,7 @@ export default async function AdminNotificationsPage({
                         !campaign.is_recoverable_send_only ? (
                           <a
                             href={`/admin/notifications?edit=${encodeURIComponent(campaign.id)}`}
-                            className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
+                            className="admin-button-pill"
                           >
                             {copy.notifications.edit}
                           </a>
@@ -355,7 +357,7 @@ export default async function AdminNotificationsPage({
                             <input type="hidden" name="id" value={campaign.id} />
                             <button
                               type="submit"
-                              className="rounded-full bg-earth px-3 py-1.5 text-xs text-parchment transition hover:bg-earth/90"
+                              className="admin-button-pill bg-bark text-parchment hover:border-bark/90 hover:bg-bark/90"
                             >
                               {campaign.is_recoverable_send_only
                                 ? copy.notifications.resume

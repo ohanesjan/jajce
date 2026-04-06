@@ -61,24 +61,24 @@ export default async function AdminOrdersPage({
               : copy.orders.editReservedTitle
             : copy.orders.createTitle}
         </h2>
-        <p className="mt-3 text-sm leading-6 text-bark/75">
+        <p className="admin-section-copy">
           {copy.orders.description}
         </p>
 
         {successCode ? (
-          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="admin-alert admin-alert-success mt-5">
             {orderSuccessMessages[successCode] ?? copy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="admin-alert admin-alert-error mt-5">
             {orderErrorMessages[errorCode] ?? copy.common.unknownError}
           </div>
         ) : null}
 
         {!canCreateOrder && !editingOrder ? (
-          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+          <div className="admin-alert admin-alert-warning mt-6 px-4 py-4">
             {copy.orders.createContactFirst}
           </div>
         ) : null}
@@ -96,7 +96,7 @@ export default async function AdminOrdersPage({
               value={copy.orders.completed}
             />
 
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <div className="admin-alert admin-alert-warning">
               {copy.orders.completedCorrectionWarning}
             </div>
 
@@ -131,7 +131,7 @@ export default async function AdminOrdersPage({
                 readOnly
                 type="text"
                 value={formatDecimalInput(editingOrder.total_price)}
-                className="w-full rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/55 outline-none"
+                className="admin-readonly-field w-full outline-none"
               />
             </FormField>
 
@@ -153,17 +153,17 @@ export default async function AdminOrdersPage({
               />
             </FormField>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="admin-action-row">
               <button
                 type="submit"
-                className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
+                className="admin-button admin-button-primary"
               >
                 {copy.orders.applyCompletedCorrection}
               </button>
 
               <a
                 href="/admin/orders"
-                className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
+                className="admin-button admin-button-secondary"
               >
                 {copy.common.resetForm}
               </a>
@@ -174,7 +174,7 @@ export default async function AdminOrdersPage({
             <input type="hidden" name="id" value={editingOrder?.id ?? ""} />
 
             {editingOrder ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <div className="admin-alert admin-alert-warning">
                 {copy.orders.normalEditWarning}
               </div>
             ) : null}
@@ -290,7 +290,7 @@ export default async function AdminOrdersPage({
                 type="text"
                 value={editingOrder ? formatDecimalInput(editingOrder.total_price) : ""}
                 placeholder={copy.orders.calculatedOnSave}
-                className="w-full rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/55 outline-none"
+                className="admin-readonly-field w-full outline-none"
               />
             </FormField>
 
@@ -312,18 +312,18 @@ export default async function AdminOrdersPage({
               />
             </FormField>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="admin-action-row">
               <button
                 type="submit"
                 disabled={!canCreateOrder}
-                className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90 disabled:cursor-not-allowed disabled:bg-bark/40"
+                className="admin-button admin-button-primary disabled:cursor-not-allowed disabled:bg-bark/40"
               >
                 {editingOrder ? copy.orders.update : copy.orders.create}
               </button>
 
               <a
                 href="/admin/orders"
-                className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
+                className="admin-button admin-button-secondary"
               >
                 {copy.common.resetForm}
               </a>
@@ -341,7 +341,9 @@ export default async function AdminOrdersPage({
         </div>
 
         {orders.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">{copy.orders.empty}</div>
+          <div className="px-6 py-8">
+            <div className="admin-empty-state">{copy.orders.empty}</div>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
@@ -375,14 +377,14 @@ export default async function AdminOrdersPage({
                       {order.status === "reserved" ? (
                         <a
                           href={`/admin/orders?edit=${encodeURIComponent(order.id)}`}
-                          className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
+                          className="admin-button-pill"
                         >
                           {copy.orders.edit}
                         </a>
                       ) : order.status === "completed" ? (
                         <a
                           href={`/admin/orders?edit=${encodeURIComponent(order.id)}`}
-                          className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
+                          className="admin-button-pill"
                         >
                           {copy.orders.correct}
                         </a>
@@ -421,8 +423,8 @@ function FormField({
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-sm text-bark">
-      <span className="mb-1 block font-medium">{label}</span>
-      <div className="rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/75">
+      <span className="mb-2 block font-medium">{label}</span>
+      <div className="admin-readonly-field text-bark/75">
         {value}
       </div>
     </div>

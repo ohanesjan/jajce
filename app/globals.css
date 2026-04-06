@@ -44,6 +44,70 @@ body {
   background-color: rgba(251, 247, 239, 0.88);
 }
 
+.admin-section-header {
+  @apply flex flex-col gap-4 md:flex-row md:items-end md:justify-between;
+}
+
+.admin-section-copy {
+  @apply mt-3 text-sm leading-6 text-bark/75;
+}
+
+.admin-helper-text {
+  @apply mt-1 text-sm leading-6 text-bark/70;
+}
+
+.admin-alert {
+  @apply rounded-2xl border px-4 py-3 text-sm;
+}
+
+.admin-alert-success {
+  @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+}
+
+.admin-alert-error {
+  @apply border-red-200 bg-red-50 text-red-700;
+}
+
+.admin-alert-warning {
+  @apply border-amber-200 bg-amber-50 text-amber-800;
+}
+
+.admin-empty-state {
+  @apply rounded-2xl border border-dashed border-soil/20 bg-white/35 px-4 py-5 text-sm text-bark/70;
+}
+
+.admin-action-row {
+  @apply flex flex-wrap items-center gap-3;
+}
+
+.admin-button {
+  @apply inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-medium transition;
+}
+
+.admin-button-primary {
+  @apply bg-bark text-parchment hover:bg-bark/90;
+}
+
+.admin-button-secondary {
+  @apply border border-soil/20 text-bark hover:border-soil/40;
+}
+
+.admin-button-pill {
+  @apply inline-flex items-center justify-center rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40;
+}
+
+.admin-button-pill-danger {
+  @apply inline-flex items-center justify-center rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300;
+}
+
+.admin-subsection-shell {
+  @apply rounded-3xl border border-soil/15 bg-white/45 p-4;
+}
+
+.admin-readonly-field {
+  @apply rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/60;
+}
+
 .section-divider {
   @apply mx-auto h-px w-full max-w-[1180px] bg-gradient-to-r from-transparent to-transparent;
   background-image: linear-gradient(

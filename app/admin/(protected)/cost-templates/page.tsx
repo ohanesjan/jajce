@@ -68,18 +68,18 @@ export default async function AdminCostTemplatesPage({
             {copy.costTemplates.backToCosts}
           </Link>
         </div>
-        <p className="mt-3 text-sm leading-6 text-bark/75">
+        <p className="admin-section-copy">
           {copy.costTemplates.description}
         </p>
 
         {successCode ? (
-          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="admin-alert admin-alert-success mt-5">
             {costTemplateSuccessMessages[successCode] ?? copy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="admin-alert admin-alert-error mt-5">
             {costTemplateErrorMessages[errorCode] ?? copy.common.unknownError}
           </div>
         ) : null}
@@ -238,17 +238,17 @@ export default async function AdminCostTemplatesPage({
             />
           </FormField>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="admin-action-row">
             <button
               type="submit"
-              className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
+              className="admin-button admin-button-primary"
             >
               {editId ? copy.costTemplates.update : copy.costTemplates.create}
             </button>
 
             <a
               href="/admin/cost-templates"
-              className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
+              className="admin-button admin-button-secondary"
             >
               {copy.common.resetForm}
             </a>
@@ -265,8 +265,10 @@ export default async function AdminCostTemplatesPage({
         </div>
 
         {costTemplates.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">
-            {copy.costTemplates.empty}
+          <div className="px-6 py-8">
+            <div className="admin-empty-state">
+              {copy.costTemplates.empty}
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -312,7 +314,7 @@ export default async function AdminCostTemplatesPage({
                       <div className="flex flex-wrap gap-2">
                         <a
                           href={`/admin/cost-templates?edit=${encodeURIComponent(template.id)}`}
-                          className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
+                          className="admin-button-pill"
                         >
                           {copy.costTemplates.edit}
                         </a>
@@ -321,7 +323,7 @@ export default async function AdminCostTemplatesPage({
                           <button
                             type="submit"
                             disabled={template._count.cost_entries > 0}
-                            className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
+                            className="admin-button-pill-danger disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {template._count.cost_entries > 0
                               ? copy.costTemplates.deleteDisabledAfterBooking

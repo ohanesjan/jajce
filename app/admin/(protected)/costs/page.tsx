@@ -130,24 +130,24 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                 ? copy.costs.acceptTitle
                 : copy.costs.bookTitle}
           </h2>
-          <p className="mt-3 text-sm leading-6 text-bark/75">
+          <p className="admin-section-copy">
             {copy.costs.description}
           </p>
 
           {successCode ? (
-            <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <div className="admin-alert admin-alert-success mt-5">
               {costEntrySuccessMessages[successCode] ?? copy.common.saveFallback}
             </div>
           ) : null}
 
           {errorCode ? (
-            <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="admin-alert admin-alert-error mt-5">
               {costEntryErrorMessages[errorCode] ?? copy.common.unknownError}
             </div>
           ) : null}
 
           {!editingEntry && acceptTemplateId && !acceptingSuggestion ? (
-            <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <div className="admin-alert admin-alert-warning mt-5">
               {copy.costs.suggestionNoLongerPending}
             </div>
           ) : null}
@@ -162,7 +162,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
             />
 
             {isTemplateOriginEditing ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <div className="admin-alert admin-alert-warning">
                 {copy.costs.templateOriginLockedPrefix}{" "}
                 <strong>
                   {editingEntry.cost_template?.name ?? copy.costs.unknownTemplate}
@@ -172,7 +172,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
             ) : null}
 
             {acceptingSuggestion ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <div className="admin-alert admin-alert-warning">
                 {copy.costs.acceptingSuggestionNote}
               </div>
             ) : null}
@@ -192,11 +192,11 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
               })}
             />
 
-            <div className="flex flex-wrap gap-3">
+            <div className="admin-action-row">
               {isTemplateOriginEditing ? null : (
                 <button
                   type="submit"
-                  className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
+                  className="admin-button admin-button-primary"
                 >
                   {editingEntry
                     ? copy.costs.update
@@ -208,7 +208,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
 
               <a
                 href={`/admin/costs?suggestionDate=${encodeURIComponent(suggestionDate)}`}
-                className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
+                className="admin-button admin-button-secondary"
               >
                 {copy.common.resetForm}
               </a>
@@ -217,13 +217,13 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
         </section>
 
         <section className="card-surface p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="admin-section-header">
             <div>
               <p className="eyebrow">{copy.costs.suggestionsEyebrow}</p>
               <h2 className="mt-2 font-serif text-3xl text-bark">
                 {copy.costs.suggestionsTitle}
               </h2>
-              <p className="mt-3 text-sm leading-6 text-bark/75">
+              <p className="admin-section-copy">
                 {copy.costs.suggestionsDescription}
               </p>
             </div>
@@ -240,7 +240,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
               </FormField>
               <button
                 type="submit"
-                className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
+                className="admin-button admin-button-secondary"
               >
                 {copy.costs.loadSuggestions}
               </button>
@@ -248,7 +248,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
           </div>
 
           {suggestions.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-soil/20 px-4 py-5 text-sm text-bark/70">
+            <div className="admin-empty-state mt-6">
               {copy.costs.noSuggestionsMatchPrefix} {suggestionDate}.
             </div>
           ) : (
@@ -285,13 +285,13 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
       </section>
 
       <section className="card-surface p-6">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="admin-section-header gap-3">
           <div>
             <p className="eyebrow">{copy.costs.recurringPreviewEyebrow}</p>
             <h2 className="mt-2 font-serif text-3xl text-bark">
               {copy.costs.recurringPreviewTitle}
             </h2>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-bark/75">
+            <p className="admin-section-copy max-w-3xl">
               {copy.costs.recurringPreviewDescription}
             </p>
           </div>
@@ -322,14 +322,14 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
               <h2 className="mt-2 font-serif text-3xl text-bark">
                 {copy.costs.recurringTemplatesTitle}
               </h2>
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-bark/70">
+              <p className="admin-section-copy max-w-3xl text-bark/70">
                 {copy.costs.recurringTemplatesDescription}
               </p>
             </div>
 
             <Link
               href="/admin/cost-templates"
-              className="rounded-2xl border border-soil/20 px-4 py-2 text-sm text-bark transition hover:border-soil/40"
+              className="admin-button admin-button-secondary px-4 py-2"
             >
               {copy.costs.openMaintenanceView}
             </Link>
@@ -337,8 +337,10 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
         </div>
 
         {costTemplates.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">
-            {copy.costs.noRecurringTemplatesYet}
+          <div className="px-6 py-8">
+            <div className="admin-empty-state">
+              {copy.costs.noRecurringTemplatesYet}
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -392,7 +394,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                           )}
                           <button
                             type="submit"
-                            className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
+                            className="admin-button-pill"
                           >
                             {template.is_active
                               ? copy.costs.markInactive
@@ -402,7 +404,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
 
                         <Link
                           href={`/admin/cost-templates?edit=${encodeURIComponent(template.id)}`}
-                          className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
+                          className="admin-button-pill"
                         >
                           {copy.costs.maintenanceEdit}
                         </Link>
@@ -422,7 +424,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                             />
                             <button
                               type="submit"
-                              className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
+                              className="admin-button-pill-danger"
                             >
                               {copy.costs.deleteUnused}
                             </button>
@@ -451,8 +453,10 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
         </div>
 
         {costEntries.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">
-            {copy.costs.noBookedCostsYet}
+          <div className="px-6 py-8">
+            <div className="admin-empty-state">
+              {copy.costs.noBookedCostsYet}
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -483,7 +487,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                         {entry.source_type === "manual" ? (
                           <a
                             href={`/admin/costs?edit=${encodeURIComponent(entry.id)}&suggestionDate=${encodeURIComponent(suggestionDate)}`}
-                            className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
+                            className="admin-button-pill"
                           >
                             {copy.costs.edit}
                           </a>
@@ -497,7 +501,7 @@ export default async function AdminCostsPage({ searchParams }: CostsPageProps) {
                           />
                           <button
                             type="submit"
-                            className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
+                            className="admin-button-pill-danger"
                           >
                             {copy.costs.deleteBookedCost}
                           </button>

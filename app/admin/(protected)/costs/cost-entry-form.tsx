@@ -46,7 +46,7 @@ type CostEntryFormProps = {
 const EDITABLE_INPUT_CLASS_NAME =
   "w-full rounded-2xl border border-soil/20 bg-white/90 px-4 py-3 outline-none transition focus:border-soil/50";
 const READONLY_INPUT_CLASS_NAME =
-  "w-full rounded-2xl border border-dashed border-soil/20 bg-[#f9f4ea] px-4 py-3 text-bark/55 outline-none";
+  "admin-readonly-field w-full outline-none";
 
 export function CostEntryForm({
   copy,
@@ -252,8 +252,8 @@ export function CostEntryForm({
           </label>
 
           {formValues.save_as_recurring ? (
-            <div className="space-y-4 rounded-2xl border border-soil/20 bg-white/50 px-4 py-4">
-              <p className="text-sm text-bark/70">{copy.recurringHelp}</p>
+            <div className="admin-subsection-shell space-y-4 rounded-2xl">
+              <p className="admin-helper-text mt-0">{copy.recurringHelp}</p>
 
               <FormField label={copy.templateName}>
                 <input
@@ -374,7 +374,7 @@ function FormField({
 }) {
   return (
     <label className="block text-sm text-bark">
-      <span className="mb-1 block font-medium">{label}</span>
+      <span className="mb-2 block font-medium">{label}</span>
       {children}
     </label>
   );

@@ -41,18 +41,18 @@ export default async function AdminDailyLogsPage({
         <h2 className="mt-2 font-serif text-3xl text-bark">
           {editId ? copy.dailyLogs.editTitle : copy.dailyLogs.createTitle}
         </h2>
-        <p className="mt-3 text-sm leading-6 text-bark/75">
+        <p className="admin-section-copy">
           {copy.dailyLogs.description}
         </p>
 
         {successCode ? (
-          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="admin-alert admin-alert-success mt-5">
             {dailyLogSuccessMessages[successCode] ?? copy.common.saveFallback}
           </div>
         ) : null}
 
         {errorCode ? (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="admin-alert admin-alert-error mt-5">
             {dailyLogErrorMessages[errorCode] ?? copy.common.unknownError}
           </div>
         ) : null}
@@ -110,17 +110,17 @@ export default async function AdminDailyLogsPage({
             />
           </FormField>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="admin-action-row">
             <button
               type="submit"
-              className="rounded-2xl bg-bark px-5 py-3 text-sm font-medium text-parchment transition hover:bg-bark/90"
+              className="admin-button admin-button-primary"
             >
               {editId ? copy.dailyLogs.update : copy.dailyLogs.create}
             </button>
 
             <a
               href="/admin/daily-logs"
-              className="rounded-2xl border border-soil/20 px-5 py-3 text-sm text-bark transition hover:border-soil/40"
+              className="admin-button admin-button-secondary"
             >
               {copy.common.resetForm}
             </a>
@@ -134,14 +134,16 @@ export default async function AdminDailyLogsPage({
           <h2 className="mt-2 font-serif text-3xl text-bark">
             {copy.dailyLogs.recordsTitle}
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-bark/70">
+          <p className="admin-section-copy max-w-2xl text-bark/70">
             {copy.dailyLogs.recordsDescription}
           </p>
         </div>
 
         {dailyLogs.length === 0 ? (
-          <div className="px-6 py-8 text-sm text-bark/70">
+          <div className="px-6 py-8">
+            <div className="admin-empty-state">
             {copy.dailyLogs.empty}
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -176,7 +178,7 @@ export default async function AdminDailyLogsPage({
                       <div className="flex flex-wrap gap-2">
                         <a
                           href={`/admin/daily-logs?edit=${encodeURIComponent(dailyLog.id)}`}
-                          className="rounded-full border border-soil/20 px-3 py-1.5 text-xs text-bark transition hover:border-soil/40"
+                          className="admin-button-pill"
                         >
                           {copy.dailyLogs.edit}
                         </a>
@@ -184,7 +186,7 @@ export default async function AdminDailyLogsPage({
                           <input type="hidden" name="id" value={dailyLog.id} />
                           <button
                             type="submit"
-                            className="rounded-full border border-red-200 px-3 py-1.5 text-xs text-red-700 transition hover:border-red-300"
+                            className="admin-button-pill-danger"
                           >
                             {copy.dailyLogs.delete}
                           </button>
