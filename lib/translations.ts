@@ -14,7 +14,7 @@ export const translations: Record<Language, Record<string, string>> = {
     availabilityEggUnit: "eggs",
     availabilityChickenUnit: "",
     storyEyebrow: "Our story",
-    storyTitle: "Raised naturally",
+    storyTitle: "Naturally raised mountain eggs.",
     storyParagraphOne:
       "In Pletvar, a quiet mountain village, our chickens live as they should, moving freely, breathing fresh air, and following their natural rhythm.",
     storyParagraphTwo:
@@ -70,7 +70,7 @@ export const translations: Record<Language, Record<string, string>> = {
     availabilityEggUnit: "јајца",
     availabilityChickenUnit: "",
     storyEyebrow: "Нашата приказна",
-    storyTitle: "Одгледани природно",
+    storyTitle: "Природно одгледани планински јајца.",
     storyParagraphOne:
       "Во Плетвар, тивко планинско село, нашите кокошки живеат како што треба, се движат слободно, дишат свеж воздух и го следат својот природен ритам.",
     storyParagraphTwo:
