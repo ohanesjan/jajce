@@ -16,12 +16,12 @@ export const translations: Record<Language, Record<string, string>> = {
     storyEyebrow: "Our story",
     storyTitle: "Raised naturally",
     storyParagraphOne:
-      "In Pletvar, a quiet mountain village, our chickens live as they should — free to roam, breathe fresh air, and follow their natural rhythm.",
+      "In Pletvar, a quiet mountain village, our chickens live as they should, moving freely, breathing fresh air, and following their natural rhythm.",
     storyParagraphTwo:
-      "They are nourished with high-quality, natural feed — free from additives and antibiotics.",
+      "They are fed high-quality natural feed, without additives or antibiotics.",
     storyParagraphThree:
-      "We don't rush or force production — we simply collect what nature provides, when it's ready.",
-    storyMeta: "Small-scale. Seasonal. Genuine.",
+      "We do not force production, we simply collect what nature provides.",
+    storyMeta: "Small-scale. Fresh. Genuine.",
     storyBadge: "Pletvar village",
     howEyebrow: "How it works",
     howTitle: "A simple rhythm, shaped by nature",
@@ -72,12 +72,12 @@ export const translations: Record<Language, Record<string, string>> = {
     storyEyebrow: "Нашата приказна",
     storyTitle: "Одгледани природно",
     storyParagraphOne:
-      "Во Плетвар, тивко планинско село, нашите кокошки живеат како што треба — слободно се движат, дишат свеж воздух и го следат својот природен ритам.",
+      "Во Плетвар, тивко планинско село, нашите кокошки живеат како што треба, се движат слободно, дишат свеж воздух и го следат својот природен ритам.",
     storyParagraphTwo:
-      "Се хранат со висококвалитетна природна храна — без адитиви и антибиотици.",
+      "Се хранат со висококвалитетна природна храна, без адитиви и антибиотици.",
     storyParagraphThree:
-      "Не го форсираме производството — едноставно го собираме тоа што природата го дава, кога е подготвено.",
-    storyMeta: "Мало производство. Сезонско. Автентично.",
+      "Не го форсираме производството, едноставно го собираме тоа што природата го дава.",
+    storyMeta: "Мало производство. Свежо. Автентично.",
     storyBadge: "село Плетвар",
     howEyebrow: "Како функционира",
     howTitle: "Едноставен ритам, воден од природата",
