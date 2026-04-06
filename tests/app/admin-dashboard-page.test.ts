@@ -57,7 +57,21 @@ describe("AdminDashboardPage", () => {
     );
 
     expect(markup).toContain("Достапни јајца");
+    expect(markup).toContain("Денес собрани за продажба");
+    expect(markup).toContain("Вчера собрани за продажба");
+    expect(markup).toContain("Последен број на кокошки");
+    expect(markup).toContain("Денес продадени јајца");
+    expect(markup).toContain("Денешен приход");
+    expect(markup).toContain("Денешен вкупен трошок");
     expect(markup).toContain("Денешна бруто маржа");
+    expect(markup).not.toContain("Денешен вкупен принос");
+    expect(markup).not.toContain("Број на претплатници");
+    expect(markup).not.toContain("Број на листа на чекање");
+    expect(markup).not.toContain("Број на активни купувачи");
+    expect(markup).not.toContain("Денешен директен трошок");
+    expect(markup).not.toContain("Денешен распределен трошок");
+    expect(markup).not.toContain("Бруто маржа за 7 дена");
+    expect(markup).not.toContain("Бруто маржа за 30 дена");
     expect(markup).toContain("Јавен приказ на почетната страница");
     expect(markup).toContain(
       "Овие поставки менуваат само што се прикажува јавно на почетната страница за белешката, бројките и цената.",
@@ -77,6 +91,16 @@ describe("AdminDashboardPage", () => {
     expect(markup).toContain('value="19.5"');
     expect(markup).toContain("Зачувај јавен приказ");
     expect(markup).not.toContain("Трошоци по категорија");
+    expectInOrder(markup, [
+      "Достапни јајца",
+      "Денес собрани за продажба",
+      "Вчера собрани за продажба",
+      "Последен број на кокошки",
+      "Денес продадени јајца",
+      "Денешен приход",
+      "Денешен вкупен трошок",
+      "Денешна бруто маржа",
+    ]);
   });
 
   it("renders expanded mode sections when requested", async () => {
@@ -90,7 +114,17 @@ describe("AdminDashboardPage", () => {
       }),
     );
 
+    expect(markup).toContain("Производство и јато");
+    expect(markup).toContain("Клиенти");
+    expect(markup).toContain("Финансии");
+    expect(markup).toContain("Денешен вкупен принос");
+    expect(markup).toContain("Број на претплатници");
+    expect(markup).toContain("Број на листа на чекање");
+    expect(markup).toContain("Број на активни купувачи");
     expect(markup).toContain("Денешен директен трошок");
+    expect(markup).toContain("Денешен распределен трошок");
+    expect(markup).toContain("Бруто маржа за 7 дена");
+    expect(markup).toContain("Бруто маржа за 30 дена");
     expect(markup).toContain("Трошоци по категорија");
     expect(markup).toContain("Храна");
   });
@@ -126,6 +160,9 @@ describe("AdminDashboardPage", () => {
     );
 
     expect(markup).toContain("Available eggs");
+    expect(markup).toContain("Production and flock");
+    expect(markup).toContain("Customers");
+    expect(markup).toContain("Finance");
     expect(markup).toContain("Public homepage display");
     expect(markup).toContain(
       "These settings change only the public homepage display for the note, the counts, and the price.",
@@ -141,6 +178,17 @@ describe("AdminDashboardPage", () => {
     expect(markup).toContain("Costs by category");
   });
 });
+
+function expectInOrder(markup: string, values: string[]) {
+  let lastIndex = -1;
+
+  for (const value of values) {
+    const nextIndex = markup.indexOf(value);
+
+    expect(nextIndex).toBeGreaterThan(lastIndex);
+    lastIndex = nextIndex;
+  }
+}
 
 function buildDashboardPayload(mode: "simple" | "expanded") {
   return {

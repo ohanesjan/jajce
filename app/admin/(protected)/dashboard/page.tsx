@@ -16,6 +16,18 @@ type AdminDashboardPageProps = {
   searchParams?: Promise<SearchParamsRecord>;
 };
 
+type DashboardMetricCard = {
+  label: string;
+  value: string;
+  detail: string;
+};
+
+type DashboardMetricSection = {
+  title: string;
+  columnsClassName: string;
+  cards: DashboardMetricCard[];
+};
+
 export default async function AdminDashboardPage({
   searchParams,
 }: AdminDashboardPageProps) {
@@ -36,6 +48,122 @@ export default async function AdminDashboardPage({
     getHomepagePublicNoteEnabled(),
     getHomepageStatOverrides(),
   ]);
+  const simpleMetricCards: DashboardMetricCard[] = [
+    {
+      label: copy.dashboard.availableEggs,
+      value: formatMetricValue(dashboard.simple.available_eggs),
+      detail: copy.dashboard.availableEggsDetail,
+    },
+    {
+      label: copy.dashboard.todayCollectedForSale,
+      value: formatMetricValue(dashboard.simple.today_collected_for_sale),
+      detail: copy.dashboard.todayCollectedForSaleDetail,
+    },
+    {
+      label: copy.dashboard.yesterdayCollectedForSale,
+      value: formatMetricValue(dashboard.simple.yesterday_collected_for_sale),
+      detail: copy.dashboard.yesterdayCollectedForSaleDetail,
+    },
+    {
+      label: copy.dashboard.latestChickenCount,
+      value: formatMetricValue(dashboard.simple.latest_chicken_count),
+      detail: dashboard.simple.latest_chicken_count_date
+        ? `${copy.dashboard.latestLog}: ${formatDateOnly(dashboard.simple.latest_chicken_count_date)}`
+        : copy.dashboard.noDailyLogsYet,
+    },
+    {
+      label: copy.dashboard.todaySoldEggs,
+      value: formatMetricValue(dashboard.simple.today_sold_eggs),
+      detail: copy.dashboard.todaySoldEggsDetail,
+    },
+    {
+      label: copy.dashboard.todayRevenue,
+      value: formatMetricValue(dashboard.simple.today_revenue),
+      detail: copy.dashboard.todayRevenueDetail,
+    },
+    {
+      label: copy.dashboard.todayTotalCost,
+      value: formatMetricValue(dashboard.simple.today_total_cost),
+      detail: copy.dashboard.todayTotalCostDetail,
+    },
+    {
+      label: copy.dashboard.todayGrossMargin,
+      value: formatMetricValue(dashboard.simple.today_gross_margin),
+      detail: copy.dashboard.todayGrossMarginDetail,
+    },
+  ];
+  const expandedMetricSections: DashboardMetricSection[] = dashboard.expanded
+    ? [
+        {
+          title: copy.dashboard.productionAndFlockSection,
+          columnsClassName: "md:grid-cols-2 xl:grid-cols-3",
+          cards: [
+            {
+              label: copy.dashboard.todayTotalYield,
+              value: formatMetricValue(dashboard.simple.today_total_yield),
+              detail: copy.dashboard.todayTotalYieldDetail,
+            },
+            {
+              label: copy.dashboard.totalYieldPerChicken,
+              value: formatMetricValue(dashboard.expanded.total_yield_per_chicken),
+              detail: copy.dashboard.totalYieldPerChickenDetail,
+            },
+            {
+              label: copy.dashboard.saleYieldPerChicken,
+              value: formatMetricValue(dashboard.expanded.sale_yield_per_chicken),
+              detail: copy.dashboard.saleYieldPerChickenDetail,
+            },
+          ],
+        },
+        {
+          title: copy.dashboard.customersSection,
+          columnsClassName: "md:grid-cols-2 xl:grid-cols-3",
+          cards: [
+            {
+              label: copy.dashboard.subscriberCount,
+              value: formatMetricValue(dashboard.simple.subscriber_count),
+              detail: copy.dashboard.subscriberCountDetail,
+            },
+            {
+              label: copy.dashboard.waitingListCount,
+              value: formatMetricValue(dashboard.simple.waiting_list_count),
+              detail: copy.dashboard.waitingListCountDetail,
+            },
+            {
+              label: copy.dashboard.activeCustomerCount,
+              value: formatMetricValue(dashboard.simple.active_customer_count),
+              detail: copy.dashboard.activeCustomerCountDetail,
+            },
+          ],
+        },
+        {
+          title: copy.dashboard.financeSection,
+          columnsClassName: "md:grid-cols-2 xl:grid-cols-4",
+          cards: [
+            {
+              label: copy.dashboard.todayDirectCost,
+              value: formatMetricValue(dashboard.expanded.today_direct_cost),
+              detail: copy.dashboard.todayDirectCostDetail,
+            },
+            {
+              label: copy.dashboard.todayAllocatedCost,
+              value: formatMetricValue(dashboard.expanded.today_allocated_cost),
+              detail: copy.dashboard.todayAllocatedCostDetail,
+            },
+            {
+              label: copy.dashboard.grossMargin7d,
+              value: formatMetricValue(dashboard.expanded.gross_margin_7d),
+              detail: copy.dashboard.grossMargin7dDetail,
+            },
+            {
+              label: copy.dashboard.grossMargin30d,
+              value: formatMetricValue(dashboard.expanded.gross_margin_30d),
+              detail: copy.dashboard.grossMargin30dDetail,
+            },
+          ],
+        },
+      ]
+    : [];
 
   return (
     <main className="space-y-6">
@@ -70,106 +198,33 @@ export default async function AdminDashboardPage({
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <DashboardCard
-          label={copy.dashboard.availableEggs}
-          value={formatMetricValue(dashboard.simple.available_eggs)}
-          detail={copy.dashboard.availableEggsDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.todayTotalYield}
-          value={formatMetricValue(dashboard.simple.today_total_yield)}
-          detail={copy.dashboard.todayTotalYieldDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.todayCollectedForSale}
-          value={formatMetricValue(dashboard.simple.today_collected_for_sale)}
-          detail={copy.dashboard.todayCollectedForSaleDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.yesterdayCollectedForSale}
-          value={formatMetricValue(dashboard.simple.yesterday_collected_for_sale)}
-          detail={copy.dashboard.yesterdayCollectedForSaleDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.latestChickenCount}
-          value={formatMetricValue(dashboard.simple.latest_chicken_count)}
-          detail={
-            dashboard.simple.latest_chicken_count_date
-              ? `${copy.dashboard.latestLog}: ${formatDateOnly(dashboard.simple.latest_chicken_count_date)}`
-              : copy.dashboard.noDailyLogsYet
-          }
-        />
-        <DashboardCard
-          label={copy.dashboard.todaySoldEggs}
-          value={formatMetricValue(dashboard.simple.today_sold_eggs)}
-          detail={copy.dashboard.todaySoldEggsDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.todayRevenue}
-          value={formatMetricValue(dashboard.simple.today_revenue)}
-          detail={copy.dashboard.todayRevenueDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.todayTotalCost}
-          value={formatMetricValue(dashboard.simple.today_total_cost)}
-          detail={copy.dashboard.todayTotalCostDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.todayGrossMargin}
-          value={formatMetricValue(dashboard.simple.today_gross_margin)}
-          detail={copy.dashboard.todayGrossMarginDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.subscriberCount}
-          value={formatMetricValue(dashboard.simple.subscriber_count)}
-          detail={copy.dashboard.subscriberCountDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.waitingListCount}
-          value={formatMetricValue(dashboard.simple.waiting_list_count)}
-          detail={copy.dashboard.waitingListCountDetail}
-        />
-        <DashboardCard
-          label={copy.dashboard.activeCustomerCount}
-          value={formatMetricValue(dashboard.simple.active_customer_count)}
-          detail={copy.dashboard.activeCustomerCountDetail}
-        />
+        {simpleMetricCards.map((card) => (
+          <DashboardCard
+            key={card.label}
+            label={card.label}
+            value={card.value}
+            detail={card.detail}
+          />
+        ))}
       </section>
 
       {dashboard.expanded ? (
         <div className="space-y-6">
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <DashboardCard
-              label={copy.dashboard.totalYieldPerChicken}
-              value={formatMetricValue(dashboard.expanded.total_yield_per_chicken)}
-              detail={copy.dashboard.totalYieldPerChickenDetail}
-            />
-            <DashboardCard
-              label={copy.dashboard.saleYieldPerChicken}
-              value={formatMetricValue(dashboard.expanded.sale_yield_per_chicken)}
-              detail={copy.dashboard.saleYieldPerChickenDetail}
-            />
-            <DashboardCard
-              label={copy.dashboard.todayDirectCost}
-              value={formatMetricValue(dashboard.expanded.today_direct_cost)}
-              detail={copy.dashboard.todayDirectCostDetail}
-            />
-            <DashboardCard
-              label={copy.dashboard.todayAllocatedCost}
-              value={formatMetricValue(dashboard.expanded.today_allocated_cost)}
-              detail={copy.dashboard.todayAllocatedCostDetail}
-            />
-            <DashboardCard
-              label={copy.dashboard.grossMargin7d}
-              value={formatMetricValue(dashboard.expanded.gross_margin_7d)}
-              detail={copy.dashboard.grossMargin7dDetail}
-            />
-            <DashboardCard
-              label={copy.dashboard.grossMargin30d}
-              value={formatMetricValue(dashboard.expanded.gross_margin_30d)}
-              detail={copy.dashboard.grossMargin30dDetail}
-            />
-          </section>
+          {expandedMetricSections.map((section) => (
+            <section key={section.title} className="card-surface p-6">
+              <h2 className="font-serif text-2xl text-bark">{section.title}</h2>
+              <div className={`mt-5 grid gap-4 ${section.columnsClassName}`}>
+                {section.cards.map((card) => (
+                  <DashboardCard
+                    key={card.label}
+                    label={card.label}
+                    value={card.value}
+                    detail={card.detail}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
 
           <section className="card-surface p-6">
             <p className="eyebrow">{copy.dashboard.todayEyebrow}</p>

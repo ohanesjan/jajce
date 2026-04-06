@@ -68,6 +68,9 @@ const mkAdminCopy = {
     waitingListCountDetail: "Контакти означени на листа на чекање.",
     activeCustomerCount: "Број на активни купувачи",
     activeCustomerCountDetail: "Контакти означени како активни купувачи.",
+    productionAndFlockSection: "Производство и јато",
+    customersSection: "Клиенти",
+    financeSection: "Финансии",
     homepageEyebrow: "Почетна страница",
     homepageTitle: "Видливост на јавна белешка",
     homepageDescription:
@@ -606,6 +609,9 @@ const enAdminCopy: typeof mkAdminCopy = {
     waitingListCountDetail: "Contacts tagged as waiting list.",
     activeCustomerCount: "Active customer count",
     activeCustomerCountDetail: "Contacts tagged as active customers.",
+    productionAndFlockSection: "Production and flock",
+    customersSection: "Customers",
+    financeSection: "Finance",
     homepageEyebrow: "Homepage",
     homepageTitle: "Public note visibility",
     homepageDescription:
