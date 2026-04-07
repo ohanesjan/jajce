@@ -7,6 +7,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Prefer a direct connection for Prisma CLI workflows such as migrations,
+    // while preserving the existing local DATABASE_URL fallback for development.
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });
