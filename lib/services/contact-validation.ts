@@ -4,14 +4,15 @@ import {
   preference_unit,
   preferred_channel,
 } from "@prisma/client";
+import { enumValues } from "@/lib/utils/enum-values";
 import { parseDateOnly } from "@/lib/utils/date";
 
 export class ContactValidationError extends Error {}
 
-export const CUSTOMER_STAGE_VALUES = Object.values(customer_stage);
-export const PREFERRED_CHANNEL_VALUES = Object.values(preferred_channel);
-export const PREFERENCE_UNIT_VALUES = Object.values(preference_unit);
-export const NOTIFICATION_FREQUENCY_VALUES = Object.values(notification_frequency);
+export const CUSTOMER_STAGE_VALUES = enumValues(customer_stage);
+export const PREFERRED_CHANNEL_VALUES = enumValues(preferred_channel);
+export const PREFERENCE_UNIT_VALUES = enumValues(preference_unit);
+export const NOTIFICATION_FREQUENCY_VALUES = enumValues(notification_frequency);
 
 export function parseCustomerStage(value: unknown): customer_stage {
   return parseEnumValue(value, CUSTOMER_STAGE_VALUES, "Customer stage");

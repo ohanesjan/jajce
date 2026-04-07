@@ -3,14 +3,15 @@ import {
   parseDateOnly,
   parseDateTimeLocalInTimeZone,
 } from "@/lib/utils/date";
+import { enumValues } from "@/lib/utils/enum-values";
 
 const ADMIN_ORDER_TIME_ZONE =
   process.env.ADMIN_DASHBOARD_TIME_ZONE ?? "Europe/Amsterdam";
 
 export class OrderValidationError extends Error {}
 
-export const ORDER_STATUS_VALUES = Object.values(order_status);
-export const PRICE_SOURCE_VALUES = Object.values(price_source);
+export const ORDER_STATUS_VALUES = enumValues(order_status);
+export const PRICE_SOURCE_VALUES = enumValues(price_source);
 
 export type EditableOrderInput = {
   contact_id: unknown;

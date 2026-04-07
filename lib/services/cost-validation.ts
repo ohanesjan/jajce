@@ -6,13 +6,14 @@ import {
   cost_type,
 } from "@prisma/client";
 import { parseDateOnly } from "@/lib/utils/date";
+import { enumValues } from "@/lib/utils/enum-values";
 
 export class CostValidationError extends Error {}
 
-export const COST_CATEGORY_VALUES = Object.values(cost_category);
-export const COST_TYPE_VALUES = Object.values(cost_type);
-export const COST_FREQUENCY_VALUES = Object.values(cost_frequency);
-export const COST_SOURCE_TYPE_VALUES = Object.values(cost_source_type);
+export const COST_CATEGORY_VALUES = enumValues(cost_category);
+export const COST_TYPE_VALUES = enumValues(cost_type);
+export const COST_FREQUENCY_VALUES = enumValues(cost_frequency);
+export const COST_SOURCE_TYPE_VALUES = enumValues(cost_source_type);
 
 export function parseCostCategory(value: unknown): cost_category {
   return parseEnumValue(value, COST_CATEGORY_VALUES, "Category");

@@ -2,11 +2,12 @@ import {
   audience_type,
   notification_channel,
 } from "@prisma/client";
+import { enumValues } from "@/lib/utils/enum-values";
 
 export class NotificationCampaignValidationError extends Error {}
 
-export const NOTIFICATION_CHANNEL_VALUES = Object.values(notification_channel);
-export const NOTIFICATION_AUDIENCE_VALUES = Object.values(audience_type);
+export const NOTIFICATION_CHANNEL_VALUES = enumValues(notification_channel);
+export const NOTIFICATION_AUDIENCE_VALUES = enumValues(audience_type);
 
 export type NotificationCampaignDraftInput = {
   title: unknown;
