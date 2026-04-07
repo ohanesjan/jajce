@@ -1,0 +1,350 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum customer_stage {
+  lead
+  subscriber
+  waiting_list
+  active
+  inactive
+}
+
+enum preferred_channel {
+  email
+  viber
+  whatsapp
+  all
+}
+
+enum preference_unit {
+  week
+  month
+}
+
+enum notification_frequency {
+  instant
+  weekly
+  manual_only
+}
+
+enum cost_category {
+  feed
+  supplements
+  bedding_hygiene
+  packaging
+  transport
+  labor_time
+  utilities
+  maintenance
+  veterinary_medicine
+  equipment_tools
+  land_facility
+  miscellaneous
+}
+
+enum cost_type {
+  direct
+  allocated
+}
+
+enum cost_frequency {
+  daily
+  weekly
+  monthly
+}
+
+enum cost_source_type {
+  manual
+  template
+}
+
+enum order_status {
+  reserved
+  completed
+  cancelled
+}
+
+enum price_source {
+  default
+  manual_override
+}
+
+enum inventory_transaction_type {
+  collected
+  reserved
+  released
+  sold
+  manual_adjustment
+}
+
+enum notification_channel {
+  email
+  viber
+  whatsapp
+}
+
+enum audience_type {
+  subscribers
+  waiting_list
+  active_customers
+  selected_contacts
+}
+
+enum notification_campaign_status {
+  draft
+  sent
+  failed
+}
+
+enum delivery_status {
+  pending
+  sent
+  failed
+}
+
+model Admin {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password_hash String
+  is_active     Boolean   @default(true)
+  last_login_at DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  @@index([is_active])
+  @@map("admins")
+}
+
+model Contact {
+  id                     String                 @id @default(cuid())
+  full_name              String
+  email                  String?
+  phone                  String?
+  is_subscriber          Boolean                @default(false)
+  is_waiting_list        Boolean                @default(false)
+  is_active_customer     Boolean                @default(false)
+  email_opt_in           Boolean                @default(false)
+  phone_opt_in           Boolean                @default(false)
+  preferred_channel      preferred_channel?
+  preferred_quantity     Int?
+  preference_unit        preference_unit?
+  notification_frequency notification_frequency?
+  customer_stage         customer_stage         @default(lead)
+  source                 String?
+  joined_waiting_list_at DateTime?
+  became_customer_at     DateTime?
+  notes                  String?
+  created_at             DateTime               @default(now())
+  updated_at             DateTime               @updatedAt
+  orders                 Order[]
+  notification_recipients NotificationRecipient[]
+  notification_campaign_selections NotificationCampaignSelection[]
+
+  @@index([customer_stage])
+  @@index([is_subscriber])
+  @@index([is_waiting_list])
+  @@index([is_active_customer])
+  @@index([email])
+  @@index([phone])
+  @@map("contacts")
+}
+
+model DailyLog {
+  id                       String                 @id @default(cuid())
+  date                     DateTime               @unique @db.Date
+  eggs_total_yield         Int
+  eggs_collected_for_sale  Int
+  eggs_used_other_purpose  Int
+  eggs_broken              Int
+  eggs_unusable_other      Int
+  chicken_count            Int
+  public_note              String?
+  notes                    String?
+  created_at               DateTime               @default(now())
+  updated_at               DateTime               @updatedAt
+  inventory_transactions   InventoryTransaction[]
+
+  @@index([created_at])
+  @@map("daily_logs")
+}
+
+model CostTemplate {
+  id                   String        @id @default(cuid())
+  name                 String
+  category             cost_category
+  cost_type            cost_type
+  default_quantity     Decimal?      @db.Decimal(10, 2)
+  default_unit         String?
+  default_unit_price   Decimal?      @db.Decimal(10, 2)
+  default_total_amount Decimal       @db.Decimal(10, 2)
+  frequency            cost_frequency
+  start_date           DateTime      @db.Date
+  end_date             DateTime?     @db.Date
+  is_active            Boolean       @default(true)
+  note                 String?
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+  cost_entries         CostEntry[]
+  cost_template_skips  CostTemplateSkip[]
+
+  @@index([is_active])
+  @@index([category])
+  @@index([cost_type])
+  @@index([frequency])
+  @@index([is_active, start_date, end_date])
+  @@map("cost_templates")
+}
+
+model CostEntry {
+  id               String           @id @default(cuid())
+  date             DateTime         @db.Date
+  category         cost_category
+  cost_type        cost_type
+  quantity         Decimal?         @db.Decimal(10, 2)
+  unit             String?
+  unit_price       Decimal?         @db.Decimal(10, 2)
+  total_amount     Decimal          @db.Decimal(10, 2)
+  source_type      cost_source_type
+  cost_template_id String?
+  note             String?
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  cost_template    CostTemplate?    @relation(fields: [cost_template_id], references: [id], onDelete: SetNull)
+
+  @@index([date])
+  @@index([cost_type])
+  @@index([category])
+  @@index([cost_template_id])
+  @@index([date, cost_type])
+  @@map("cost_entries")
+}
+
+model CostTemplateSkip {
+  id               String       @id @default(cuid())
+  cost_template_id String
+  date             DateTime     @db.Date
+  created_at       DateTime     @default(now())
+  cost_template    CostTemplate @relation(fields: [cost_template_id], references: [id], onDelete: Cascade)
+
+  @@index([cost_template_id])
+  @@index([date])
+  @@unique([cost_template_id, date])
+  @@map("cost_template_skips")
+}
+
+model Order {
+  id                      String                 @id @default(cuid())
+  contact_id              String
+  date                    DateTime               @db.Date
+  target_fulfillment_date DateTime?              @db.Date
+  quantity                Int
+  unit_price              Decimal                @db.Decimal(10, 2)
+  total_price             Decimal                @db.Decimal(10, 2)
+  status                  order_status
+  fulfilled_at            DateTime?
+  price_source            price_source
+  note                    String?
+  created_at              DateTime               @default(now())
+  updated_at              DateTime               @updatedAt
+  contact                 Contact                @relation(fields: [contact_id], references: [id], onDelete: Restrict)
+  inventory_transactions  InventoryTransaction[]
+
+  @@index([contact_id])
+  @@index([status])
+  @@index([date])
+  @@index([fulfilled_at])
+  @@index([target_fulfillment_date])
+  @@index([status, target_fulfillment_date])
+  @@map("orders")
+}
+
+model InventoryTransaction {
+  id           String                     @id @default(cuid())
+  date         DateTime
+  type         inventory_transaction_type
+  quantity     Int
+  daily_log_id String?
+  order_id     String?
+  note         String?
+  created_at   DateTime                   @default(now())
+  daily_log    DailyLog?                  @relation(fields: [daily_log_id], references: [id], onDelete: SetNull)
+  order        Order?                     @relation(fields: [order_id], references: [id], onDelete: SetNull)
+
+  @@index([date])
+  @@index([type])
+  @@index([daily_log_id])
+  @@index([order_id])
+  @@index([type, date])
+  @@map("inventory_transactions")
+}
+
+model NotificationCampaign {
+  id                      String                     @id @default(cuid())
+  title                   String
+  channel                 notification_channel
+  audience_type           audience_type
+  sender_label            String
+  subject                 String?
+  body                    String
+  status                  notification_campaign_status
+  sent_at                 DateTime?
+  created_at              DateTime                   @default(now())
+  updated_at              DateTime                   @updatedAt
+  notification_recipients NotificationRecipient[]
+  selected_contacts       NotificationCampaignSelection[]
+
+  @@index([channel])
+  @@index([audience_type])
+  @@index([status])
+  @@index([sent_at])
+  @@map("notification_campaigns")
+}
+
+model NotificationRecipient {
+  id                  String               @id @default(cuid())
+  campaign_id         String
+  contact_id          String
+  channel             notification_channel
+  destination         String
+  delivery_status     delivery_status
+  sent_at             DateTime?
+  provider_message_id String?
+  error_message       String?
+  created_at          DateTime             @default(now())
+  campaign            NotificationCampaign @relation(fields: [campaign_id], references: [id], onDelete: Restrict)
+  contact             Contact              @relation(fields: [contact_id], references: [id], onDelete: Restrict)
+
+  @@index([campaign_id])
+  @@index([contact_id])
+  @@index([delivery_status])
+  @@index([campaign_id, delivery_status])
+  @@unique([campaign_id, contact_id])
+  @@map("notification_recipients")
+}
+
+model NotificationCampaignSelection {
+  id          String               @id @default(cuid())
+  campaign_id String
+  contact_id  String
+  created_at  DateTime             @default(now())
+  campaign    NotificationCampaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  contact     Contact              @relation(fields: [contact_id], references: [id], onDelete: Restrict)
+
+  @@index([campaign_id])
+  @@index([contact_id])
+  @@unique([campaign_id, contact_id])
+  @@map("notification_campaign_selections")
+}
+
+model SiteSetting {
+  key        String   @id
+  value_json Json
+  updated_at DateTime @updatedAt
+
+  @@map("site_settings")
+}

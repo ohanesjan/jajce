@@ -1,11 +1,20 @@
 "use client";
 
+import { useActionState } from "react";
+import {
+  INITIAL_HOMEPAGE_NOTIFY_ACTION_STATE,
+  submitHomepageNotifyAction,
+} from "@/app/actions";
 import { useLanguage } from "@/context/LanguageContext";
 import { translations } from "@/lib/translations";
 
 export function NotifySection() {
   const { language } = useLanguage();
   const copy = translations[language];
+  const [state, formAction, isPending] = useActionState(
+    submitHomepageNotifyAction,
+    INITIAL_HOMEPAGE_NOTIFY_ACTION_STATE,
+  );
 
   return (
     <section className="section-shell py-24 md:py-32" id="notify">
@@ -19,26 +28,52 @@ export function NotifySection() {
             {copy.notifyCopy}
           </p>
 
-          <form
-            className="mt-11 flex flex-col gap-4 sm:flex-row"
-            onSubmit={(event) => event.preventDefault()}
-          >
-            <label className="sr-only" htmlFor="contact">
-              {copy.notifyPlaceholder}
+          {state.status === "success" ? (
+            <div className="mx-auto mt-8 max-w-xl rounded-[1.6rem] border border-emerald-200 bg-emerald-50/90 px-5 py-4 text-sm text-emerald-700">
+              {copy.notifySuccess}
+            </div>
+          ) : null}
+
+          {state.status === "error" ? (
+            <div className="mx-auto mt-8 max-w-xl rounded-[1.6rem] border border-red-200 bg-red-50/90 px-5 py-4 text-sm text-red-700">
+              {getNotifyErrorMessage(state.code, copy)}
+            </div>
+          ) : null}
+
+          <form action={formAction} className="mt-11 space-y-4">
+            <label className="sr-only" htmlFor="full_name">
+              {copy.notifyNameLabel}
             </label>
-            <input
-              id="contact"
-              name="contact"
-              type="text"
-              placeholder={copy.notifyPlaceholder}
-              className="min-h-14 flex-1 rounded-full border border-soil/12 bg-white/92 px-6 text-base text-bark shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] placeholder:text-bark/40 focus:border-sky focus:outline-none focus:ring-2 focus:ring-sky/25"
-            />
-            <button
-              type="submit"
-              className="min-h-14 rounded-full bg-bark px-8 text-sm font-semibold uppercase tracking-[0.24em] text-parchment transition hover:bg-[#4b3f37]"
-            >
-              {copy.notifyButton}
-            </button>
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)_auto]">
+              <input
+                id="full_name"
+                name="full_name"
+                type="text"
+                placeholder={copy.notifyNamePlaceholder}
+                className="min-h-14 rounded-full border border-soil/12 bg-white/92 px-6 text-base text-bark shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] placeholder:text-bark/40 focus:border-sky focus:outline-none focus:ring-2 focus:ring-sky/25"
+              />
+
+              <div>
+                <label className="sr-only" htmlFor="email_or_phone">
+                  {copy.notifyPlaceholder}
+                </label>
+                <input
+                  id="email_or_phone"
+                  name="email_or_phone"
+                  type="text"
+                  placeholder={copy.notifyPlaceholder}
+                  className="min-h-14 w-full rounded-full border border-soil/12 bg-white/92 px-6 text-base text-bark shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] placeholder:text-bark/40 focus:border-sky focus:outline-none focus:ring-2 focus:ring-sky/25"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isPending}
+                className="min-h-14 rounded-full bg-bark px-8 text-sm font-semibold uppercase tracking-[0.24em] text-parchment transition hover:bg-[#4b3f37] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isPending ? copy.notifyPendingButton : copy.notifyButton}
+              </button>
+            </div>
           </form>
 
           <p className="mt-5 text-sm text-bark/60">{copy.notifyMeta}</p>
@@ -46,4 +81,19 @@ export function NotifySection() {
       </div>
     </section>
   );
+}
+
+function getNotifyErrorMessage(
+  code: "validation" | "conflict" | "unknown" | null,
+  copy: Record<string, string>,
+): string {
+  if (code === "validation") {
+    return copy.notifyValidationError;
+  }
+
+  if (code === "conflict") {
+    return copy.notifyConflictError;
+  }
+
+  return copy.notifyUnknownError;
 }

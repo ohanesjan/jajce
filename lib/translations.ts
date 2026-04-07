@@ -14,14 +14,14 @@ export const translations: Record<Language, Record<string, string>> = {
     availabilityEggUnit: "eggs",
     availabilityChickenUnit: "",
     storyEyebrow: "Our story",
-    storyTitle: "Raised naturally",
+    storyTitle: "Naturally raised mountain eggs.",
     storyParagraphOne:
-      "In Pletvar, a quiet mountain village, our chickens live as they should — free to roam, breathe fresh air, and follow their natural rhythm.",
+      "In Pletvar, a quiet mountain village, our chickens live as they should, moving freely, breathing fresh air, and following their natural rhythm.",
     storyParagraphTwo:
-      "They are nourished with high-quality, natural feed — free from additives and antibiotics.",
+      "They are fed high-quality natural feed, without additives or antibiotics.",
     storyParagraphThree:
-      "We don't rush or force production — we simply collect what nature provides, when it's ready.",
-    storyMeta: "Small-scale. Seasonal. Genuine.",
+      "We do not force production, we simply collect what nature provides.",
+    storyMeta: "Small-scale. Fresh. Genuine.",
     storyBadge: "Pletvar village",
     howEyebrow: "How it works",
     howTitle: "A simple rhythm, shaped by nature",
@@ -36,9 +36,20 @@ export const translations: Record<Language, Record<string, string>> = {
     notifyTitle: "Be the first to hear when a batch is ready",
     notifyCopy:
       "Leave your email or phone number and we will only reach out when eggs are available.",
+    notifyNameLabel: "Full name",
+    notifyNamePlaceholder: "Full name",
     notifyPlaceholder: "Email or phone number",
     notifyButton: "Notify me",
+    notifyPendingButton: "Sending",
     notifyMeta: "Only messages when eggs are available.",
+    notifySuccess:
+      "Thanks. You’re on the notify list and we’ll reach out when eggs are available.",
+    notifyValidationError:
+      "Please enter your full name and a valid email address or phone number.",
+    notifyConflictError:
+      "We couldn’t safely save this signup right now. Please contact us directly.",
+    notifyUnknownError:
+      "Something went wrong while saving your signup. Please try again.",
     trustLineOne: "Pletvar,",
     trustLineTwo: "at 1000m elevation",
     trustLineThree: "where quality comes before quantity.",
@@ -59,14 +70,14 @@ export const translations: Record<Language, Record<string, string>> = {
     availabilityEggUnit: "јајца",
     availabilityChickenUnit: "",
     storyEyebrow: "Нашата приказна",
-    storyTitle: "Одгледани природно",
+    storyTitle: "Природно одгледани планински јајца.",
     storyParagraphOne:
-      "Во Плетвар, тивко планинско село, нашите кокошки живеат како што треба — слободно се движат, дишат свеж воздух и го следат својот природен ритам.",
+      "Во Плетвар, тивко планинско село, нашите кокошки живеат како што треба, се движат слободно, дишат свеж воздух и го следат својот природен ритам.",
     storyParagraphTwo:
-      "Се хранат со висококвалитетна природна храна — без адитиви и антибиотици.",
+      "Се хранат со висококвалитетна природна храна, без адитиви и антибиотици.",
     storyParagraphThree:
-      "Не го форсираме производството — едноставно го собираме тоа што природата го дава, кога е подготвено.",
-    storyMeta: "Мало производство. Сезонско. Автентично.",
+      "Не го форсираме производството, едноставно го собираме тоа што природата го дава.",
+    storyMeta: "Мало производство. Свежо. Автентично.",
     storyBadge: "село Плетвар",
     howEyebrow: "Како функционира",
     howTitle: "Едноставен ритам, воден од природата",
@@ -82,9 +93,20 @@ export const translations: Record<Language, Record<string, string>> = {
     notifyTitle: "Бидете први што ќе дознаат кога има нови јајца",
     notifyCopy:
       "Оставете го вашиот емаил или телефон и ќе ве известиме само кога има достапни јајца.",
+    notifyNameLabel: "Име и презиме",
+    notifyNamePlaceholder: "Име и презиме",
     notifyPlaceholder: "Емаил или телефон",
     notifyButton: "Извести ме",
+    notifyPendingButton: "Се зачувува",
     notifyMeta: "Само кога има достапни јајца.",
+    notifySuccess:
+      "Ви благодариме. Ве додадовме за известување и ќе ви пишеме кога ќе има достапни јајца.",
+    notifyValidationError:
+      "Внесете име и презиме и валиден емаил или телефонски број.",
+    notifyConflictError:
+      "Не можевме безбедно да ја зачуваме пријавата. Контактирајте не директно.",
+    notifyUnknownError:
+      "Настана проблем при зачувувањето. Обидете се повторно.",
     trustLineOne: "Плетвар,",
     trustLineTwo: "на 1000м надморска височина,",
     trustLineThree: "каде квалитетот е поважен од количината.",

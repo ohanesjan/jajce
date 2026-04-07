@@ -5,7 +5,7 @@ import { useLanguage } from "@/context/LanguageContext";
 
 const content = {
   mk: {
-    price: "16 денари по јајце",
+    priceSuffix: "денари по јајце",
     subtitle: "Природно произведени, во ограничени количини.",
     transparencyLead:
       "Не плаќате само за јајце — туку и за начинот на кој е произведено.",
@@ -13,6 +13,7 @@ const content = {
     toggleOpen: "Зошто оваа цена",
     toggleClose: "Сокриј",
     totalLabel: "Вкупно",
+    currencySuffix: "ден",
     breakdown: {
       feed: "Храна",
       care: "Грижа и време",
@@ -22,7 +23,7 @@ const content = {
     },
   },
   en: {
-    price: "16 MKD per egg",
+    priceSuffix: "MKD per egg",
     subtitle: "Naturally produced, in limited quantities.",
     transparencyLead:
       "You’re not just paying for an egg — but for how it’s produced.",
@@ -30,6 +31,7 @@ const content = {
     toggleOpen: "Why this price",
     toggleClose: "Hide breakdown",
     totalLabel: "Total",
+    currencySuffix: "MKD",
     breakdown: {
       feed: "Feed",
       care: "Care and time",
@@ -43,41 +45,43 @@ const content = {
 const breakdownValues = [
   {
     key: "feed",
-    value: "6 ден",
     percent: 37.5,
     barClassName: "bg-[#9e7f68]",
   },
   {
     key: "care",
-    value: "6 ден",
     percent: 37.5,
     barClassName: "bg-[#b7957d]",
   },
   {
     key: "land",
-    value: "2.5 ден",
     percent: 15.625,
     barClassName: "bg-[#b6b597]",
   },
   {
     key: "packaging",
-    value: "0.5 ден",
     percent: 3.125,
     barClassName: "bg-[#d9cfbf]",
   },
   {
     key: "margin",
-    value: "1 ден",
     percent: 6.25,
     barClassName: "border border-[#cab79f] bg-transparent",
   },
 ] as const;
 
-export default function PriceTransparency({ compact = false }: { compact?: boolean }) {
+export default function PriceTransparency({
+  compact = false,
+  price,
+}: {
+  compact?: boolean;
+  price: number;
+}) {
   const { language } = useLanguage();
   const copy = content[language] ?? content.mk;
   const [isOpen, setIsOpen] = useState(false);
   const breakdownId = useId();
+  const formattedPrice = formatDisplayPrice(price);
 
   return (
     <section
@@ -86,7 +90,7 @@ export default function PriceTransparency({ compact = false }: { compact?: boole
     >
       <div className="mx-auto max-w-[38rem] text-center">
         <p className="font-serif text-[2rem] leading-tight text-bark md:text-[2.5rem]">
-          {copy.price}
+          {formattedPrice} {copy.priceSuffix}
         </p>
         <p className="mt-4 text-[1rem] text-bark/72 md:text-[1.06rem]">
           {copy.subtitle}
@@ -161,7 +165,9 @@ export default function PriceTransparency({ compact = false }: { compact?: boole
                       />
                     </div>
 
-                    <p className="text-sm text-right text-bark/65">{item.value}</p>
+                    <p className="text-sm text-right text-bark/65">
+                      {formatBreakdownValue(price, item.percent, copy.currencySuffix)}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -170,7 +176,9 @@ export default function PriceTransparency({ compact = false }: { compact?: boole
                 <p className="text-[0.76rem] uppercase tracking-[0.18em] text-soil/72">
                   {copy.totalLabel}
                 </p>
-                <p className="font-serif text-[1.2rem] text-bark">16 ден</p>
+                <p className="font-serif text-[1.2rem] text-bark">
+                  {formattedPrice} {copy.currencySuffix}
+                </p>
               </div>
             </div>
           </div>
@@ -178,4 +186,20 @@ export default function PriceTransparency({ compact = false }: { compact?: boole
       </div>
     </section>
   );
+}
+
+function formatBreakdownValue(
+  totalPrice: number,
+  percent: number,
+  suffix: string,
+): string {
+  return `${formatDisplayPrice((totalPrice * percent) / 100)} ${suffix}`;
+}
+
+function formatDisplayPrice(value: number): string {
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+
+  return value.toFixed(2).replace(/\.?0+$/, "");
 }
